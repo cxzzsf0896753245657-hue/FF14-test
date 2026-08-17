@@ -24,8 +24,8 @@
         }
         body.light-mode .timer-card { border: 1px solid #dfe6e9; box-shadow: 0 4px 6px rgba(0,0,0,0.05); background-color: #ffffff; }
         body.light-mode .progress-bar-bg { background-color: #e0e0e0; }
-        body.light-mode .collapsible-btn { background-color: #ffffff; border: 1px solid #dcdde1; color: #2d3436; }
-        body.light-mode .collapsible-btn:hover { background-color: #f1f2f6; }
+        body.light-mode .collapsible-btn { background: rgba(0,0,0,0.02); border: 1px solid rgba(0,0,0,0.08); color: #2d3436; }
+        body.light-mode .collapsible-btn:hover { background: rgba(0,0,0,0.05); }
         body.light-mode .content { background-color: #ffffff; }
         body.light-mode .btn-top, body.light-mode #alarmSelect { 
             background: #dfe6e9; color: #2d3436; border: 1px solid #ced6e0; 
@@ -172,25 +172,99 @@
             .left-panel { flex: none; width: 100%; }
         }
 
-        .header-wrapper { display: flex; flex-direction: column; align-items: center; width: 100%; margin-bottom: 20px; gap: 10px; }
-        h1 { color: var(--accent-color); font-size: 24px; margin: 0; text-align: center; }
-        .top-btns { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; justify-content: center; }
-        .btn-top { cursor: pointer; background: #333; color: #fff; border: 1px solid #444; padding: 6px 12px; border-radius: 6px; font-size: 13px; }
-        
-        #alarmSelect { background: #333; color: #fff; border: 1px solid #444; padding: 6px 8px; border-radius: 6px; font-size: 13px; cursor: pointer; }
-        #volumeSlider { width: 80px; cursor: pointer; }
-        
-        .upload-zone { border: 2px dashed #444; background-color: var(--card-color); padding: 30px; text-align: center; border-radius: 8px; cursor: pointer; transition: all 0.3s; margin-bottom: 10px; }
-        .upload-zone:hover { border-color: var(--accent-color); background-color: rgba(155,126,200,0.08); }
+        .header-wrapper { display: flex; flex-direction: column; align-items: flex-start; width: 100%; margin-bottom: 14px; gap: 0; }
+        h1 { color: var(--text-color); font-size: 18px; font-weight: 800; margin: 0 0 12px 0; letter-spacing: 0.2px; line-height: 1.3; }
+        h1 span { font-size: 12px; color: #888; font-weight: 400; margin-left: 6px; }
+        .top-btns { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; justify-content: flex-start; width: 100%; }
+        .btn-top { cursor: pointer; background: rgba(255,255,255,0.05); color: var(--text-color); border: 1px solid rgba(255,255,255,0.1); padding: 6px 12px; border-radius: 8px; font-size: 13px; transition: background 0.15s; }
+        .btn-top:hover { background: rgba(255,255,255,0.1); }
+
+        /* 控制列容器 */
+        .lp-controls {
+            display: flex; align-items: center; gap: 6px; width: 100%; flex-wrap: wrap;
+            padding: 8px 10px; background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.07); border-radius: 10px; margin-bottom: 12px;
+        }
+        body.light-mode .lp-controls { background: rgba(0,0,0,0.02); border-color: rgba(0,0,0,0.07); }
+
+        /* Icon 按鈕 */
+        .lp-icon-btn {
+            width: 32px; height: 32px; border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.04);
+            color: var(--text-color); font-size: 14px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: background 0.15s; flex-shrink: 0;
+        }
+        .lp-icon-btn:hover { background: rgba(255,255,255,0.1); }
+        body.light-mode .lp-icon-btn { background: rgba(0,0,0,0.04); border-color: rgba(0,0,0,0.1); }
+
+        /* 音效控制組 */
+        .lp-sound-group {
+            display: flex; align-items: center; gap: 5px; flex: 1; min-width: 0;
+            background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 8px; padding: 4px 8px;
+        }
+        body.light-mode .lp-sound-group { background: rgba(0,0,0,0.02); border-color: rgba(0,0,0,0.07); }
+        .lp-sound-label { font-size: 10.5px; color: #888; white-space: nowrap; flex-shrink: 0; }
+        #alarmSelect { background: transparent; color: var(--text-color); border: none; font-size: 12px; cursor: pointer; outline: none; flex: 1; min-width: 0; }
+        body.light-mode #alarmSelect { color: #333; }
+        #volumeSlider { width: 55px; cursor: pointer; flex-shrink: 0; }
+        .lp-test-btn {
+            background: transparent; border: 1px solid rgba(255,255,255,0.1); color: #888;
+            border-radius: 6px; padding: 3px 7px; font-size: 11px; cursor: pointer;
+            white-space: nowrap; flex-shrink: 0; transition: color 0.15s;
+        }
+        .lp-test-btn:hover { color: var(--text-color); }
+        body.light-mode .lp-test-btn { border-color: rgba(0,0,0,0.1); color: #aaa; }
+
+        /* 上傳區：摺疊式 */
+        .lp-upload-toggle {
+            display: flex; align-items: center; gap: 8px; width: 100%;
+            padding: 8px 12px; border-radius: 8px; cursor: pointer;
+            border: 1px dashed rgba(255,255,255,0.12); color: #888;
+            font-size: 12.5px; font-weight: 600; background: transparent;
+            text-align: left; margin-bottom: 6px;
+            transition: background 0.15s, border-color 0.15s, color 0.15s;
+        }
+        .lp-upload-toggle:hover { background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.22); color: var(--text-color); }
+        body.light-mode .lp-upload-toggle { border-color: rgba(0,0,0,0.12); color: #aaa; }
+        .lp-upload-toggle .lp-upload-arrow { margin-left: auto; font-size: 10px; transition: transform 0.2s; }
+        .lp-upload-toggle.open .lp-upload-arrow { transform: rotate(180deg); }
+        #uploadZoneWrap { display: none; margin-bottom: 8px; }
+        #uploadZoneWrap.open { display: block; }
+
         #fileInput { display: none; }
-        .status { font-size: 14px; color: #aaa; margin-top: 10px; min-height: 20px; }
-        
-        .collapsible-wrapper { width: 100%; margin-bottom: 25px; }
-        .collapsible-btn { background: #2a2a2a; color: var(--text-color); border: 1px solid #444; padding: 8px 15px; width: 100%; text-align: left; cursor: pointer; border-radius: 6px; font-size: 15px; display: flex; align-items: center; gap: 10px; margin-bottom: 5px; transition: 0.3s; }
-        .collapsible-btn span { font-size: 20px; font-weight: bold; width: 20px; text-align: center; }
-        .collapsible-btn:hover { background: #3a3a3a; }
+        .status { font-size: 12px; color: #888; margin-top: 8px; min-height: 18px; }
+        .upload-zone { border: 2px dashed #444; background-color: var(--card-color); padding: 20px; text-align: center; border-radius: 8px; cursor: pointer; transition: all 0.3s; margin-bottom: 0; }
+        .upload-zone:hover { border-color: var(--accent-color); background-color: rgba(155,126,200,0.08); }
+        .upload-zone p { margin: 0 0 4px; font-size: 12.5px; color: #aaa; }
+        body.light-mode .upload-zone { background-color: #fff; border-color: #ced6e0; }
+        body.light-mode .upload-zone:hover { background-color: #f1f2f6; }
+        body.light-mode .upload-zone p { color: #888; }
+
+        /* 折疊區塊 */
+        .collapsible-wrapper { width: 100%; margin-bottom: 20px; display: flex; flex-direction: column; gap: 4px; }
+        .collapsible-btn {
+            width: 100%; background: rgba(255,255,255,0.025); border: 1px solid rgba(255,255,255,0.07);
+            color: var(--text-color); padding: 9px 12px; text-align: left; cursor: pointer;
+            font-size: 13.5px; font-weight: 600; border-radius: 8px;
+            display: flex; align-items: center; gap: 8px; margin-bottom: 0;
+            transition: background 0.15s, border-color 0.15s;
+        }
+        .collapsible-btn:hover { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.14); }
+        .collapsible-btn span { font-size: 13px; font-weight: 800; color: var(--accent-color); }
         .content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; background: var(--card-color); border-radius: 0 0 6px 6px; }
-        
+
+        /* 雲端同步狀態徽章 */
+        .cloud-status-badge {
+            margin-left: auto; font-size: 10.5px; font-weight: 700;
+            padding: 2px 7px; border-radius: 10px;
+            background: rgba(102,102,102,0.2); color: #888;
+        }
+        .cloud-status-badge.connected { background: rgba(76,175,80,0.15); color: #4caf50; }
+        .cloud-status-badge.error { background: rgba(255,83,112,0.15); color: #ff5370; }
+        body.light-mode .cloud-status-badge { background: rgba(0,0,0,0.07); color: #999; }
+
         .thumb-container { padding: 4px 5px; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; width: fit-content; }
         .thumb-img { width: 100px; height: auto; cursor: pointer; border: 2px solid #444; display: block; }
         .thumb-text { text-align: center; margin-top: 5px; color: var(--accent-color); font-weight: bold; }
@@ -2031,29 +2105,39 @@ document.addEventListener('DOMContentLoaded', function() {
     <!-- ══ LEFT PANEL ══ -->
     <div class="left-panel">
         <div class="header-wrapper">
-            <h1>FF14 潛水艇計時器2.2.5 <span style="font-size:13px; color:#888; font-weight:normal; white-space:nowrap;">阿緋@鳳凰</span></h1>
-            <div class="top-btns">
-                <button class="btn-top" onclick="toggleTheme()">切換主題</button>
-                <button class="btn-top" onclick="requestNotificationPermission()">啟用通知</button>
-                <select id="alarmSelect" onchange="changeAlarm(this.value)">
-                    <option value="off">音效：關閉</option>
-                    <option value="soft">音效：01 (柔和)</option>
-                    <option value="sharp">音效：02 (清脆)</option>
-                    <option value="ding">音效：03 (叮咚)</option>
-                </select>
-                <input type="range" id="volumeSlider" min="0" max="1" step="0.1" value="0.5" oninput="testVolume(this.value)">
-                <button class="btn-top" onclick="testAlarm()">測試</button>
+            <h1>FF14 潛水艇計時器2.2.5 <span>阿緋@鳳凰</span></h1>
+            <!-- 控制列 -->
+            <div class="lp-controls">
+                <button class="lp-icon-btn" onclick="toggleTheme()" title="切換主題">🌙</button>
+                <button class="lp-icon-btn" onclick="requestNotificationPermission()" title="啟用通知">🔔</button>
+                <div class="lp-sound-group">
+                    <span class="lp-sound-label">🔊</span>
+                    <select id="alarmSelect" onchange="changeAlarm(this.value)">
+                        <option value="off">關閉</option>
+                        <option value="soft">01 柔和</option>
+                        <option value="sharp">02 清脆</option>
+                        <option value="ding">03 叮咚</option>
+                    </select>
+                    <input type="range" id="volumeSlider" min="0" max="1" step="0.1" value="0.5" oninput="testVolume(this.value)">
+                    <button class="lp-test-btn" onclick="testAlarm()">測試</button>
+                </div>
+            </div>
+            <!-- 上傳截圖（預設收折）-->
+            <button class="lp-upload-toggle" onclick="toggleUploadZone(this)">
+                📂 上傳截圖辨識配件
+                <span class="lp-upload-arrow">▼</span>
+            </button>
+            <div id="uploadZoneWrap">
+                <div class="upload-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+                    <p>點擊選擇圖片、拖曳圖片至此，或直接 Ctrl + V 貼上截圖</p>
+                    <input type="file" id="fileInput" accept="image/*">
+                    <div class="status" id="statusText">正在初始化引擎...</div>
+                </div>
             </div>
         </div>
 
-<div class="upload-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
-            <p>📂 點擊選擇圖片、拖曳圖片至此，或直接 Ctrl + V 貼上截圖</p>
-            <input type="file" id="fileInput" accept="image/*">
-            <div class="status" id="statusText">正在初始化引擎...</div>
-        </div>
-
         <div class="collapsible-wrapper">
-            <button class="collapsible-btn" onclick="toggleCollapse('content1', this)"><span>+</span> 練級表</button>
+            <button class="collapsible-btn" onclick="toggleCollapse('content1', this)"><span>+</span> 📊 練級表</button>
             <div id="content1" class="content">
                 <div style="display:flex; flex-wrap:wrap;">
                     <div class="thumb-container">
@@ -2066,7 +2150,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>
                 </div>
             </div>
-            <button class="collapsible-btn" onclick="toggleCollapse('content2', this)"><span>+</span> 海圖</button>
+            <button class="collapsible-btn" onclick="toggleCollapse('content2', this)"><span>+</span> 🗺️ 海圖</button>
             <div id="content2" class="content">
                 <div style="display:flex; flex-wrap:wrap;">
                     <div class="thumb-container"><img src="https://lh3.googleusercontent.com/d/1rqb4ffiMkxNZNOdzfEgIgtDNci1r8AiX" class="thumb-img" onclick="openModal(this.src)"><div class="thumb-text">1 - 溺沒海</div></div>
@@ -2080,7 +2164,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 <hr class="map-divider">
                 <div class="map-block" id="mapNodeBlock"></div>
             </div>
-            <button class="collapsible-btn" onclick="toggleCollapse('content3', this)"><span>+</span> 鬧鐘巨集</button>
+            <button class="collapsible-btn" onclick="toggleCollapse('content3', this)"><span>+</span> 🔔 鬧鐘巨集</button>
             <div id="content3" class="content">
                 <div style="padding: 10px;">
                     <textarea id="macroOutput" style="width:100%; height:120px; border: 2px dashed #444; background:var(--edit-bg); color:var(--text-color); padding:10px; box-sizing:border-box; resize:none;" readonly></textarea>
@@ -2098,7 +2182,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>
                 </div>
             </div>
-            <button class="collapsible-btn" onclick="toggleCollapse('content_links', this)"><span>+</span> 自訂連結</button>
+            <button class="collapsible-btn" onclick="toggleCollapse('content_links', this)"><span>+</span> 🔗 自訂連結</button>
             <div id="content_links" class="content">
                 <div style="padding: 12px;">
                     <div id="linkListContainer" style="display:flex; flex-direction:column; gap:8px; margin-bottom:12px;"></div>
@@ -2117,53 +2201,55 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
             <!-- ── 雲端同步 ── -->
             <div style="margin-bottom:10px;">
-                <button class="collapsible-btn" onclick="toggleCollapse('cloudSyncContent', this)"><span>+</span> ☁️ 雲端同步 / 跨裝置</button>
-                <div id="cloudSyncContent" class="content" style="padding:12px 14px; background:var(--edit-bg); border:1px solid var(--edit-border); border-top:none; border-radius:0 0 8px 8px;">
-                    <div style="margin-bottom:14px;">
-                        <div style="font-size:12px; color:#888; margin-bottom:6px;">我的裝置 ID（換裝置時輸入此 ID 可還原資料）</div>
-                        <div style="display:flex; gap:6px; align-items:center;">
-                            <input id="myUUIDDisplay" type="text" readonly style="flex:1; background:var(--card-color); border:1px solid var(--edit-border); color:var(--accent-color); border-radius:6px; padding:6px 10px; font-size:12px; font-family:monospace;" value="載入中...">
-                            <button onclick="copyMyUUID()" style="background:var(--accent-color); color:#fff; border:none; border-radius:6px; padding:6px 12px; font-size:12px; cursor:pointer;">複製</button>
-                        </div>
-                    </div>
-                    <div id="cloudSyncStatus" style="font-size:12px; color:#888; margin-bottom:12px; display:flex; align-items:center; gap:6px;">
-                        <span id="cloudSyncDot" style="width:8px; height:8px; border-radius:50%; background:#666; display:inline-block;"></span>
-                        <span id="cloudSyncMsg">尚未啟用雲端同步</span>
-                    </div>
-                    <div id="cloudEnableWrap" style="margin-bottom:12px;">
-                        <button onclick="cloudEnableSync()" style="width:100%; background:rgba(155,126,200,0.15); border:1px solid var(--accent-color); color:var(--accent-color); border-radius:8px; padding:8px; font-size:13px; font-weight:700; cursor:pointer;">☁️ 啟用雲端同步</button>
-                    </div>
-                    <details style="margin-bottom:12px;">
-                        <summary style="font-size:12px; color:#888; cursor:pointer;">換裝置 / 輸入已有 ID</summary>
-                        <div style="display:flex; gap:6px; margin-top:8px;">
-                            <input id="importUUIDInput" type="text" placeholder="貼上你的裝置 ID" style="flex:1; background:var(--edit-bg); border:1px solid var(--edit-border); color:var(--text-color); border-radius:6px; padding:6px 10px; font-size:12px; font-family:monospace;">
-                            <button onclick="cloudImportUUID()" style="background:#2a4a3a; border:1px solid #4caf50; color:#4caf50; border-radius:6px; padding:6px 12px; font-size:12px; cursor:pointer;">載入</button>
-                        </div>
-                    </details>
-                    <div style="border-top:1px solid var(--edit-border); padding-top:12px;">
-                        <div style="font-size:12px; font-weight:700; color:var(--text-color); margin-bottom:8px;">共同編輯</div>
-                        <div id="currentRoomWrap" style="display:none; margin-bottom:10px; padding:8px 10px; background:rgba(155,126,200,0.08); border:1px solid rgba(155,126,200,0.2); border-radius:8px;">
-                            <div style="font-size:11px; color:#888; margin-bottom:4px;">目前加入的房間</div>
-                            <div style="display:flex; align-items:center; justify-content:space-between;">
-                                <span id="currentRoomCode" style="font-size:15px; font-weight:800; color:var(--accent-color); font-family:monospace; letter-spacing:2px;"></span>
-                                <div style="display:flex; gap:6px;">
-                                    <button onclick="copyRoomCode()" style="background:transparent; border:1px solid var(--edit-border); color:#aaa; border-radius:6px; padding:4px 10px; font-size:11px; cursor:pointer;">複製代碼</button>
-                                    <button onclick="cloudLeaveRoom()" style="background:transparent; border:1px solid rgba(255,83,112,0.3); color:#e06070; border-radius:6px; padding:4px 10px; font-size:11px; cursor:pointer;">離開</button>
-                                </div>
+                <button class="collapsible-btn" onclick="toggleCollapse('cloudSyncContent', this)"><span>+</span> ☁️ 雲端同步 / 跨裝置<span class="cloud-status-badge" id="cloudStatusBadge">未連線</span></button>
+                <div id="cloudSyncContent" class="content">
+                    <div style="padding:12px 14px; background:var(--edit-bg); border:1px solid var(--edit-border); border-top:none; border-radius:0 0 8px 8px;">
+                        <div style="margin-bottom:14px;">
+                            <div style="font-size:12px; color:#888; margin-bottom:6px;">我的裝置 ID（換裝置時輸入此 ID 可還原資料）</div>
+                            <div style="display:flex; gap:6px; align-items:center;">
+                                <input id="myUUIDDisplay" type="text" readonly style="flex:1; background:var(--card-color); border:1px solid var(--edit-border); color:var(--accent-color); border-radius:6px; padding:6px 10px; font-size:12px; font-family:monospace;" value="載入中...">
+                                <button onclick="copyMyUUID()" style="background:var(--accent-color); color:#fff; border:none; border-radius:6px; padding:6px 12px; font-size:12px; cursor:pointer;">複製</button>
                             </div>
                         </div>
-                        <div id="roomActionWrap" style="display:flex; gap:6px;">
-                            <button onclick="cloudCreateRoom()" style="flex:1; background:rgba(155,126,200,0.12); border:1px solid rgba(155,126,200,0.3); color:var(--accent-color); border-radius:8px; padding:7px; font-size:12px; font-weight:700; cursor:pointer;">＋ 建立房間</button>
-                            <button onclick="cloudShowJoinRoom()" style="flex:1; background:rgba(255,255,255,0.04); border:1px solid var(--edit-border); color:#aaa; border-radius:8px; padding:7px; font-size:12px; font-weight:700; cursor:pointer;">加入房間</button>
+                        <div id="cloudSyncStatus" style="font-size:12px; color:#888; margin-bottom:12px; display:flex; align-items:center; gap:6px;">
+                            <span id="cloudSyncDot" style="width:8px; height:8px; border-radius:50%; background:#666; display:inline-block;"></span>
+                            <span id="cloudSyncMsg">尚未啟用雲端同步</span>
                         </div>
-                        <div id="joinRoomWrap" style="display:none; margin-top:8px; gap:6px;">
-                            <input id="joinRoomInput" type="text" placeholder="輸入6碼房間代碼" maxlength="6" style="flex:1; background:var(--edit-bg); border:1px solid var(--edit-border); color:var(--text-color); border-radius:6px; padding:7px 10px; font-size:13px; font-family:monospace; text-transform:uppercase; letter-spacing:2px;">
-                            <button onclick="cloudJoinRoom()" style="background:#2a4a3a; border:1px solid #4caf50; color:#4caf50; border-radius:6px; padding:7px 12px; font-size:12px; cursor:pointer;">加入</button>
+                        <div id="cloudEnableWrap" style="margin-bottom:12px;">
+                            <button onclick="cloudEnableSync()" style="width:100%; background:rgba(155,126,200,0.15); border:1px solid var(--accent-color); color:var(--accent-color); border-radius:8px; padding:8px; font-size:13px; font-weight:700; cursor:pointer;">☁️ 啟用雲端同步</button>
+                        </div>
+                        <details style="margin-bottom:12px;">
+                            <summary style="font-size:12px; color:#888; cursor:pointer;">換裝置 / 輸入已有 ID</summary>
+                            <div style="display:flex; gap:6px; margin-top:8px;">
+                                <input id="importUUIDInput" type="text" placeholder="貼上你的裝置 ID" style="flex:1; background:var(--edit-bg); border:1px solid var(--edit-border); color:var(--text-color); border-radius:6px; padding:6px 10px; font-size:12px; font-family:monospace;">
+                                <button onclick="cloudImportUUID()" style="background:#2a4a3a; border:1px solid #4caf50; color:#4caf50; border-radius:6px; padding:6px 12px; font-size:12px; cursor:pointer;">載入</button>
+                            </div>
+                        </details>
+                        <div style="border-top:1px solid var(--edit-border); padding-top:12px;">
+                            <div style="font-size:12px; font-weight:700; color:var(--text-color); margin-bottom:8px;">共同編輯</div>
+                            <div id="currentRoomWrap" style="display:none; margin-bottom:10px; padding:8px 10px; background:rgba(155,126,200,0.08); border:1px solid rgba(155,126,200,0.2); border-radius:8px;">
+                                <div style="font-size:11px; color:#888; margin-bottom:4px;">目前加入的房間</div>
+                                <div style="display:flex; align-items:center; justify-content:space-between;">
+                                    <span id="currentRoomCode" style="font-size:15px; font-weight:800; color:var(--accent-color); font-family:monospace; letter-spacing:2px;"></span>
+                                    <div style="display:flex; gap:6px;">
+                                        <button onclick="copyRoomCode()" style="background:transparent; border:1px solid var(--edit-border); color:#aaa; border-radius:6px; padding:4px 10px; font-size:11px; cursor:pointer;">複製代碼</button>
+                                        <button onclick="cloudLeaveRoom()" style="background:transparent; border:1px solid rgba(255,83,112,0.3); color:#e06070; border-radius:6px; padding:4px 10px; font-size:11px; cursor:pointer;">離開</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="roomActionWrap" style="display:flex; gap:6px;">
+                                <button onclick="cloudCreateRoom()" style="flex:1; background:rgba(155,126,200,0.12); border:1px solid rgba(155,126,200,0.3); color:var(--accent-color); border-radius:8px; padding:7px; font-size:12px; font-weight:700; cursor:pointer;">＋ 建立房間</button>
+                                <button onclick="cloudShowJoinRoom()" style="flex:1; background:rgba(255,255,255,0.04); border:1px solid var(--edit-border); color:#aaa; border-radius:8px; padding:7px; font-size:12px; font-weight:700; cursor:pointer;">加入房間</button>
+                            </div>
+                            <div id="joinRoomWrap" style="display:none; margin-top:8px; gap:6px;">
+                                <input id="joinRoomInput" type="text" placeholder="輸入6碼房間代碼" maxlength="6" style="flex:1; background:var(--edit-bg); border:1px solid var(--edit-border); color:var(--text-color); border-radius:6px; padding:7px 10px; font-size:13px; font-family:monospace; text-transform:uppercase; letter-spacing:2px;">
+                                <button onclick="cloudJoinRoom()" style="background:#2a4a3a; border:1px solid #4caf50; color:#4caf50; border-radius:6px; padding:7px 12px; font-size:12px; cursor:pointer;">加入</button>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-            <button class="collapsible-btn" onclick="toggleCollapse('content4', this)"><span>+</span> 開發日記</button>
+            <button class="collapsible-btn" onclick="toggleCollapse('content4', this)"><span>+</span> 📋 開發日記</button>
             <div id="content4" class="content">
                 <div style="max-height: 300px; overflow-y: auto; padding: 12px; font-size: 13px; line-height: 1.8; color: var(--text-color); scrollbar-width: thin; scrollbar-color: rgba(155,126,200,0.45) transparent;">
                    <div style="color: var(--accent-color); font-weight: bold; margin-bottom: 6px;">📋 2026/08/13</div>
@@ -7680,6 +7766,14 @@ const CRAFT_BASE = {"火之碎晶":"水晶","冰之碎晶":"水晶","風之碎�
     window.addEventListener('resize', applyMobileLayout);
 })();
 
+// ══ 上傳區摺疊 ══
+window.toggleUploadZone = function(btn) {
+    const wrap = document.getElementById('uploadZoneWrap');
+    const isOpen = wrap.classList.contains('open');
+    wrap.classList.toggle('open', !isOpen);
+    btn.classList.toggle('open', !isOpen);
+};
+
 // ══ 雲端同步 UI ══
 (function() {
     window.addEventListener('cloudSyncReady', () => {
@@ -7701,8 +7795,13 @@ const CRAFT_BASE = {"火之碎晶":"水晶","冰之碎晶":"水晶","風之碎�
     function _setStatus(msg, ok) {
         const dot = document.getElementById('cloudSyncDot');
         const txt = document.getElementById('cloudSyncMsg');
+        const badge = document.getElementById('cloudStatusBadge');
         if (dot) dot.style.background = ok === true ? '#4caf50' : ok === false ? '#ff5370' : '#ffcb6b';
         if (txt) txt.textContent = msg;
+        if (badge) {
+            badge.textContent = ok === true ? '已連線' : ok === false ? '連線失敗' : '連線中...';
+            badge.className = 'cloud-status-badge' + (ok === true ? ' connected' : ok === false ? ' error' : '');
+        }
     }
 
     function _doEnableSync() {
