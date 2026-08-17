@@ -488,31 +488,26 @@
         /* ── 艦隊 toolbar：改為兩列設計 ── */
         .fleet-toolbar {
             display: flex;
-            flex-direction: column;
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
             gap: 10px;
-            padding: 12px 16px 10px;
+            padding: 10px 14px;
             margin-bottom: 16px;
             background: rgba(255,255,255,0.025);
             border: 1px solid rgba(255,255,255,0.06);
-            border-radius: 12px;
+            border-radius: 10px;
         }
         body.light-mode .fleet-toolbar {
             background: rgba(0,0,0,0.02);
             border-color: rgba(0,0,0,0.07);
         }
-        /* 第一列：標籤橫向捲動 */
         .fleet-toolbar-left {
-            display: flex;
-            align-items: center;
-            min-width: 0;
-            overflow: hidden;
+            display: flex; align-items: center; flex-wrap: wrap; gap: 6px; flex: 1; min-width: 0;
         }
-        /* 第二列：操作按鈕靠右 */
         .fleet-toolbar-right {
-            display: flex;
-            align-items: center;
-            justify-content: flex-end;
-            gap: 8px;
+            display: flex; align-items: center; gap: 8px; flex-shrink: 0;
         }
 
         /* 手動新增按鈕 */
@@ -634,16 +629,6 @@
         .rp-field select:focus, .rp-field input:focus { border-color: var(--accent-color); }
 
         /* ── 四部位配件：2×2 grid ── */
-        .rp-parts-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-top: 4px;
-        }
-        .rp-parts-grid .rp-field { width: 100%; }
-        .rp-parts-grid .part-sel-wrap { width: 100%; }
-        .rp-parts-grid .part-sel-trigger { min-width: 0; width: 100%; box-sizing: border-box; }
-
         /* ── 自訂配件下拉 ── */
         .part-sel-wrap { position: relative; display: inline-block; }
         .part-sel-trigger {
@@ -1529,6 +1514,18 @@
             .craft-mat-cols { grid-template-columns: repeat(4, minmax(180px, 1fr)); min-width: 720px; }
         }
 
+        /* ── 桌機版：隱藏手機用的下拉和 Tab，顯示全部欄 ── */
+        @media (min-width: 641px) {
+            .craft-mob-selects { display: none !important; }
+            .craft-mob-tabs { display: none !important; }
+            .craft-desktop-only { display: block !important; }
+            .craft-mat-col { display: flex !important; }
+            .craft-mat-cols { display: grid !important; min-width: 880px; grid-template-columns: minmax(200px,1fr) repeat(3, minmax(220px,1fr)); }
+        }
+
+        /* ── 手機版：製作分頁 ── */
+        /* (在 @media max-width:640px 區塊內) */
+
         /* ── 配件製作：格狀選擇表格 ── */
         .craft-selector-wrap { display: flex; flex-direction: column; gap: 8px; }
         .craft-grid-wrap { overflow-x: auto; }
@@ -1832,6 +1829,28 @@
             /* 路線結果 stats 按鈕換行靠右 */
             .rp-result-stats { flex-wrap: wrap; }
             .rp-use-route-btn { margin-left: auto; margin-top: 4px; }
+
+            /* ── 製作分頁：手機版 ── */
+            .craft-desktop-only { display: none !important; }
+            .craft-mob-selects { display: flex !important; flex-direction: column; gap: 10px; }
+            .craft-mob-sel-row { display: flex; align-items: center; gap: 10px; }
+            .craft-mob-sel-row label { font-size: 13px; font-weight: 700; color: var(--accent-color); width: 36px; flex-shrink: 0; }
+            .craft-mob-sel-row select { flex: 1; background: var(--edit-bg); color: var(--text-color); border: 1px solid var(--edit-border); border-radius: 8px; padding: 9px 10px; font-size: 13.5px; outline: none; }
+            .craft-mob-sel-row select:focus { border-color: var(--accent-color); }
+
+            /* 素材列表 Tab 切換 */
+            .craft-mob-tabs { display: flex !important; background: var(--edit-bg); border-bottom: 1px solid var(--edit-border); }
+            .craft-mob-tab { flex: 1; padding: 9px 4px; font-size: 11.5px; font-weight: 700; color: #888; text-align: center; cursor: pointer; border: none; background: transparent; border-bottom: 2px solid transparent; white-space: nowrap; transition: color 0.15s, border-color 0.15s; }
+            .craft-mob-tab.active { color: var(--accent-color); border-bottom-color: var(--accent-color); }
+            .craft-mat-cols { display: block !important; min-width: 0 !important; }
+            .craft-mat-col { display: none !important; border-right: none; }
+            .craft-mat-col.mob-col-active { display: flex !important; }
+            .craft-mat-col-body { max-height: 55vh; }
+
+            /* 等級表可橫捲 */
+            .craft-grid-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+            .craft-grid-table { font-size: 13px; }
+            .craft-grid-table th, .craft-grid-table td { padding: 8px 10px; }
 
             /* 船艇設定 Modal */
             .sub-modal-box { padding: 16px 12px; }
@@ -2682,10 +2701,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 <!-- 區段 1：選擇要製作的部位 -->
                 <div class="rp-section" style="padding: 12px 14px 14px;">
                     <div class="craft-selector-wrap">
-                        <div class="craft-grid-wrap">
+                        <!-- 桌機版：表格點選 -->
+                        <div class="craft-grid-wrap craft-desktop-only">
                             <div id="craftGridTable"></div>
                         </div>
-                        <div class="craft-add-row">
+                        <div class="craft-add-row craft-desktop-only">
                             <span class="craft-sel-hint" id="craftGridHint">—</span>
                             <div class="num-spinner">
                                 <input type="text" class="craft-qty-input" id="craftQty" value="1" placeholder="1">
@@ -2696,6 +2716,26 @@ document.addEventListener('DOMContentLoaded', function() {
                             </div>
                             <button class="fleet-add-btn" style="padding:5px 14px; font-size:13px;" onclick="craftAddPart()"><span class="fleet-add-icon">＋</span> 加入</button>
                             <button class="craft-clear-btn" onclick="craftClearAll()" title="清除所有配件與庫存數量（資料不可復原）">🗑 清除</button>
+                        </div>
+                        <!-- 手機版：4 個下拉，選了直接加入 -->
+                        <div class="craft-mob-selects" style="display:none;">
+                            <div class="craft-mob-sel-row">
+                                <label>船體</label>
+                                <select id="craftMobHull" onchange="craftMobAdd('船體',this)"><option value="">— 不製作 —</option></select>
+                            </div>
+                            <div class="craft-mob-sel-row">
+                                <label>船尾</label>
+                                <select id="craftMobStern" onchange="craftMobAdd('船尾',this)"><option value="">— 不製作 —</option></select>
+                            </div>
+                            <div class="craft-mob-sel-row">
+                                <label>船首</label>
+                                <select id="craftMobBow" onchange="craftMobAdd('船首',this)"><option value="">— 不製作 —</option></select>
+                            </div>
+                            <div class="craft-mob-sel-row">
+                                <label>艦橋</label>
+                                <select id="craftMobBridge" onchange="craftMobAdd('艦橋',this)"><option value="">— 不製作 —</option></select>
+                            </div>
+                            <button class="craft-clear-btn" style="margin-top:4px; width:100%; justify-content:center;" onclick="craftClearAll()">🗑 清除所有素材</button>
                         </div>
                     </div>
                     <div class="rp-chips" id="craftChips" style="margin-top:8px;"></div>
@@ -6350,6 +6390,7 @@ const CRAFT_BASE = {"火之碎晶":"水晶","冰之碎晶":"水晶","風之碎�
         craftUpdateHint();
         craftRenderChips();
         craftRenderResult();
+        craftInitMobSelects();
     }
 
     function craftAddPart() {
@@ -6811,8 +6852,14 @@ const CRAFT_BASE = {"火之碎晶":"水晶","冰之碎晶":"水晶","風之碎�
 
         box.innerHTML = `
             <div class="craft-mat-cols-wrap">
+            <div class="craft-mob-tabs" style="display:none;">
+                <button class="craft-mob-tab active" onclick="craftMobTab(this,0)">配件</button>
+                <button class="craft-mob-tab" onclick="craftMobTab(this,1)">成品素材</button>
+                <button class="craft-mob-tab" onclick="craftMobTab(this,2)">半成品</button>
+                <button class="craft-mob-tab" onclick="craftMobTab(this,3)">基礎素材</button>
+            </div>
             <div class="craft-mat-cols">
-                <div class="craft-mat-col">
+                <div class="craft-mat-col mob-col-active">
                     <div class="craft-mat-col-header">配件</div>
                     <div class="craft-mat-col-body">
                         <table class="craft-inv-table">${tableHead}<tbody>${col1Rows}</tbody></table>
@@ -6856,6 +6903,42 @@ const CRAFT_BASE = {"火之碎晶":"水晶","冰之碎晶":"水晶","風之碎�
 
         // ── 計算並更新分類/欄位計數 ──
         craftUpdateColCounts(box);
+    }
+
+    // ── 手機版製作 Tab 切換 ──
+    window.craftMobTab = function(btn, idx) {
+        const wrap = btn.closest('.craft-mat-cols-wrap');
+        wrap.querySelectorAll('.craft-mob-tab').forEach((t,i) => t.classList.toggle('active', i===idx));
+        wrap.querySelectorAll('.craft-mat-col').forEach((c,i) => c.classList.toggle('mob-col-active', i===idx));
+    };
+
+    // ── 手機版下拉選了直接加入 ──
+    window.craftMobAdd = function(partName, sel) {
+        const val = sel.value;
+        if (!val) return;
+        craftSelectedCellName = val;
+        document.getElementById('craftQty').value = '1';
+        craftAddPart();
+        sel.value = '';
+    };
+
+    // ── 初始化手機版下拉選項 ──
+    function craftInitMobSelects() {
+        const SEL_IDS = { '船體':'craftMobHull', '船尾':'craftMobStern', '船首':'craftMobBow', '艦橋':'craftMobBridge' };
+        ['船體','船尾','船首','艦橋'].forEach(partName => {
+            const sel = document.getElementById(SEL_IDS[partName]);
+            if (!sel) return;
+            sel.innerHTML = '<option value="">— 不製作 —</option>';
+            const items = Object.entries(CRAFT_PARTS)
+                .filter(([,p]) => p.part === partName)
+                .sort(([,a],[,b]) => a.class - b.class);
+            items.forEach(([key, p]) => {
+                const opt = document.createElement('option');
+                opt.value = key;
+                opt.textContent = p.className;
+                sel.appendChild(opt);
+            });
+        });
     }
 
     function craftUpdateColCounts(box) {
