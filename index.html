@@ -2274,9 +2274,9 @@ document.addEventListener('DOMContentLoaded', function() {
                                 <button onclick="cloudCreateRoom()" style="flex:1; background:rgba(155,126,200,0.12); border:1px solid rgba(155,126,200,0.3); color:var(--accent-color); border-radius:8px; padding:7px; font-size:12px; font-weight:700; cursor:pointer;">＋ 建立房間</button>
                                 <button onclick="cloudShowJoinRoom()" style="flex:1; background:rgba(255,255,255,0.04); border:1px solid var(--edit-border); color:#aaa; border-radius:8px; padding:7px; font-size:12px; font-weight:700; cursor:pointer;">加入房間</button>
                             </div>
-                            <div id="joinRoomWrap" style="display:none; margin-top:8px; gap:6px;">
-                                <input id="joinRoomInput" type="text" placeholder="輸入6碼房間代碼" maxlength="6" style="flex:1; background:var(--edit-bg); border:1px solid var(--edit-border); color:var(--text-color); border-radius:6px; padding:7px 10px; font-size:13px; font-family:monospace; text-transform:uppercase; letter-spacing:2px;">
-                                <button onclick="cloudJoinRoom()" style="background:#2a4a3a; border:1px solid #4caf50; color:#4caf50; border-radius:6px; padding:7px 12px; font-size:12px; cursor:pointer;">加入</button>
+                            <div id="joinRoomWrap" style="display:none; flex-direction:column; gap:6px; margin-top:8px;">
+                                <input id="joinRoomInput" type="text" placeholder="輸入6碼房間代碼" maxlength="6" style="width:100%; background:var(--edit-bg); border:1px solid var(--edit-border); color:var(--text-color); border-radius:6px; padding:8px 10px; font-size:14px; font-family:monospace; text-transform:uppercase; letter-spacing:3px; box-sizing:border-box;">
+                                <button onclick="cloudJoinRoom()" style="width:100%; background:#2a4a3a; border:1px solid #4caf50; color:#4caf50; border-radius:6px; padding:8px; font-size:13px; font-weight:700; cursor:pointer;">確認加入</button>
                             </div>
                         </div>
                     </div>
@@ -3187,7 +3187,8 @@ const ITEM_DB={"2":"火之碎晶","3":"冰之碎晶","4":"風之碎晶","5":"土
             content.style.maxHeight = null;
             span.innerText = "+";
         } else {
-            content.style.maxHeight = content.scrollHeight + "px";
+            // 使用較大的固定值讓動態內容（展開 details、顯示 div）也能完整顯示
+            content.style.maxHeight = '2000px';
             span.innerText = "-";
         }
     }
@@ -7949,7 +7950,14 @@ window.toggleUploadZone = function(btn) {
 
     window.cloudShowJoinRoom = function() {
         const w = document.getElementById('joinRoomWrap');
-        if (w) w.style.display = w.style.display === 'none' ? 'flex' : 'none';
+        if (!w) return;
+        const isOpen = w.style.display === 'flex';
+        w.style.display = isOpen ? 'none' : 'flex';
+        // 重新計算父層 content 的 maxHeight
+        const content = document.getElementById('cloudSyncContent');
+        if (content && content.style.maxHeight) {
+            content.style.maxHeight = content.scrollHeight + 'px';
+        }
     };
 
     window.cloudJoinRoom = async function() {
