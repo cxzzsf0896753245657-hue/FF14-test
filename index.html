@@ -498,6 +498,26 @@
 
         .card-group-select { background: var(--edit-bg); color: var(--text-color); border:1px solid var(--edit-border); border-radius:6px; font-size:11px; padding:3px 6px; max-width:110px; cursor:pointer; }
 
+        /* ── 艦隊視圖切換列 ── */
+        #fleetViewSwitcher {
+            display: none;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px 0;
+        }
+        .fleet-view-tab {
+            padding: 5px 14px; border-radius: 16px; font-size: 12.5px; font-weight: 700;
+            cursor: pointer; border: 1px solid rgba(255,255,255,0.1);
+            background: transparent; color: #888;
+            transition: background 0.15s, color 0.15s, border-color 0.15s; white-space: nowrap;
+        }
+        .fleet-view-tab.active { background: var(--accent-color); color: #fff; border-color: var(--accent-color); }
+        .fleet-view-tab:hover:not(.active) { background: rgba(255,255,255,0.07); color: #ddd; }
+        body.light-mode .fleet-view-tab { border-color: rgba(0,0,0,0.12); color: #999; }
+        body.light-mode .fleet-view-tab.active { background: var(--accent-color); color: #fff; }
+        body.light-mode .fleet-view-tab:hover:not(.active) { background: rgba(0,0,0,0.05); color: #444; }
+        .fleet-view-badge { font-size: 10px; font-weight: 800; background: rgba(76,175,80,0.2); color: #4caf50; padding: 1px 6px; border-radius: 8px; margin-left: 4px; }
+
         /* ── 艦隊 toolbar：改為兩列設計 ── */
         .fleet-toolbar {
             display: flex;
@@ -2002,6 +2022,9 @@
                 if (_roomListener) off(ref(db, `rooms/${_currentRoomId}`), 'value', _roomListener);
                 _roomListener = onValue(ref(db, `rooms/${roomId}`), snap => { if (snap.exists()) cb(snap.val()); });
             },
+            async pushRoomData(roomId, data) {
+                await update(ref(db, `rooms/${roomId}`), { ...data, updatedAt: Date.now() });
+            },
             leaveRoom() {
                 if (_roomListener && _currentRoomId) off(ref(db, `rooms/${_currentRoomId}`), 'value', _roomListener);
                 _roomListener = null; _currentRoomId = null; localStorage.removeItem('sub_room_id');
@@ -2404,6 +2427,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
         <!-- 艦隊分頁 -->
         <div id="panelFleet">
+            <!-- 我的艦隊 / 共同編輯 切換列 -->
+            <div id="fleetViewSwitcher">
+                <button class="fleet-view-tab active" id="fleetTabMine" onclick="switchFleetView('mine')">我的艦隊</button>
+                <button class="fleet-view-tab" id="fleetTabRoom" onclick="switchFleetView('room')">
+                    <span id="fleetTabRoomName">共同艦隊</span>
+                    <span class="fleet-view-badge">即時</span>
+                </button>
+            </div>
             <div class="fleet-toolbar">
                 <div class="fleet-toolbar-left">
                     <div id="groupTabsContainer" class="group-tabs"></div>
@@ -3183,13 +3214,17 @@ const ITEM_DB={"2":"火之碎晶","3":"冰之碎晶","4":"風之碎晶","5":"土
     function toggleCollapse(id, btn) {
         const content = document.getElementById(id);
         const span = btn.querySelector('span');
-        if (content.style.maxHeight) {
-            content.style.maxHeight = null;
-            span.innerText = "+";
+        if (content.style.maxHeight && content.style.maxHeight !== '0px') {
+            // 收合：先固定當前高度，再歸零觸發動畫
+            content.style.maxHeight = content.scrollHeight + 'px';
+            requestAnimationFrame(() => {
+                content.style.maxHeight = '0px';
+            });
+            span.innerText = '+';
         } else {
-            // 使用較大的固定值讓動態內容（展開 details、顯示 div）也能完整顯示
-            content.style.maxHeight = '2000px';
-            span.innerText = "-";
+            // 展開：直接 none，無截斷問題
+            content.style.maxHeight = 'none';
+            span.innerText = '-';
         }
     }
 
@@ -7871,6 +7906,58 @@ window.toggleUploadZone = function(btn) {
     btn.classList.toggle('open', !isOpen);
 };
 
+    // ══ 艦隊視圖切換（我的艦隊 / 共同編輯）══
+    let _currentFleetView = 'mine'; // 'mine' | 'room'
+    let _roomTimers = [];
+    let _roomGroups = [];
+
+    window.switchFleetView = function(view) {
+        _currentFleetView = view;
+        document.getElementById('fleetTabMine').classList.toggle('active', view === 'mine');
+        document.getElementById('fleetTabRoom').classList.toggle('active', view === 'room');
+
+        if (view === 'mine') {
+            // 還原個人資料
+            renderTimerList(savedTimers);
+            renderGroupTabs(customGroups);
+        } else {
+            // 顯示房間資料
+            renderTimerList(_roomTimers);
+            renderGroupTabs(_roomGroups);
+        }
+    };
+
+    function _showFleetSwitcher(roomName) {
+        const switcher = document.getElementById('fleetViewSwitcher');
+        if (switcher) switcher.style.display = 'flex';
+        const nameEl = document.getElementById('fleetTabRoomName');
+        if (nameEl) nameEl.textContent = roomName || '共同艦隊';
+    }
+
+    function _hideFleetSwitcher() {
+        const switcher = document.getElementById('fleetViewSwitcher');
+        if (switcher) switcher.style.display = 'none';
+        switchFleetView('mine');
+    }
+
+    // renderTimerList：用指定的 timers 陣列重繪卡片
+    function renderTimerList(timers) {
+        const list = document.getElementById('timerList');
+        if (!list) return;
+        list.innerHTML = '';
+        timers.forEach(t => createTimerCard(t));
+        getSortedTimers(timers).forEach(t => {
+            const c = document.getElementById('card-' + t.id);
+            if (c) list.appendChild(c);
+        });
+        updateFleetCount();
+    }
+
+    function renderGroupTabs(groups) {
+        // 使用現有的 renderGroups 或 buildGroupTabs
+        if (typeof buildGroupTabs === 'function') buildGroupTabs(groups);
+    }
+
 // ══ 雲端同步 UI ══
 (function() {
     window.addEventListener('cloudSyncReady', () => {
@@ -7943,7 +8030,10 @@ window.toggleUploadZone = function(btn) {
         if (!window.CloudSync?.isEnabled()) return showAlert('請先啟用雲端同步');
         try {
             const roomId = await window.CloudSync.createRoom('共同艦隊');
+            await window.CloudSync.pushRoomData(roomId, { timers: savedTimers, groups: customGroups });
             _showRoomUI(roomId);
+            _showFleetSwitcher('共同艦隊');
+            _listenRoomTimers(roomId, '共同艦隊');
             showAlert(`✅ 房間建立成功！代碼：${roomId}`);
         } catch(e) { showAlert('⚠️ ' + e.message); }
     };
@@ -7953,10 +8043,9 @@ window.toggleUploadZone = function(btn) {
         if (!w) return;
         const isOpen = w.style.display === 'flex';
         w.style.display = isOpen ? 'none' : 'flex';
-        // 重新計算父層 content 的 maxHeight
         const content = document.getElementById('cloudSyncContent');
-        if (content && content.style.maxHeight) {
-            content.style.maxHeight = content.scrollHeight + 'px';
+        if (content && content.style.maxHeight !== '0px') {
+            content.style.maxHeight = 'none';
         }
     };
 
@@ -7966,8 +8055,11 @@ window.toggleUploadZone = function(btn) {
         if (!roomId || roomId.length !== 6) return showAlert('請輸入 6 碼房間代碼');
         try {
             const data = await window.CloudSync.joinRoom(roomId);
+            const roomName = data.name || '共同艦隊';
             _showRoomUI(roomId);
-            showAlert(`✅ 已加入房間「${data.name}」`);
+            _showFleetSwitcher(roomName);
+            _listenRoomTimers(roomId, roomName);
+            showAlert(`✅ 已加入房間「${roomName}」`);
         } catch(e) { showAlert('⚠️ ' + e.message); }
     };
 
@@ -7977,8 +8069,19 @@ window.toggleUploadZone = function(btn) {
         const actions = document.getElementById('roomActionWrap');
         if (wrap) wrap.style.display = 'none';
         if (actions) actions.style.display = 'flex';
+        _hideFleetSwitcher();
         showAlert('已離開房間');
     };
+
+    function _listenRoomTimers(roomId, roomName) {
+        window.CloudSync.listenRoom(roomId, function(roomData) {
+            _roomTimers = roomData.timers || [];
+            _roomGroups = roomData.groups || [];
+            if (_currentFleetView === 'room') {
+                renderTimerList(_roomTimers);
+            }
+        });
+    }
 
     window.copyRoomCode = function() {
         const code = document.getElementById('currentRoomCode')?.textContent;
