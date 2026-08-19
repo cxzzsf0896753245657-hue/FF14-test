@@ -502,21 +502,33 @@
         #fleetViewSwitcher {
             display: none;
             align-items: center;
-            gap: 6px;
-            padding: 8px 14px 0;
+            padding: 10px 14px 0;
         }
+        .fleet-seg-control {
+            display: inline-flex;
+            background: rgba(255,255,255,0.06);
+            border-radius: 20px;
+            padding: 3px;
+            gap: 2px;
+            flex-wrap: wrap;
+        }
+        body.light-mode .fleet-seg-control { background: rgba(0,0,0,0.07); }
         .fleet-view-tab {
             padding: 5px 14px; border-radius: 16px; font-size: 12.5px; font-weight: 700;
-            cursor: pointer; border: 1px solid rgba(255,255,255,0.1);
-            background: transparent; color: #888;
-            transition: background 0.15s, color 0.15s, border-color 0.15s; white-space: nowrap;
+            cursor: pointer; border: none; background: transparent; color: #888;
+            transition: background 0.15s, color 0.15s, box-shadow 0.15s;
+            white-space: nowrap; display: inline-flex; align-items: center; gap: 5px;
         }
-        .fleet-view-tab.active { background: var(--accent-color); color: #fff; border-color: var(--accent-color); }
-        .fleet-view-tab:hover:not(.active) { background: rgba(255,255,255,0.07); color: #ddd; }
-        body.light-mode .fleet-view-tab { border-color: rgba(0,0,0,0.12); color: #999; }
-        body.light-mode .fleet-view-tab.active { background: var(--accent-color); color: #fff; }
-        body.light-mode .fleet-view-tab:hover:not(.active) { background: rgba(0,0,0,0.05); color: #444; }
-        .fleet-view-badge { font-size: 10px; font-weight: 800; background: rgba(76,175,80,0.2); color: #4caf50; padding: 1px 6px; border-radius: 8px; margin-left: 4px; }
+        .fleet-view-tab.active {
+            background: var(--card-color); color: var(--text-color);
+            box-shadow: 0 1px 4px rgba(0,0,0,0.35);
+        }
+        body.light-mode .fleet-view-tab { color: #aaa; }
+        body.light-mode .fleet-view-tab.active { background: #fff; color: #2d3436; box-shadow: 0 1px 4px rgba(0,0,0,0.12); }
+        .fleet-view-tab:hover:not(.active) { color: var(--text-color); }
+        .fleet-view-badge { font-size: 9.5px; font-weight: 800; background: rgba(76,175,80,0.25); color: #4caf50; padding: 1px 5px; border-radius: 7px; }
+        .fleet-view-close { font-size: 11px; opacity: 0.5; margin-left: 2px; line-height: 1; }
+        .fleet-view-tab:hover .fleet-view-close { opacity: 1; color: #ff5370; }
 
         /* ── 艦隊 toolbar：改為兩列設計 ── */
         .fleet-toolbar {
@@ -2429,11 +2441,18 @@ document.addEventListener('DOMContentLoaded', function() {
         <div id="panelFleet">
             <!-- 我的艦隊 / 共同編輯 切換列 -->
             <div id="fleetViewSwitcher">
-                <button class="fleet-view-tab active" id="fleetTabMine" onclick="switchFleetView('mine')">我的艦隊</button>
-                <button class="fleet-view-tab" id="fleetTabRoom" onclick="switchFleetView('room')">
-                    <span id="fleetTabRoomName">共同艦隊</span>
-                    <span class="fleet-view-badge">即時</span>
-                </button>
+                <div class="fleet-seg-control" id="fleetSegControl">
+        <button class="fleet-view-tab active" id="fleetTabMine" data-view="mine" onclick="switchFleetView('mine')">我的艦隊</button>
+                </div>
+            </div>
+            <!-- 建立房間名稱輸入列 -->
+            <div id="createRoomInputWrap" style="display:none; flex-direction:column; padding:8px 14px 0; gap:6px;">
+                <input id="createRoomNameInput" type="text" placeholder="輸入房間名稱（可留空）" maxlength="20"
+                    style="flex:1; background:var(--edit-bg); border:1px solid var(--edit-border); color:var(--text-color); border-radius:8px; padding:7px 10px; font-size:13px; box-sizing:border-box; width:100%;">
+                <div style="display:flex; gap:6px; margin-top:6px;">
+                    <button onclick="cloudConfirmCreateRoom()" style="flex:1; background:rgba(155,126,200,0.15); border:1px solid var(--accent-color); color:var(--accent-color); border-radius:8px; padding:7px; font-size:13px; font-weight:700; cursor:pointer;">確認建立</button>
+                    <button onclick="document.getElementById('createRoomInputWrap').style.display='none'" style="background:transparent; border:1px solid var(--edit-border); color:#888; border-radius:8px; padding:7px 12px; font-size:13px; cursor:pointer;">取消</button>
+                </div>
             </div>
             <div class="fleet-toolbar">
                 <div class="fleet-toolbar-left">
@@ -7906,57 +7925,134 @@ window.toggleUploadZone = function(btn) {
     btn.classList.toggle('open', !isOpen);
 };
 
-    // ══ 艦隊視圖切換（我的艦隊 / 共同編輯）══
-    let _currentFleetView = 'mine'; // 'mine' | 'room'
-    let _roomTimers = [];
-    let _roomGroups = [];
+    // ══ 艦隊視圖切換（我的艦隊 + 多房間 Tab）══
+    let _currentFleetView = 'mine';
+    const _rooms = {}; // { roomId: { name, timers, groups, unsubscribe } }
 
     window.switchFleetView = function(view) {
         _currentFleetView = view;
-        document.getElementById('fleetTabMine').classList.toggle('active', view === 'mine');
-        document.getElementById('fleetTabRoom').classList.toggle('active', view === 'room');
-
-        if (view === 'mine') {
-            // 還原個人資料
-            renderTimerList(savedTimers);
-            renderGroupTabs(customGroups);
-        } else {
-            // 顯示房間資料
-            renderTimerList(_roomTimers);
-            renderGroupTabs(_roomGroups);
-        }
-    };
-
-    function _showFleetSwitcher(roomName) {
-        const switcher = document.getElementById('fleetViewSwitcher');
-        if (switcher) switcher.style.display = 'flex';
-        const nameEl = document.getElementById('fleetTabRoomName');
-        if (nameEl) nameEl.textContent = roomName || '共同艦隊';
-    }
-
-    function _hideFleetSwitcher() {
-        const switcher = document.getElementById('fleetViewSwitcher');
-        if (switcher) switcher.style.display = 'none';
-        switchFleetView('mine');
-    }
-
-    // renderTimerList：用指定的 timers 陣列重繪卡片
-    function renderTimerList(timers) {
+        // 更新所有 tab active 狀態
+        document.querySelectorAll('.fleet-view-tab').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.view === view);
+        });
         const list = document.getElementById('timerList');
         if (!list) return;
         list.innerHTML = '';
-        timers.forEach(t => createTimerCard(t));
-        getSortedTimers(timers).forEach(t => {
-            const c = document.getElementById('card-' + t.id);
-            if (c) list.appendChild(c);
-        });
-        updateFleetCount();
+        if (view === 'mine') {
+            // 還原個人資料，不動標籤列
+            getSortedTimers().forEach(t => createTimerCard(t));
+            updateFleetCount();
+        } else {
+            // 房間資料
+            const room = _rooms[view];
+            if (!room) return;
+            const timers = room.timers || [];
+            timers.forEach(t => createTimerCard(t));
+            updateFleetCount();
+        }
+    };
+
+    function _addRoomTab(roomId, roomName) {
+        const seg = document.getElementById('fleetSegControl');
+        if (!seg) return;
+        // 避免重複加入
+        if (document.querySelector(`.fleet-view-tab[data-view="${roomId}"]`)) return;
+        const btn = document.createElement('button');
+        btn.className = 'fleet-view-tab';
+        btn.dataset.view = roomId;
+        btn.innerHTML = `${roomName}<span class="fleet-view-badge">即時</span><span class="fleet-view-close" onclick="cloudLeaveRoomById(event,'${roomId}')">✕</span>`;
+        btn.onclick = () => switchFleetView(roomId);
+        seg.appendChild(btn);
+        // 確保我的艦隊 tab 也有 data-view
+        const mineTab = document.getElementById('fleetTabMine');
+        if (mineTab) mineTab.dataset.view = 'mine';
+        // 顯示切換列
+        document.getElementById('fleetViewSwitcher').style.display = 'flex';
     }
 
-    function renderGroupTabs(groups) {
-        // 使用現有的 renderGroups 或 buildGroupTabs
-        if (typeof buildGroupTabs === 'function') buildGroupTabs(groups);
+    function _removeRoomTab(roomId) {
+        const btn = document.querySelector(`.fleet-view-tab[data-view="${roomId}"]`);
+        if (btn) btn.remove();
+        // 若沒有房間 tab 了，隱藏切換列
+        const seg = document.getElementById('fleetSegControl');
+        if (seg && seg.querySelectorAll('.fleet-view-tab').length <= 1) {
+            document.getElementById('fleetViewSwitcher').style.display = 'none';
+        }
+        if (_currentFleetView === roomId) switchFleetView('mine');
     }
+
+    function _hideFleetSwitcher() {
+        document.getElementById('fleetViewSwitcher').style.display = 'none';
+        switchFleetView('mine');
+    }
+
+    function _listenRoomTimers(roomId, roomName) {
+        if (_rooms[roomId]?.unsubscribe) _rooms[roomId].unsubscribe();
+        _rooms[roomId] = { name: roomName, timers: [], groups: [] };
+        window.CloudSync.listenRoom(roomId, function(roomData) {
+            if (!_rooms[roomId]) return;
+            _rooms[roomId].timers = roomData.timers || [];
+            _rooms[roomId].groups = roomData.groups || [];
+            if (_currentFleetView === roomId) switchFleetView(roomId);
+        });
+    }
+
+    // 房間命名：點建立房間先展開輸入框
+    window.cloudCreateRoom = async function() {
+        if (!window.CloudSync?.isEnabled()) return showAlert('請先啟用雲端同步');
+        const wrap = document.getElementById('createRoomInputWrap');
+        if (wrap) { wrap.style.display = 'flex'; document.getElementById('createRoomNameInput')?.focus(); }
+    };
+
+    window.cloudConfirmCreateRoom = async function() {
+        const nameInput = document.getElementById('createRoomNameInput');
+        const roomName = nameInput?.value.trim() || '共同艦隊';
+        document.getElementById('createRoomInputWrap').style.display = 'none';
+        if (nameInput) nameInput.value = '';
+        try {
+            const roomId = await window.CloudSync.createRoom(roomName);
+            await window.CloudSync.pushRoomData(roomId, { timers: savedTimers, groups: customGroups });
+            _showRoomUI(roomId);
+            _rooms[roomId] = { name: roomName, timers: savedTimers, groups: customGroups };
+            _addRoomTab(roomId, roomName);
+            _listenRoomTimers(roomId, roomName);
+            showAlert(`✅ 房間「${roomName}」建立成功！代碼：${roomId}`);
+        } catch(e) { showAlert('⚠️ ' + e.message); }
+    };
+
+    window.cloudJoinRoom = async function() {
+        if (!window.CloudSync?.isEnabled()) return showAlert('請先啟用雲端同步');
+        const roomId = document.getElementById('joinRoomInput')?.value.trim().toUpperCase();
+        if (!roomId || roomId.length !== 6) return showAlert('請輸入 6 碼房間代碼');
+        if (_rooms[roomId]) return showAlert('已加入此房間');
+        try {
+            const data = await window.CloudSync.joinRoom(roomId);
+            const roomName = data.name || '共同艦隊';
+            _addRoomTab(roomId, roomName);
+            _listenRoomTimers(roomId, roomName);
+            document.getElementById('joinRoomInput').value = '';
+            document.getElementById('joinRoomWrap').style.display = 'none';
+            showAlert(`✅ 已加入房間「${roomName}」`);
+        } catch(e) { showAlert('⚠️ ' + e.message); }
+    };
+
+    window.cloudLeaveRoomById = function(e, roomId) {
+        e.stopPropagation();
+        if (_rooms[roomId]?.unsubscribe) _rooms[roomId].unsubscribe();
+        delete _rooms[roomId];
+        _removeRoomTab(roomId);
+        window.CloudSync?.leaveRoom();
+    };
+
+    window.cloudLeaveRoom = function() {
+        // 離開目前選中的房間
+        if (_currentFleetView !== 'mine') cloudLeaveRoomById({ stopPropagation:()=>{} }, _currentFleetView);
+        const wrap = document.getElementById('currentRoomWrap');
+        const actions = document.getElementById('roomActionWrap');
+        if (wrap) wrap.style.display = 'none';
+        if (actions) actions.style.display = 'flex';
+        showAlert('已離開房間');
+    };
 
 // ══ 雲端同步 UI ══
 (function() {
@@ -8026,18 +8122,6 @@ window.toggleUploadZone = function(btn) {
         catch(e) { showAlert('⚠️ 載入失敗，請確認 ID'); }
     };
 
-    window.cloudCreateRoom = async function() {
-        if (!window.CloudSync?.isEnabled()) return showAlert('請先啟用雲端同步');
-        try {
-            const roomId = await window.CloudSync.createRoom('共同艦隊');
-            await window.CloudSync.pushRoomData(roomId, { timers: savedTimers, groups: customGroups });
-            _showRoomUI(roomId);
-            _showFleetSwitcher('共同艦隊');
-            _listenRoomTimers(roomId, '共同艦隊');
-            showAlert(`✅ 房間建立成功！代碼：${roomId}`);
-        } catch(e) { showAlert('⚠️ ' + e.message); }
-    };
-
     window.cloudShowJoinRoom = function() {
         const w = document.getElementById('joinRoomWrap');
         if (!w) return;
@@ -8048,40 +8132,6 @@ window.toggleUploadZone = function(btn) {
             content.style.maxHeight = 'none';
         }
     };
-
-    window.cloudJoinRoom = async function() {
-        if (!window.CloudSync?.isEnabled()) return showAlert('請先啟用雲端同步');
-        const roomId = document.getElementById('joinRoomInput')?.value.trim().toUpperCase();
-        if (!roomId || roomId.length !== 6) return showAlert('請輸入 6 碼房間代碼');
-        try {
-            const data = await window.CloudSync.joinRoom(roomId);
-            const roomName = data.name || '共同艦隊';
-            _showRoomUI(roomId);
-            _showFleetSwitcher(roomName);
-            _listenRoomTimers(roomId, roomName);
-            showAlert(`✅ 已加入房間「${roomName}」`);
-        } catch(e) { showAlert('⚠️ ' + e.message); }
-    };
-
-    window.cloudLeaveRoom = function() {
-        window.CloudSync?.leaveRoom();
-        const wrap = document.getElementById('currentRoomWrap');
-        const actions = document.getElementById('roomActionWrap');
-        if (wrap) wrap.style.display = 'none';
-        if (actions) actions.style.display = 'flex';
-        _hideFleetSwitcher();
-        showAlert('已離開房間');
-    };
-
-    function _listenRoomTimers(roomId, roomName) {
-        window.CloudSync.listenRoom(roomId, function(roomData) {
-            _roomTimers = roomData.timers || [];
-            _roomGroups = roomData.groups || [];
-            if (_currentFleetView === 'room') {
-                renderTimerList(_roomTimers);
-            }
-        });
-    }
 
     window.copyRoomCode = function() {
         const code = document.getElementById('currentRoomCode')?.textContent;
