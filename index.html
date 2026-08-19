@@ -3289,6 +3289,9 @@ const ITEM_DB={"2":"火之碎晶","3":"冰之碎晶","4":"風之碎晶","5":"土
     function renderGroupTabs() {
         const container = document.getElementById('groupTabsContainer');
         if (!container) return;
+        // 房間視圖用房間群組，個人視圖用個人群組
+        const groups = _viewGroups !== null ? _viewGroups : customGroups;
+        const isRoomView = _viewGroups !== null;
 
         container.innerHTML = '';
 
@@ -3302,57 +3305,60 @@ const ITEM_DB={"2":"火之碎晶","3":"冰之碎晶","4":"風之碎晶","5":"土
         });
 
         // ── 可拖曳的自訂群組標籤 ──
-        customGroups.forEach(g => {
+        groups.forEach(g => {
             const span = document.createElement('span');
             span.className = 'group-tab group-tab-draggable' + (g === activeGroup ? ' active' : '');
             span.id = `gtab-${CSS.escape(g)}`;
             span.dataset.group = g;
             span.style.cursor = 'default';
 
-            // 拖曳把手
-            const handle = document.createElement('span');
-            handle.className = 'group-tab-handle';
-            handle.innerHTML = '⠿';
-            handle.title = '拖曳排序';
+            if (!isRoomView) {
+                // 拖曳把手（只在個人視圖顯示）
+                const handle = document.createElement('span');
+                handle.className = 'group-tab-handle';
+                handle.innerHTML = '⠿';
+                handle.title = '拖曳排序';
+                handle.addEventListener('pointerdown', (e) => {
+                    if (e.button !== 0) return;
+                    onGroupTabPointerDown(e, g);
+                });
+                span.appendChild(handle);
+            }
 
             // 標籤名稱（點擊切換）
             const label = document.createElement('span');
             label.textContent = g;
             label.style.cursor = 'pointer';
             label.onclick = (e) => { e.stopPropagation(); setActiveGroup(g); };
-
-            const editBtn = document.createElement('span');
-            editBtn.className = 'group-tab-edit';
-            editBtn.title = '重新命名';
-            editBtn.innerHTML = '✎';
-            editBtn.onclick = (e) => { e.stopPropagation(); openRenameGroupModal(g); };
-
-            const delBtn = document.createElement('span');
-            delBtn.className = 'group-tab-x';
-            delBtn.title = '刪除群組';
-            delBtn.innerHTML = '✕';
-            delBtn.onclick = (e) => { e.stopPropagation(); deleteGroup(g); };
-
-            span.appendChild(handle);
             span.appendChild(label);
-            span.appendChild(editBtn);
-            span.appendChild(delBtn);
 
-            // 只有把手觸發拖曳
-            handle.addEventListener('pointerdown', (e) => {
-                if (e.button !== 0) return;
-                onGroupTabPointerDown(e, g);
-            });
+            if (!isRoomView) {
+                // 編輯/刪除（只在個人視圖顯示）
+                const editBtn = document.createElement('span');
+                editBtn.className = 'group-tab-edit';
+                editBtn.title = '重新命名';
+                editBtn.innerHTML = '✎';
+                editBtn.onclick = (e) => { e.stopPropagation(); openRenameGroupModal(g); };
+                const delBtn = document.createElement('span');
+                delBtn.className = 'group-tab-x';
+                delBtn.title = '刪除群組';
+                delBtn.innerHTML = '✕';
+                delBtn.onclick = (e) => { e.stopPropagation(); deleteGroup(g); };
+                span.appendChild(editBtn);
+                span.appendChild(delBtn);
+            }
 
             container.appendChild(span);
         });
 
-        // ── 新增按鈕 ──
-        const addBtn = document.createElement('span');
-        addBtn.className = 'group-tab group-tab-add';
-        addBtn.textContent = '＋ 新增';
-        addBtn.onclick = promptAddGroup;
-        container.appendChild(addBtn);
+        // ── 新增按鈕（只在個人視圖顯示）──
+        if (!isRoomView) {
+            const addBtn = document.createElement('span');
+            addBtn.className = 'group-tab group-tab-add';
+            addBtn.textContent = '＋ 新增';
+            addBtn.onclick = promptAddGroup;
+            container.appendChild(addBtn);
+        }
     }
 
     // ── 群組標籤 Pointer 拖曳（水平，仿自訂連結設計）──
@@ -3805,7 +3811,8 @@ const ITEM_DB={"2":"火之碎晶","3":"冰之碎晶","4":"風之碎晶","5":"土
     }
 
     function applyGroupFilter() {
-        savedTimers.forEach(t => {
+        const timers = _viewTimers !== null ? _viewTimers : savedTimers;
+        timers.forEach(t => {
             const card = document.getElementById(`card-${t.id}`);
             if (!card) return;
             const g = t.group || DEFAULT_GROUP;
@@ -7927,7 +7934,9 @@ window.toggleUploadZone = function(btn) {
 
     // ══ 艦隊視圖切換（我的艦隊 + 多房間 Tab）══
     let _currentFleetView = 'mine';
-    const _rooms = {}; // { roomId: { name, timers, groups, unsubscribe } }
+    const _rooms = {}; // { roomId: { name, timers, groups } }
+    let _viewGroups = null; // null = 使用個人群組
+    let _viewTimers = null; // null = 使用個人船艇
 
     window.switchFleetView = function(view) {
         _currentFleetView = view;
@@ -7938,16 +7947,25 @@ window.toggleUploadZone = function(btn) {
         const list = document.getElementById('timerList');
         if (!list) return;
         list.innerHTML = '';
+
         if (view === 'mine') {
-            // 還原個人資料，不動標籤列
+            // 還原個人群組標籤
+            _viewGroups = null;
+            _viewTimers = null;
+            renderGroupTabs();
             getSortedTimers().forEach(t => createTimerCard(t));
+            applyGroupFilter();
             updateFleetCount();
         } else {
-            // 房間資料
             const room = _rooms[view];
             if (!room) return;
-            const timers = room.timers || [];
-            timers.forEach(t => createTimerCard(t));
+            // 暫時切換為房間的群組和船艇資料
+            _viewGroups = room.groups || [];
+            _viewTimers = room.timers || [];
+            activeGroup = GROUP_ALL;
+            renderGroupTabs();
+            (_viewTimers).forEach(t => createTimerCard(t));
+            applyGroupFilter();
             updateFleetCount();
         }
     };
