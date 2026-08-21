@@ -2342,6 +2342,15 @@ document.addEventListener('DOMContentLoaded', function() {
                                 <button onclick="cloudCreateRoom()" style="flex:1; background:rgba(155,126,200,0.12); border:1px solid rgba(155,126,200,0.3); color:var(--accent-color); border-radius:8px; padding:7px; font-size:12px; font-weight:700; cursor:pointer;">＋ 建立房間</button>
                                 <button onclick="cloudShowJoinRoom()" style="flex:1; background:rgba(255,255,255,0.04); border:1px solid var(--edit-border); color:#aaa; border-radius:8px; padding:7px; font-size:12px; font-weight:700; cursor:pointer;">加入房間</button>
                             </div>
+                            <!-- 建立房間名稱輸入列 -->
+                            <div id="createRoomInputWrap" style="display:none; flex-direction:column; gap:6px; margin-top:8px;">
+                                <input id="createRoomNameInput" type="text" placeholder="輸入房間名稱（可留空，預設「共同艦隊」）" maxlength="20"
+                                    style="width:100%; background:var(--edit-bg); border:1px solid var(--edit-border); color:var(--text-color); border-radius:8px; padding:7px 10px; font-size:13px; box-sizing:border-box;">
+                                <div style="display:flex; gap:6px;">
+                                    <button onclick="cloudConfirmCreateRoom()" style="background:rgba(155,126,200,0.15); border:1px solid var(--accent-color); color:var(--accent-color); border-radius:8px; padding:7px 18px; font-size:13px; font-weight:700; cursor:pointer;">確認建立</button>
+                                    <button onclick="document.getElementById('createRoomInputWrap').style.display='none'" style="background:transparent; border:1px solid var(--edit-border); color:#888; border-radius:8px; padding:7px 14px; font-size:13px; cursor:pointer;">取消</button>
+                                </div>
+                            </div>
                             <div id="joinRoomWrap" style="display:none; flex-direction:column; gap:6px; margin-top:8px;">
                                 <input id="joinRoomInput" type="text" placeholder="輸入6碼房間代碼" maxlength="6" style="width:100%; background:var(--edit-bg); border:1px solid var(--edit-border); color:var(--text-color); border-radius:6px; padding:8px 10px; font-size:14px; font-family:monospace; text-transform:uppercase; letter-spacing:3px; box-sizing:border-box;">
                                 <button onclick="cloudJoinRoom()" style="width:100%; background:#2a4a3a; border:1px solid #4caf50; color:#4caf50; border-radius:6px; padding:8px; font-size:13px; font-weight:700; cursor:pointer;">確認加入</button>
@@ -2476,15 +2485,6 @@ document.addEventListener('DOMContentLoaded', function() {
             <div id="fleetViewSwitcher">
                 <div class="fleet-seg-control" id="fleetSegControl">
         <button class="fleet-view-tab active" id="fleetTabMine" data-view="mine" onclick="switchFleetView('mine')">我的艦隊</button>
-                </div>
-            </div>
-            <!-- 建立房間名稱輸入列 -->
-            <div id="createRoomInputWrap" style="display:none; flex-direction:column; padding:8px 14px 0; gap:6px;">
-                <input id="createRoomNameInput" type="text" placeholder="輸入房間名稱（可留空，預設「共同艦隊」）" maxlength="20"
-                    style="flex:1; background:var(--edit-bg); border:1px solid var(--edit-border); color:var(--text-color); border-radius:8px; padding:7px 10px; font-size:13px; box-sizing:border-box; width:100%;">
-                <div style="display:flex; gap:6px;">
-                    <button onclick="cloudConfirmCreateRoom()" style="background:rgba(155,126,200,0.15); border:1px solid var(--accent-color); color:var(--accent-color); border-radius:8px; padding:7px 18px; font-size:13px; font-weight:700; cursor:pointer;">確認建立</button>
-                    <button onclick="document.getElementById('createRoomInputWrap').style.display='none'" style="background:transparent; border:1px solid var(--edit-border); color:#888; border-radius:8px; padding:7px 14px; font-size:13px; cursor:pointer;">取消</button>
                 </div>
             </div>
             <div class="fleet-toolbar">
