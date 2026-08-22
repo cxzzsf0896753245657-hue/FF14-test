@@ -3885,8 +3885,8 @@ const ITEM_DB={"2":"火之碎晶","3":"冰之碎晶","4":"風之碎晶","5":"土
             parts: createDefaultNewShipParts(),
             group
         };
-        savedTimers.push(timerData);
-        saveTimersToStorage();
+        getActiveTimers().push(timerData);
+        saveActiveTimers();
         createTimerCard(timerData);
         updateFleetCount();
         applyGroupFilter();
@@ -3919,10 +3919,10 @@ const ITEM_DB={"2":"火之碎晶","3":"冰之碎晶","4":"風之碎晶","5":"土
     }
 
     function changeCardGroup(id, newGroup) {
-        const t = savedTimers.find(x => x.id === id);
+        const t = getActiveTimers().find(x => x.id === id);
         if (!t) return;
         t.group = newGroup;
-        saveTimersToStorage();
+        saveActiveTimers();
         applyGroupFilter();
     }
 
@@ -4219,21 +4219,22 @@ const ITEM_DB={"2":"火之碎晶","3":"冰之碎晶","4":"風之碎晶","5":"土
             const prevParts = matched.parts || createEmptyParts();
 
             // 清除同群組內同名卡片（含已完成的），避免舊卡與新計時並存；不影響其他群組內的同名船
-            const toRemove = savedTimers.filter(t => t.name === matchedName && (t.group || DEFAULT_GROUP) === matchedGroup);
+            const activeArr = getActiveTimers();
+            const toRemove = activeArr.filter(t => t.name === matchedName && (t.group || DEFAULT_GROUP) === matchedGroup);
             toRemove.forEach(t => document.getElementById(`card-${t.id}`)?.remove());
-            savedTimers = savedTimers.filter(t => !(t.name === matchedName && (t.group || DEFAULT_GROUP) === matchedGroup));
+            setActiveTimers(activeArr.filter(t => !(t.name === matchedName && (t.group || DEFAULT_GROUP) === matchedGroup)));
 
             // 用原本正確的名字建立新計時，並帶回原本的配件設定與群組
             const timerData = { id: 'timer_' + Date.now() + '_' + (++_timerIdCounter) + '_' + Math.random().toString(36).substr(2, 5), name: matchedName, level, startTime: now, endTime, totalSeconds, parts: prevParts, group: matchedGroup };
-            savedTimers.push(timerData);
-            saveTimersToStorage();
+            getActiveTimers().push(timerData);
+            saveActiveTimers();
             createTimerCard(timerData);
         } else {
             // 新船：新增（配件預設為 1111，待使用者手動調整；性能會自動計算）。若目前正篩選在特定群組，新船直接歸入該群組
             const newGroup = (activeGroup === GROUP_ALL) ? DEFAULT_GROUP : activeGroup;
             const timerData = { id: 'timer_' + Date.now() + '_' + (++_timerIdCounter) + '_' + Math.random().toString(36).substr(2, 5), name, level, startTime: now, endTime, totalSeconds, parts: createDefaultNewShipParts(), group: newGroup };
-            savedTimers.push(timerData);
-            saveTimersToStorage();
+            getActiveTimers().push(timerData);
+            saveActiveTimers();
             createTimerCard(timerData);
         }
         updateFleetCount();
@@ -4497,7 +4498,7 @@ const ITEM_DB={"2":"火之碎晶","3":"冰之碎晶","4":"風之碎晶","5":"土
     let currentConfigTimerId = null;
 
     function openSubConfigModal(id) {
-        const t = savedTimers.find(x => x.id === id);
+        const t = getActiveTimers().find(x => x.id === id);
         if (!t) return;
         currentConfigTimerId = id;
         const parts = t.parts || createEmptyParts();
@@ -4518,7 +4519,7 @@ const ITEM_DB={"2":"火之碎晶","3":"冰之碎晶","4":"風之碎晶","5":"土
 
     function saveSubConfigModal() {
         if (!currentConfigTimerId) return;
-        const t = savedTimers.find(x => x.id === currentConfigTimerId);
+        const t = getActiveTimers().find(x => x.id === currentConfigTimerId);
         if (!t) return;
         const newName = document.getElementById('cfg-name').value.trim();
         const newLevel = document.getElementById('cfg-level').value.trim();
@@ -4529,11 +4530,9 @@ const ITEM_DB={"2":"火之碎晶","3":"冰之碎晶","4":"風之碎晶","5":"土
         if (isNaN(newEndTime)) { showAlert('回港時間格式錯誤'); return; }
         t.name = newName;
         t.level = newLevel;
-        // 若回港時間有變動，重新計算相關欄位
         if (newEndTime !== t.endTime) {
             t.endTime = newEndTime;
             t.totalSeconds = Math.round((newEndTime - t.startTime) / 1000);
-            // 同步卡片上的回港時間顯示
             const card = document.getElementById(`card-${t.id}`);
             if (card) {
                 const footerSpans = card.querySelectorAll('.time-highlight.target');
@@ -4545,12 +4544,10 @@ const ITEM_DB={"2":"火之碎晶","3":"冰之碎晶","4":"風之碎晶","5":"土
         t.parts = parts;
         delete t.stats;
         delete t.statsUpdatedAt;
-        saveTimersToStorage();
-        // 重建卡片，確保倒數計時器正確重啟（尤其是從已回港狀態改為未來時間）
+        saveActiveTimers();
         const oldCard = document.getElementById(`card-${t.id}`);
         if (oldCard) oldCard.remove();
         createTimerCard(t);
-        // 重新排序
         const list = document.getElementById('timerList');
         const sorted = getSortedTimers();
         sorted.forEach(st => {
@@ -4662,13 +4659,51 @@ const ITEM_DB={"2":"火之碎晶","3":"冰之碎晶","4":"風之碎晶","5":"土
             el.innerText = visible + " / " + savedTimers.length + " 艘";
         }
     }
-    function deleteTimer(id) { savedTimers = savedTimers.filter(t => t.id !== id); saveTimersToStorage(); document.getElementById(`card-${id}`)?.remove(); updateFleetCount(); }
+    function deleteTimer(id) {
+        const arr = getActiveTimers().filter(t => t.id !== id);
+        setActiveTimers(arr);
+        saveActiveTimers();
+        document.getElementById(`card-${id}`)?.remove();
+        updateFleetCount();
+    }
     function saveTimersToStorage() { localStorage.setItem('ffxiv_submarine_timers', JSON.stringify(savedTimers)); if (window.CloudSync?.isEnabled()) window.CloudSync.pushMyData(); }
+
+    // ── 房間視圖的 timers 寫回 Firebase ──
+    async function saveRoomTimers(roomId) {
+        if (!roomId || !_rooms[roomId]) return;
+        _rooms[roomId].timers = _viewTimers || [];
+        await window.CloudSync?.pushRoomData(roomId, { timers: _rooms[roomId].timers });
+    }
+
+    // 依目前視圖儲存（個人 or 房間）
+    function saveActiveTimers() {
+        if (_currentFleetView === 'mine') {
+            saveTimersToStorage();
+        } else {
+            saveRoomTimers(_currentFleetView);
+        }
+    }
+
+    // 取得目前視圖的 timers 陣列（可讀寫）
+    function getActiveTimers() {
+        return _currentFleetView === 'mine' ? savedTimers : (_viewTimers || []);
+    }
+
+    // 設定目前視圖的 timers 陣列
+    function setActiveTimers(arr) {
+        if (_currentFleetView === 'mine') {
+            savedTimers = arr;
+        } else {
+            _viewTimers = arr;
+            if (_rooms[_currentFleetView]) _rooms[_currentFleetView].timers = arr;
+        }
+    }
     function getSortedTimers() {
+        const timers = getActiveTimers();
         const now = Date.now();
         const sort = currentSort;
-        const finished = savedTimers.filter(t => t.endTime <= now);
-        const active   = savedTimers.filter(t => t.endTime > now);
+        const finished = timers.filter(t => t.endTime <= now);
+        const active   = timers.filter(t => t.endTime > now);
 
         function nameCompare(a, b) {
             return a.name.localeCompare(b.name, 'zh-TW', { sensitivity: 'base' });
@@ -4676,21 +4711,20 @@ const ITEM_DB={"2":"火之碎晶","3":"冰之碎晶","4":"風之碎晶","5":"土
         function levelNum(t) { return parseInt(t.level) || 0; }
 
         if (sort === 'name') {
-            return [...savedTimers].sort(nameCompare);
+            return [...timers].sort(nameCompare);
         }
         if (sort === 'time_asc') {
-            // 已回港在最前，其餘依回港時間由近到遠，同時間再依名字
             const sortedFinished = [...finished].sort(nameCompare);
             const sortedActive   = [...active].sort((a, b) => a.endTime - b.endTime || nameCompare(a, b));
             return [...sortedFinished, ...sortedActive];
         }
         if (sort === 'level_asc') {
-            return [...savedTimers].sort((a, b) => levelNum(a) - levelNum(b) || nameCompare(a, b));
+            return [...timers].sort((a, b) => levelNum(a) - levelNum(b) || nameCompare(a, b));
         }
         if (sort === 'level_desc') {
-            return [...savedTimers].sort((a, b) => levelNum(b) - levelNum(a) || nameCompare(a, b));
+            return [...timers].sort((a, b) => levelNum(b) - levelNum(a) || nameCompare(a, b));
         }
-        return savedTimers;
+        return timers;
     }
 
     function applySortAndRender() {
