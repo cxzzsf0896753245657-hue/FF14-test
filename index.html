@@ -4622,7 +4622,7 @@ const ITEM_DB={"2":"火之碎晶","3":"冰之碎晶","4":"風之碎晶","5":"土
     
     // ── 從船艇小卡送往路線規劃 ──
     function sendCardToRoutePlanner(timerId) {
-        const t = savedTimers.find(x => x.id === timerId);
+        const t = getActiveTimers().find(x => x.id === timerId);
         if (!t) return;
 
         // 切換到路線規劃分頁
@@ -7727,25 +7727,22 @@ const CRAFT_BASE = {"火之碎晶":"水晶","冰之碎晶":"水晶","風之碎�
 
     // ── 使用此路線：將耗時套用回船艇小卡，並同步路線規劃上的等級與配件 ──
     function applyRouteToCard(timeMins) {
-        // 取得目前路線規劃選中的船艇
         const shipSel = document.getElementById('rpShipSelect');
         if (!shipSel || !shipSel.value) {
             showAlert('請先在路線規劃上方選擇船艇');
             return;
         }
         const timerId = shipSel.value;
-        const t = savedTimers.find(x => x.id === timerId);
+        const t = getActiveTimers().find(x => x.id === timerId);
         if (!t) {
             showAlert('找不到對應船艇，請重新選擇');
             return;
         }
 
-        // 從路線規劃讀取目前的等級與配件（可能已被使用者變更）
         const rpLevel = document.getElementById('rpLevel').value.trim();
         const rpParts = {};
         PART_KEYS.forEach(key => { rpParts[key] = getPartVal(key, 'rp'); });
 
-        // 更新等級與配件（若與原來不同）
         let changed = false;
         if (rpLevel && rpLevel !== String(t.level || '')) { t.level = rpLevel; changed = true; }
         PART_KEYS.forEach(key => {
@@ -7756,7 +7753,6 @@ const CRAFT_BASE = {"火之碎晶":"水晶","冰之碎晶":"水晶","風之碎�
             PART_KEYS.forEach(key => { t.parts[key] = rpParts[key]; });
         }
 
-        // 以當前時間為出航時間，加上路線耗時計算回港時間
         const now = Date.now();
         const totalSeconds = Math.round(timeMins * 60);
         const newEndTime = now + totalSeconds * 1000;
@@ -7766,7 +7762,7 @@ const CRAFT_BASE = {"火之碎晶":"水晶","冰之碎晶":"水晶","風之碎�
         t.totalSeconds = totalSeconds;
         delete t.stats;
         delete t.statsUpdatedAt;
-        saveTimersToStorage();
+        saveActiveTimers();
 
         // 重建卡片
         const oldCard = document.getElementById(`card-${t.id}`);
