@@ -257,6 +257,47 @@
         .cloud-status-badge.connected { background: rgba(76,175,80,0.15); color: #4caf50; }
         .cloud-status-badge.error { background: rgba(255,83,112,0.15); color: #ff5370; }
         body.light-mode .cloud-status-badge { background: rgba(0,0,0,0.07); color: #999; }
+
+        /* ── 房間列表小卡 ── */
+        .room-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 10px;
+            padding: 10px 12px;
+        }
+        body.light-mode .room-card { background: rgba(0,0,0,0.02); border-color: rgba(0,0,0,0.08); }
+        .room-card-name {
+            font-size: 13.5px; font-weight: 800; color: var(--text-color);
+            margin-bottom: 5px; display: flex; align-items: center; justify-content: space-between;
+        }
+        .room-card-code {
+            font-size: 10.5px; font-family: monospace; letter-spacing: 1.5px;
+            color: var(--accent-color); background: rgba(155,126,200,0.1);
+            padding: 1px 6px; border-radius: 5px; font-weight: 700;
+        }
+        .room-card-meta {
+            font-size: 11.5px; color: #888; line-height: 1.7;
+        }
+        .room-card-meta strong { color: #bbb; font-weight: 700; }
+        body.light-mode .room-card-meta { color: #aaa; }
+        body.light-mode .room-card-meta strong { color: #666; }
+        .room-card-actions {
+            display: flex; gap: 6px; margin-top: 8px;
+        }
+        .room-card-btn {
+            font-size: 11.5px; font-weight: 700; padding: 4px 12px;
+            border-radius: 7px; cursor: pointer; border: 1px solid;
+            transition: background 0.15s;
+        }
+        .room-card-btn.enter {
+            background: rgba(155,126,200,0.12); border-color: rgba(155,126,200,0.3);
+            color: var(--accent-color);
+        }
+        .room-card-btn.enter:hover { background: rgba(155,126,200,0.22); }
+        .room-card-btn.leave {
+            background: transparent; border-color: rgba(255,83,112,0.25); color: #e06070;
+        }
+        .room-card-btn.leave:hover { background: rgba(255,83,112,0.1); }
         .thumb-container { padding: 4px 5px; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; width: fit-content; }
 
         /* 折疊按鈕：左側指示條 */
@@ -2008,11 +2049,35 @@
             localStorage.setItem('sub_room_ids', JSON.stringify(rooms));
         }
 
+        // 暱稱管理
+        function getMyNickname() {
+            return localStorage.getItem('sub_nickname') || '';
+        }
+        function setMyNickname(name) {
+            localStorage.setItem('sub_nickname', name);
+        }
+        async function pushNickname() {
+            const name = getMyNickname();
+            if (!name) return;
+            await update(ref(db, `users/${myUUID}`), { nickname: name });
+        }
+        async function pushMemberName(roomId) {
+            const name = getMyNickname();
+            if (!name) return;
+            await update(ref(db, `rooms/${roomId}/memberNames`), { [myUUID]: name });
+        }
+
         // 讓外部 JS 可以查詢 Firebase 房間資料
         window._fbGet = async function(roomId) {
             const snap = await get(ref(db, `rooms/${roomId}`));
             return snap.exists() ? snap.val() : null;
         };
+        window._fbGetNickname = async function(uuid) {
+            const snap = await get(ref(db, `users/${uuid}/nickname`));
+            return snap.exists() ? snap.val() : uuid.slice(0, 8);
+        };
+        window._getMyNickname = getMyNickname;
+        window._setMyNickname = setMyNickname;
 
         window.CloudSync = {
             myUUID,
@@ -2032,8 +2097,13 @@
             },
             async createRoom(name) {
                 const roomId = generateRoomCode();
-                await set(ref(db, `rooms/${roomId}`), { name: name||'共同艦隊', owner: myUUID, members:{[myUUID]:true}, timers:[], groups:[], updatedAt:Date.now() });
-                // 存入多房間清單
+                const myName = getMyNickname() || myUUID.slice(0,8);
+                await set(ref(db, `rooms/${roomId}`), {
+                    name: name||'共同艦隊', owner: myUUID,
+                    members:{[myUUID]:true},
+                    memberNames:{[myUUID]: myName},
+                    timers:[], groups:[], updatedAt:Date.now()
+                });
                 const rooms = _getSavedRooms();
                 if (!rooms.find(r => r.id === roomId)) {
                     rooms.push({ id: roomId, name: name||'共同艦隊' });
@@ -2044,8 +2114,9 @@
             async joinRoom(roomId) {
                 const snap = await get(ref(db, `rooms/${roomId}`));
                 if (!snap.exists()) throw new Error('找不到此房間代碼');
+                const myName = getMyNickname() || myUUID.slice(0,8);
                 await update(ref(db, `rooms/${roomId}/members`), {[myUUID]:true});
-                // 存入多房間清單
+                await update(ref(db, `rooms/${roomId}/memberNames`), {[myUUID]: myName});
                 const rooms = _getSavedRooms();
                 const roomName = snap.val().name || '共同艦隊';
                 if (!rooms.find(r => r.id === roomId)) {
@@ -2075,6 +2146,7 @@
                 _saveRooms(rooms);
             },
             getSavedRooms() { return _getSavedRooms(); },
+            async pushNickname() { await pushNickname(); },
             enable() { _syncEnabled = true; this.listenMyData(); },
             isEnabled() { return _syncEnabled; }
         };
@@ -2312,6 +2384,15 @@ document.addEventListener('DOMContentLoaded', function() {
                                 <button onclick="copyMyUUID()" style="background:var(--accent-color); color:#fff; border:none; border-radius:6px; padding:6px 12px; font-size:12px; cursor:pointer;">複製</button>
                             </div>
                         </div>
+                        <!-- 暱稱設定 -->
+                        <div style="margin-bottom:12px;">
+                            <div style="font-size:12px; color:#888; margin-bottom:6px;">我的暱稱（在共同編輯房間中顯示）</div>
+                            <div style="display:flex; gap:6px; align-items:center;">
+                                <input id="myNicknameInput" type="text" maxlength="16" placeholder="輸入暱稱（最多16字）"
+                                    style="flex:1; background:var(--edit-bg); border:1px solid var(--edit-border); color:var(--text-color); border-radius:6px; padding:6px 10px; font-size:13px;">
+                                <button onclick="saveMyNickname()" style="background:rgba(155,126,200,0.15); border:1px solid var(--accent-color); color:var(--accent-color); border-radius:6px; padding:6px 12px; font-size:12px; font-weight:700; cursor:pointer;">儲存</button>
+                            </div>
+                        </div>
                         <div id="cloudSyncStatus" style="display:none;">
                             <span id="cloudSyncDot"></span>
                             <span id="cloudSyncMsg"></span>
@@ -2355,6 +2436,8 @@ document.addEventListener('DOMContentLoaded', function() {
                                 <input id="joinRoomInput" type="text" placeholder="輸入6碼房間代碼" maxlength="6" style="width:100%; background:var(--edit-bg); border:1px solid var(--edit-border); color:var(--text-color); border-radius:6px; padding:8px 10px; font-size:14px; font-family:monospace; text-transform:uppercase; letter-spacing:3px; box-sizing:border-box;">
                                 <button onclick="cloudJoinRoom()" style="width:100%; background:#2a4a3a; border:1px solid #4caf50; color:#4caf50; border-radius:6px; padding:8px; font-size:13px; font-weight:700; cursor:pointer;">確認加入</button>
                             </div>
+                            <!-- 已加入的房間列表 -->
+                            <div id="roomListWrap" style="margin-top:12px; display:none; flex-direction:column; gap:8px;"></div>
                         </div>
                     </div>
             </div>
@@ -8006,7 +8089,6 @@ window.toggleUploadZone = function(btn) {
     function _addRoomTab(roomId, roomName) {
         const seg = document.getElementById('fleetSegControl');
         if (!seg) return;
-        // 避免重複加入
         if (document.querySelector(`.fleet-view-tab[data-view="${roomId}"]`)) return;
         const btn = document.createElement('button');
         btn.className = 'fleet-view-tab';
@@ -8014,10 +8096,8 @@ window.toggleUploadZone = function(btn) {
         btn.innerHTML = `${roomName}<span class="fleet-view-badge">即時</span><span class="fleet-view-close" onclick="cloudLeaveRoomById(event,'${roomId}')">✕</span>`;
         btn.onclick = () => switchFleetView(roomId);
         seg.appendChild(btn);
-        // 確保我的艦隊 tab 也有 data-view
         const mineTab = document.getElementById('fleetTabMine');
         if (mineTab) mineTab.dataset.view = 'mine';
-        // 顯示切換列
         document.getElementById('fleetViewSwitcher').style.display = 'flex';
     }
 
@@ -8038,13 +8118,16 @@ window.toggleUploadZone = function(btn) {
     }
 
     function _listenRoomTimers(roomId, roomName) {
-        if (_rooms[roomId]?.unsubscribe) _rooms[roomId].unsubscribe();
-        _rooms[roomId] = { name: roomName, timers: [], groups: [] };
+        if (!_rooms[roomId]) _rooms[roomId] = { name: roomName, timers: [], groups: [], owner: '', memberNames: {} };
         window.CloudSync.listenRoom(roomId, function(roomData) {
             if (!_rooms[roomId]) return;
             _rooms[roomId].timers = roomData.timers || [];
             _rooms[roomId].groups = roomData.groups || [];
+            _rooms[roomId].owner = roomData.owner || '';
+            _rooms[roomId].memberNames = roomData.memberNames || {};
+            _rooms[roomId].name = roomData.name || roomName;
             if (_currentFleetView === roomId) switchFleetView(roomId);
+            renderRoomList();
         });
     }
 
@@ -8060,26 +8143,34 @@ window.toggleUploadZone = function(btn) {
         const roomName = nameInput?.value.trim() || '共同艦隊';
         document.getElementById('createRoomInputWrap').style.display = 'none';
         if (nameInput) nameInput.value = '';
+        // 暱稱檢查
+        const myNick = window._getMyNickname?.() || '';
+        if (!myNick) return showAlert('請先設定暱稱才能建立房間');
         try {
             const roomId = await window.CloudSync.createRoom(roomName);
             await window.CloudSync.pushRoomData(roomId, { timers: savedTimers, groups: customGroups });
-            _rooms[roomId] = { name: roomName, timers: savedTimers, groups: customGroups };
+            _rooms[roomId] = { name: roomName, timers: savedTimers, groups: customGroups, owner: window.CloudSync.myUUID, memberNames: { [window.CloudSync.myUUID]: myNick } };
             _addRoomTab(roomId, roomName);
             _listenRoomTimers(roomId, roomName);
+            renderRoomList();
             showAlert(`✅ 房間「${roomName}」建立成功！代碼：${roomId}`);
         } catch(e) { showAlert('⚠️ ' + e.message); }
     };
 
     window.cloudJoinRoom = async function() {
         if (!window.CloudSync?.isEnabled()) return showAlert('請先啟用雲端同步');
+        const myNick = window._getMyNickname?.() || '';
+        if (!myNick) return showAlert('請先設定暱稱才能加入房間');
         const roomId = document.getElementById('joinRoomInput')?.value.trim().toUpperCase();
         if (!roomId || roomId.length !== 6) return showAlert('請輸入 6 碼房間代碼');
         if (_rooms[roomId]) return showAlert('已加入此房間');
         try {
             const data = await window.CloudSync.joinRoom(roomId);
             const roomName = data.name || '共同艦隊';
+            _rooms[roomId] = { name: roomName, timers: data.timers || [], groups: data.groups || [], owner: data.owner || '', memberNames: data.memberNames || {} };
             _addRoomTab(roomId, roomName);
             _listenRoomTimers(roomId, roomName);
+            renderRoomList();
             document.getElementById('joinRoomInput').value = '';
             document.getElementById('joinRoomWrap').style.display = 'none';
             showAlert(`✅ 已加入房間「${roomName}」`);
@@ -8091,15 +8182,23 @@ window.toggleUploadZone = function(btn) {
         window.CloudSync?.leaveRoom(roomId);
         if (_rooms[roomId]) delete _rooms[roomId];
         _removeRoomTab(roomId);
+        // 移除房間小卡
+        const card = document.getElementById(`room-card-${roomId}`);
+        if (card) card.remove();
+        // 若沒有房間了，隱藏列表容器
+        const wrap = document.getElementById('roomListWrap');
+        if (wrap && !Object.keys(_rooms).length) wrap.style.display = 'none';
     };
 
     window.cloudLeaveRoom = function() {
-        // 離開目前選中的房間
-        if (_currentFleetView !== 'mine') cloudLeaveRoomById({ stopPropagation:()=>{} }, _currentFleetView);
+        if (_currentFleetView !== 'mine') {
+            cloudLeaveRoomById({ stopPropagation:()=>{} }, _currentFleetView);
+        }
         const wrap = document.getElementById('currentRoomWrap');
         const actions = document.getElementById('roomActionWrap');
         if (wrap) wrap.style.display = 'none';
         if (actions) actions.style.display = 'flex';
+        renderRoomList();
         showAlert('已離開房間');
     };
 
@@ -8109,28 +8208,74 @@ window.toggleUploadZone = function(btn) {
         const uuid = window.CloudSync?.myUUID || '';
         const el = document.getElementById('myUUIDDisplay');
         if (el) el.value = uuid;
+        // 載入已儲存的暱稱
+        const savedNick = window._getMyNickname?.() || '';
+        const nickEl = document.getElementById('myNicknameInput');
+        if (nickEl && savedNick) nickEl.value = savedNick;
+
         if (localStorage.getItem('sub_cloud_enabled') === '1') _doEnableSync();
 
         // ── 重整後還原所有已加入的房間 ──
         const savedRooms = window.CloudSync?.getSavedRooms() || [];
         savedRooms.forEach(async ({ id: roomId, name: roomName }) => {
             try {
-                // 確認房間仍存在
                 const snap = await window._fbGet(roomId);
-                if (!snap) {
-                    // 房間不存在，從清單移除
-                    window.CloudSync?.leaveRoom(roomId);
-                    return;
-                }
+                if (!snap) { window.CloudSync?.leaveRoom(roomId); return; }
                 const actualName = snap.name || roomName;
-                _rooms[roomId] = { name: actualName, timers: snap.timers || [], groups: snap.groups || [] };
+                _rooms[roomId] = { name: actualName, timers: snap.timers || [], groups: snap.groups || [], owner: snap.owner || '', memberNames: snap.memberNames || {} };
                 _addRoomTab(roomId, actualName);
                 _listenRoomTimers(roomId, actualName);
-            } catch(e) {
-                console.warn('還原房間失敗:', roomId, e);
-            }
+                renderRoomList();
+            } catch(e) { console.warn('還原房間失敗:', roomId, e); }
         });
     });
+
+    // 儲存暱稱
+    window.saveMyNickname = async function() {
+        const input = document.getElementById('myNicknameInput');
+        const name = input?.value.trim();
+        if (!name) return showAlert('請輸入暱稱');
+        window._setMyNickname?.(name);
+        if (window.CloudSync?.isEnabled()) await window.CloudSync.pushNickname();
+        showAlert('✅ 暱稱已儲存：' + name);
+    };
+
+    // 渲染房間列表
+    function renderRoomList() {
+        const wrap = document.getElementById('roomListWrap');
+        if (!wrap) return;
+        const roomIds = Object.keys(_rooms);
+        if (!roomIds.length) { wrap.style.display = 'none'; return; }
+        wrap.style.display = 'flex';
+        wrap.innerHTML = '<div style="font-size:11px; font-weight:800; letter-spacing:1px; text-transform:uppercase; color:#666; margin-bottom:4px;">已加入的房間</div>';
+        roomIds.forEach(roomId => {
+            const room = _rooms[roomId];
+            const memberNames = room.memberNames || {};
+            const ownerUUID = room.owner || '';
+            const ownerName = memberNames[ownerUUID] || ownerUUID.slice(0,8);
+            // 成員排除持有人
+            const members = Object.entries(memberNames)
+                .filter(([uuid]) => uuid !== ownerUUID)
+                .map(([, name]) => name);
+            const card = document.createElement('div');
+            card.className = 'room-card';
+            card.id = `room-card-${roomId}`;
+            card.innerHTML = `
+                <div class="room-card-name">
+                    ${room.name}
+                    <span class="room-card-code">${roomId}</span>
+                </div>
+                <div class="room-card-meta">
+                    <strong>持有人：</strong>${ownerName}<br>
+                    ${members.length ? `<strong>成員：</strong>${members.join('、')}` : '<span style="opacity:0.5">尚無其他成員</span>'}
+                </div>
+                <div class="room-card-actions">
+                    <button class="room-card-btn enter" onclick="switchFleetView('${roomId}'); switchRpTab('fleet');">切換視圖</button>
+                    <button class="room-card-btn leave" onclick="cloudLeaveRoomById(event,'${roomId}')">離開房間</button>
+                </div>`;
+            wrap.appendChild(card);
+        });
+    }
 
     window.addEventListener('cloudDataLoaded', () => {
         if (typeof loadTimersFromStorage === 'function') loadTimersFromStorage();
