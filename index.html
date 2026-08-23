@@ -4578,7 +4578,7 @@ const ITEM_DB={"2":"火之碎晶","3":"冰之碎晶","4":"風之碎晶","5":"土
     function updateConfigSummary(id) {
         const el = document.getElementById(`config-summary-${id}`);
         if (!el) return;
-        const t = savedTimers.find(x => x.id === id);
+        const t = getActiveTimers().find(x => x.id === id);
         if (!t) return;
         const summary = formatConfigSummary(t);
         el.innerHTML = summary;
@@ -4895,7 +4895,7 @@ const ITEM_DB={"2":"火之碎晶","3":"冰之碎晶","4":"風之碎晶","5":"土
     function gpApplyShipSelection() {
         const id = document.getElementById('gpShipSelect').value;
         if (!id) return;
-        const t = savedTimers.find(x => x.id === id);
+        const t = getActiveTimers().find(x => x.id === id);
         if (!t) return;
         document.getElementById('gpLevel').value = t.level || '';
         const parts = t.parts || createEmptyParts();
@@ -7554,7 +7554,7 @@ const CRAFT_BASE = {"火之碎晶":"水晶","冰之碎晶":"水晶","風之碎�
     function rpApplyShipSelection() {
         const id = document.getElementById('rpShipSelect').value;
         if (!id) return;
-        const t = savedTimers.find(x => x.id === id);
+        const t = getActiveTimers().find(x => x.id === id);
         if (!t) return;
         document.getElementById('rpLevel').value = t.level || "";
         const parts = t.parts || createEmptyParts();
