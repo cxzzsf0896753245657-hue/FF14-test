@@ -118,46 +118,22 @@
             box-shadow: 0 4px 14px rgba(249,115,22,0.6);
         }
 
-        /* ── 使用說明按鈕 ── */
-        #manualBtn {
-            position: fixed;
-            top: 12px;
-            right: 280px;
-            z-index: 9999;
-            background: linear-gradient(135deg, #9b7ec8, #7c5cbf);
-            color: #fff;
-            border: none;
-            border-radius: 20px;
-            padding: 6px 14px;
-            font-size: 13px;
-            font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif;
-            font-weight: bold;
-            cursor: pointer;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            box-shadow: 0 2px 8px rgba(155,126,200,0.45);
-            transition: transform 0.15s, box-shadow 0.15s;
-        }
-        #manualBtn:hover { transform: translateY(-2px); box-shadow: 0 4px 14px rgba(155,126,200,0.6); }
-
         /* ── 使用說明抽屜 ── */
         #manualDrawer {
             position: fixed;
-            top: 0; right: -520px;
+            top: 0; left: -520px;
             width: 520px;
             height: 100vh;
             background: #1a1a2e;
-            border-left: 1px solid rgba(155,126,200,0.2);
+            border-right: 1px solid rgba(155,126,200,0.2);
             z-index: 10000;
-            transition: right 0.3s cubic-bezier(0.4,0,0.2,1);
+            transition: left 0.3s cubic-bezier(0.4,0,0.2,1);
             display: flex;
             flex-direction: column;
             font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif;
         }
-        body.light-mode #manualDrawer { background: #f4f0fa; border-left-color: rgba(155,126,200,0.25); }
-        #manualDrawer.open { right: 0; }
+        body.light-mode #manualDrawer { background: #f4f0fa; border-right-color: rgba(155,126,200,0.25); }
+        #manualDrawer.open { left: 0; }
         #manualOverlay {
             position: fixed; inset: 0;
             background: rgba(0,0,0,0.45);
@@ -193,7 +169,7 @@
         body.light-mode .manual-nav { background: rgba(155,126,200,0.06); border-right-color: rgba(155,126,200,0.15); }
         .manual-nav-item {
             display: flex; align-items: center; gap: 8px;
-            padding: 10px 16px; font-size: 14px; color: #aaa;
+            padding: 10px 16px; font-size: 14px; color: #ccc;
             cursor: pointer; transition: all .15s;
             border-left: 2px solid transparent; user-select: none;
         }
@@ -216,7 +192,7 @@
         }
         .manual-h2 { font-size: 22px; font-weight: 700; color: #e0e0e0; margin-bottom: 7px; }
         body.light-mode .manual-h2 { color: #2d2d2d; }
-        .manual-sub { font-size: 14px; color: #888; margin-bottom: 20px; line-height: 1.75; }
+        .manual-sub { font-size: 14px; color: #b8b8b8; margin-bottom: 20px; line-height: 1.75; }
         body.light-mode .manual-sub { color: #666; }
         .manual-demo-card {
             background: rgba(255,255,255,0.04); border: 0.5px solid rgba(255,255,255,0.09);
@@ -228,7 +204,7 @@
         .manual-demo-timer { font-size: 20px; font-weight: 800; color: #e07070; font-family: monospace; letter-spacing: 1px; }
         .manual-bar-bg { height: 3px; background: rgba(155,126,200,0.15); border-radius: 2px; margin-bottom: 8px; overflow: hidden; }
         .manual-bar { height: 100%; background: linear-gradient(90deg,#9b7ec8,#c792ea); border-radius: 2px; }
-        .manual-meta { font-size: 13px; color: #666; display: flex; justify-content: space-between; }
+        .manual-meta { font-size: 13px; color: #999; display: flex; justify-content: space-between; }
         body.light-mode .manual-meta { color: #999; }
         .manual-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
         .manual-tag {
@@ -245,7 +221,7 @@
             font-size: 12px; font-weight: 700; display: flex; align-items: center;
             justify-content: center; flex-shrink: 0; margin-top: 2px;
         }
-        .manual-step-text { font-size: 14px; color: #999; line-height: 1.7; }
+        .manual-step-text { font-size: 14px; color: #c8c8c8; line-height: 1.7; }
         body.light-mode .manual-step-text { color: #666; }
         .manual-step-text b { color: #e0e0e0; font-weight: 600; }
         body.light-mode .manual-step-text b { color: #333; }
@@ -256,14 +232,14 @@
         }
         body.light-mode .manual-stat-box { background: #fff; border-color: rgba(0,0,0,0.08); }
         .manual-stat-val { font-size: 20px; font-weight: 700; color: #9b7ec8; font-family: monospace; }
-        .manual-stat-label { font-size: 12.5px; color: #666; margin-top: 3px; }
+        .manual-stat-label { font-size: 12.5px; color: #aaa; margin-top: 3px; }
         .manual-gear-row { display: flex; gap: 6px; margin-bottom: 10px; }
         .manual-gear-slot {
             flex: 1; background: rgba(255,255,255,0.04); border: 0.5px solid rgba(255,255,255,0.09);
-            border-radius: 8px; padding: 9px 8px; font-size: 13px; color: #aaa; text-align: center;
+            border-radius: 8px; padding: 9px 8px; font-size: 13px; color: #d0d0d0; text-align: center;
         }
         body.light-mode .manual-gear-slot { background: #fff; border-color: rgba(0,0,0,0.08); color: #666; }
-        .manual-gear-slot b { display: block; font-size: 12px; color: #666; margin-bottom: 3px; font-weight: 400; }
+        .manual-gear-slot b { display: block; font-size: 12px; color: #999; margin-bottom: 3px; font-weight: 400; }
         .manual-craft-row {
             display: flex; align-items: center; gap: 9px;
             padding: 9px 0; border-bottom: 0.5px solid rgba(255,255,255,0.06);
@@ -279,10 +255,10 @@
         body.light-mode .manual-craft-check { border-color: rgba(0,0,0,0.2); }
         .manual-craft-check.done { background: #9b7ec8; border-color: #9b7ec8; }
         .manual-craft-check.done::after { content: '✓'; color: #fff; font-size: 9px; font-weight: 700; }
-        .manual-craft-name { flex: 1; font-size: 14px; color: #aaa; }
+        .manual-craft-name { flex: 1; font-size: 14px; color: #d0d0d0; }
         body.light-mode .manual-craft-name { color: #666; }
         .manual-craft-name.done { text-decoration: line-through; color: #555; }
-        .manual-craft-qty { font-size: 13px; color: #666; font-family: monospace; }
+        .manual-craft-qty { font-size: 13px; color: #aaa; font-family: monospace; }
         .manual-badge-row { display: flex; gap: 5px; flex-wrap: wrap; margin: 9px 0; }
         .manual-badge {
             display: inline-flex; align-items: center; gap: 4px;
@@ -297,7 +273,7 @@
         }
         body.light-mode .manual-cloud-box { background: #fff; border-color: rgba(0,0,0,0.08); }
         .manual-cloud-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
-        .manual-cloud-label { font-size: 14px; color: #aaa; }
+        .manual-cloud-label { font-size: 14px; color: #d0d0d0; }
         body.light-mode .manual-cloud-label { color: #666; }
         .manual-cloud-val { font-size: 13px; font-family: monospace; color: #9b7ec8; background: rgba(155,126,200,0.12); padding: 3px 9px; border-radius: 5px; }
         .manual-sync-btn {
@@ -312,13 +288,13 @@
         }
         body.light-mode .manual-room-card { background: #fff; border-color: rgba(0,0,0,0.08); }
         .manual-room-code { font-size: 26px; font-weight: 800; font-family: monospace; letter-spacing: 3px; color: #9b7ec8; margin: 9px 0; }
-        .manual-room-member { display: flex; align-items: center; gap: 8px; padding: 6px 0; font-size: 14px; color: #aaa; }
+        .manual-room-member { display: flex; align-items: center; gap: 8px; padding: 6px 0; font-size: 14px; color: #d0d0d0; }
         body.light-mode .manual-room-member { color: #666; }
         .manual-member-dot { width: 7px; height: 7px; border-radius: 50%; background: #4caf7d; }
         .manual-tip {
             background: rgba(155,126,200,0.08); border: 0.5px solid rgba(155,126,200,0.22);
             border-radius: 8px; padding: 12px 14px; font-size: 13.5px;
-            color: #888; line-height: 1.7; margin-top: 14px;
+            color: #bbb; line-height: 1.7; margin-top: 14px;
         }
         body.light-mode .manual-tip { color: #666; }
         .manual-tip b { color: #9b7ec8; font-weight: 600; }
@@ -332,7 +308,7 @@
         .manual-intro-icon { font-size: 22px; color: #9b7ec8; margin-bottom: 6px; }
         .manual-intro-title { font-size: 14px; font-weight: 600; color: #e0e0e0; margin-bottom: 3px; }
         body.light-mode .manual-intro-title { color: #333; }
-        .manual-intro-desc { font-size: 12.5px; color: #666; line-height: 1.55; }
+        .manual-intro-desc { font-size: 12.5px; color: #aaa; line-height: 1.55; }
         .manual-route-card {
             background: rgba(255,255,255,0.04); border: 0.5px solid rgba(255,255,255,0.09);
             border-radius: 9px; padding: 11px 13px; margin-bottom: 9px;
@@ -342,11 +318,10 @@
         .manual-route-name { font-size: 14.5px; font-weight: 600; color: #e0e0e0; }
         body.light-mode .manual-route-name { color: #333; }
         .manual-route-exp { font-size: 13.5px; color: #9b7ec8; font-weight: 700; }
-        .manual-route-stops { font-size: 13px; color: #666; display: flex; gap: 4px; align-items: center; flex-wrap: wrap; }
+        .manual-route-stops { font-size: 13px; color: #aaa; display: flex; gap: 4px; align-items: center; flex-wrap: wrap; }
         .manual-stop-badge { padding: 2px 8px; background: rgba(155,126,200,0.12); color: #9b7ec8; border-radius: 9px; font-size: 12.5px; }
         @media (max-width: 860px) {
-            #manualDrawer { width: 100vw; right: -100vw; }
-            #manualBtn { right: auto; left: 12px; top: 12px; }
+            #manualDrawer { width: 100vw; left: -100vw; }
         }
 
         /* ── 回報按鈕 ── */
@@ -2199,7 +2174,6 @@
             }
             #sponsorBtn  { right: 10px; }
             #reportBtn   { right: 110px; }
-            #manualBtn   { right: 210px; }
         }
 
         /* ── 選船艇列：桌機橫排，手機直排 ── */
@@ -2480,6 +2454,7 @@
             <h1>FF14 潛水艇計時器2.3.1 <span>阿緋@鳳凰</span></h1>
             <!-- 控制列 -->
             <div class="lp-controls">
+                <button class="lp-icon-btn" onclick="openManual()" title="使用說明" style="font-size:15px;">📖</button>
                 <button class="lp-icon-btn" onclick="toggleTheme()" title="切換主題">🌙</button>
                 <button class="lp-icon-btn" onclick="requestNotificationPermission()" title="啟用通知">🔔</button>
                 <div class="lp-sound-group">
@@ -8292,7 +8267,6 @@ const CRAFT_BASE = {"火之碎晶":"水晶","冰之碎晶":"水晶","風之碎�
         }).join('');
     }
 </script>
-<button id="manualBtn" onclick="openManual()">📖 使用說明</button>
 <div id="manualOverlay" onclick="closeManual()"></div>
 <div id="manualDrawer">
   <div class="manual-head">
@@ -8436,7 +8410,7 @@ const CRAFT_BASE = {"火之碎晶":"水晶","冰之碎晶":"水晶","風之碎�
         <div class="manual-h2">算清楚需要什麼素材</div>
         <div class="manual-sub">選好想製作的配件，網站自動列出所有需要的素材，打勾記錄完成進度。</div>
         <div class="manual-demo-card">
-          <div style="font-size:11.5px;color:#666;margin-bottom:9px">目標：範例配件 IV × 1</div>
+          <div style="font-size:13px;color:#bbb;margin-bottom:9px">目標：範例配件 IV × 1</div>
           <div class="manual-craft-row">
             <div class="manual-craft-check done" id="mck1" onclick="manualToggleCk(1)"></div>
             <div class="manual-craft-name done" id="mcn1">素材一 × 8</div>
@@ -8472,7 +8446,7 @@ const CRAFT_BASE = {"火之碎晶":"水晶","冰之碎晶":"水晶","風之碎�
             <span class="manual-cloud-label">你的專屬 ID</span>
             <span class="manual-cloud-val">a3f8-9c2d-1e7b</span>
           </div>
-          <div style="font-size:11px;color:#666;margin-bottom:9px;line-height:1.6">這是你的帳號識別碼，請妥善保存。<br>換裝置時貼入這組 ID 就能取回所有資料。</div>
+          <div style="font-size:13px;color:#bbb;margin-bottom:9px;line-height:1.6">這是你的帳號識別碼，請妥善保存。<br>換裝置時貼入這組 ID 就能取回所有資料。</div>
           <button class="manual-sync-btn" onclick="this.textContent='已同步 ✓';setTimeout(()=>this.textContent='立即同步',1500)">立即同步</button>
         </div>
         <div class="manual-step"><div class="manual-step-num">1</div><div class="manual-step-text">展開左側 <b>共同編輯</b> 面板，點「啟用雲端同步」</div></div>
@@ -8486,9 +8460,9 @@ const CRAFT_BASE = {"火之碎晶":"水晶","冰之碎晶":"水晶","風之碎�
         <div class="manual-h2">和朋友一起管理艦隊</div>
         <div class="manual-sub">建立一個房間，把代碼分享給朋友，就能即時看到對方的艦隊動態。</div>
         <div class="manual-room-card">
-          <div style="font-size:11px;color:#666">我的房間代碼</div>
+          <div style="font-size:13px;color:#aaa">我的房間代碼</div>
           <div class="manual-room-code">J3PMW8</div>
-          <div style="font-size:11px;color:#666;margin-bottom:9px">把這組代碼傳給朋友，他們就能加入查看你的艦隊</div>
+          <div style="font-size:13px;color:#bbb;margin-bottom:9px">把這組代碼傳給朋友，他們就能加入查看你的艦隊</div>
           <div style="font-size:11.5px;color:#aaa;margin-bottom:5px;font-weight:600">已加入的成員</div>
           <div class="manual-room-member"><div class="manual-member-dot"></div>成員一</div>
           <div class="manual-room-member"><div class="manual-member-dot"></div>成員二</div>
