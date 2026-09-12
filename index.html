@@ -704,6 +704,38 @@
 
         /* ── 海圖跑點 ── */
         .map-block { padding: 10px 12px 14px; }
+        /* ── 海圖標籤 Tab ── */
+        .map-group-tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-bottom: 10px;
+        }
+        .map-group-tab {
+            font-size: 12px;
+            padding: 3px 11px;
+            border-radius: 20px;
+            border: 1px solid rgba(255,255,255,0.12);
+            color: #aaa;
+            cursor: pointer;
+            transition: all .15s;
+            user-select: none;
+        }
+        .map-group-tab:hover { border-color: rgba(155,126,200,0.4); color: #9b7ec8; }
+        .map-group-tab.active { background: #9b7ec8; color: #fff; border-color: #9b7ec8; }
+        body.light-mode .map-group-tab { border-color: rgba(0,0,0,0.12); color: #666; }
+        body.light-mode .map-group-tab:hover { border-color: rgba(155,126,200,0.4); color: #7c5cbf; }
+        body.light-mode .map-group-tab.active { background: #9b7ec8; color: #fff; }
+        /* ── 折疊箭頭 ── */
+        .map-collapse-arrow {
+            font-size: 9px;
+            color: #888;
+            margin-right: 4px;
+            display: inline-block;
+            transition: transform .15s;
+        }
+        .map-entry-header:hover .map-collapse-arrow { color: #9b7ec8; }
+
         .map-entry { margin-bottom: 14px; }
         .map-entry:last-child { margin-bottom: 0; }
         .map-entry-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:6px; }
@@ -3972,6 +4004,8 @@ window.showConfirm = showConfirm;
             if (allGroupNames().includes(name)) { showAlert('這個群組名稱已經存在'); return; }
             customGroups.push(name);
             saveGroups();
+            // 新標籤在 mapNodeState 建立空物件
+            if (!mapNodeState[name]) { mapNodeState[name] = {}; saveMapNodeState(); }
             renderGroupTabs();
             refreshAllCardGroupSelects();
         } else {
@@ -3983,6 +4017,13 @@ window.showConfirm = showConfirm;
                 savedTimers.forEach(t => { if (t.group === oldName) t.group = name; });
                 saveTimersToStorage();
                 if (activeGroup === oldName) { activeGroup = name; saveActiveGroup(); }
+                // 海圖標籤改名：把舊 key 資料搬到新 key
+                if (mapNodeState[oldName]) {
+                    mapNodeState[name] = mapNodeState[oldName];
+                    delete mapNodeState[oldName];
+                    saveMapNodeState();
+                }
+                if (activeMapGroup === oldName) activeMapGroup = name;
                 renderGroupTabs();
                 refreshAllCardGroupSelects();
                 applyGroupFilter();
@@ -4248,6 +4289,9 @@ window.showConfirm = showConfirm;
             savedTimers.forEach(t => { if (t.group === name) t.group = DEFAULT_GROUP; });
             saveTimersToStorage();
             if (activeGroup === name) { activeGroup = GROUP_ALL; saveActiveGroup(); }
+            // 刪除標籤時移除對應的海圖進度資料
+            if (mapNodeState[name]) { delete mapNodeState[name]; saveMapNodeState(); }
+            if (activeMapGroup === name) activeMapGroup = '未分類';
             renderGroupTabs();
             refreshAllCardGroupSelects();
             applyGroupFilter();
@@ -5154,14 +5198,25 @@ window.showConfirm = showConfirm;
         { id: 7, name: '7 - 北洋海',   nodes: genNodes(13) },
     ];
 
-    // 儲存格式：{ "1": ["A","C",...], "2": [...], ... }
+    // 儲存格式：{ "標籤": { "1": ["A","C",...], "2": [...] }, ... }
     let mapNodeState = {};
+    let activeMapGroup = '未分類'; // 海圖區目前選中的標籤
+    const _mapCollapsed = new Set(); // 已折疊的 mapId（記憶體，不 persist）
 
     function loadMapNodeState() {
         try {
             const data = localStorage.getItem('sub_map_nodes');
-            mapNodeState = data ? JSON.parse(data) : {};
-        } catch (e) { mapNodeState = {}; }
+            const parsed = data ? JSON.parse(data) : {};
+            // 偵測舊格式：key 是數字字串（如 "1", "2"）→ 轉換為新格式
+            const isOldFormat = Object.keys(parsed).every(k => /^\d+$/.test(k));
+            if (isOldFormat && Object.keys(parsed).length > 0) {
+                mapNodeState = { '未分類': parsed };
+            } else {
+                mapNodeState = parsed;
+            }
+            // 確保 DEFAULT_GROUP 存在
+            if (!mapNodeState['未分類']) mapNodeState['未分類'] = {};
+        } catch (e) { mapNodeState = { '未分類': {} }; }
     }
 
     function saveMapNodeState() {
@@ -5170,17 +5225,17 @@ window.showConfirm = showConfirm;
     }
 
     function isNodeOn(mapId, node) {
-        return (mapNodeState[mapId] || []).includes(node);
+        return ((mapNodeState[activeMapGroup] || {})[mapId] || []).includes(node);
     }
 
     function toggleMapNode(mapId, node, el) {
-        if (!mapNodeState[mapId]) mapNodeState[mapId] = [];
-        const arr = mapNodeState[mapId];
+        if (!mapNodeState[activeMapGroup]) mapNodeState[activeMapGroup] = {};
+        if (!mapNodeState[activeMapGroup][mapId]) mapNodeState[activeMapGroup][mapId] = [];
+        const arr = mapNodeState[activeMapGroup][mapId];
         const idx = arr.indexOf(node);
         if (idx === -1) { arr.push(node); el.classList.add('on'); }
         else { arr.splice(idx, 1); el.classList.remove('on'); }
         saveMapNodeState();
-        // 更新計數顯示
         const countEl = document.getElementById(`map-count-${mapId}`);
         if (countEl) countEl.innerText = `(${arr.length}/${MAP_DATA.find(m=>m.id===mapId).nodes.length})`;
     }
@@ -5188,10 +5243,10 @@ window.showConfirm = showConfirm;
     function setAllMapNodes(mapId, on) {
         const map = MAP_DATA.find(m => m.id === mapId);
         if (!map) return;
-        mapNodeState[mapId] = on ? [...map.nodes] : [];
+        if (!mapNodeState[activeMapGroup]) mapNodeState[activeMapGroup] = {};
+        mapNodeState[activeMapGroup][mapId] = on ? [...map.nodes] : [];
         saveMapNodeState();
         renderMapNodes();
-        // 重新展開高度
         const contentEl = document.getElementById('content2');
         if (contentEl && contentEl.style.maxHeight) contentEl.style.maxHeight = contentEl.scrollHeight + 'px';
     }
@@ -5200,34 +5255,72 @@ window.showConfirm = showConfirm;
         const block = document.getElementById('mapNodeBlock');
         if (!block) return;
         block.innerHTML = '';
+
+        // ── 標籤 Tab 列 ──
+        const allGroups = ['未分類', ...customGroups];
+        const tabBar = document.createElement('div');
+        tabBar.className = 'map-group-tabs';
+        allGroups.forEach(g => {
+            const tab = document.createElement('div');
+            tab.className = 'map-group-tab' + (g === activeMapGroup ? ' active' : '');
+            tab.textContent = g;
+            tab.onclick = () => { activeMapGroup = g; renderMapNodes(); };
+            tabBar.appendChild(tab);
+        });
+        block.appendChild(tabBar);
+
+        // ── 各海圖 ──
         MAP_DATA.forEach((map, idx) => {
-            const onNodes = (mapNodeState[map.id] || []);
+            const groupData = (mapNodeState[activeMapGroup] || {});
+            const onNodes = (groupData[map.id] || []);
             const total = map.nodes.length;
             const count = onNodes.length;
+            const collapsed = _mapCollapsed.has(map.id);
 
             const entry = document.createElement('div');
             entry.className = 'map-entry';
-            entry.innerHTML = `
-                <div class="map-entry-header">
-                    <span class="map-entry-title">${map.name} <span id="map-count-${map.id}" style="font-size:11px; color:#888; font-weight:normal;">(${count}/${total})</span></span>
-                    <div class="map-entry-actions">
-                        <button class="map-node-btn" onclick="setAllMapNodes(${map.id}, true)">全選</button>
-                        <button class="map-node-btn" onclick="setAllMapNodes(${map.id}, false)">全清</button>
-                    </div>
-                </div>
-                <div class="map-nodes" id="map-nodes-${map.id}"></div>
-                ${idx < MAP_DATA.length - 1 ? '<hr class="map-divider">' : ''}
-            `;
-            block.appendChild(entry);
 
-            const nodesEl = document.getElementById(`map-nodes-${map.id}`);
+            const header = document.createElement('div');
+            header.className = 'map-entry-header';
+            header.style.cursor = 'pointer';
+            header.innerHTML = `
+                <span class="map-entry-title">
+                    <span class="map-collapse-arrow">${collapsed ? '▶' : '▼'}</span>
+                    ${map.name} <span id="map-count-${map.id}" style="font-size:11px; color:#888; font-weight:normal;">(${count}/${total})</span>
+                </span>
+                <div class="map-entry-actions">
+                    <button class="map-node-btn" onclick="event.stopPropagation();setAllMapNodes(${map.id}, true)">全選</button>
+                    <button class="map-node-btn" onclick="event.stopPropagation();setAllMapNodes(${map.id}, false)">全清</button>
+                </div>`;
+            header.onclick = () => {
+                if (_mapCollapsed.has(map.id)) _mapCollapsed.delete(map.id);
+                else _mapCollapsed.add(map.id);
+                renderMapNodes();
+                const contentEl = document.getElementById('content2');
+                if (contentEl && contentEl.style.maxHeight) contentEl.style.maxHeight = contentEl.scrollHeight + 'px';
+            };
+
+            const nodesWrap = document.createElement('div');
+            nodesWrap.className = 'map-nodes' + (collapsed ? ' collapsed' : '');
+            nodesWrap.id = `map-nodes-${map.id}`;
+            if (collapsed) nodesWrap.style.display = 'none';
+
             map.nodes.forEach(node => {
                 const btn = document.createElement('span');
                 btn.className = 'map-node' + (isNodeOn(map.id, node) ? ' on' : '');
                 btn.innerText = node;
                 btn.onclick = () => toggleMapNode(map.id, node, btn);
-                nodesEl.appendChild(btn);
+                nodesWrap.appendChild(btn);
             });
+
+            entry.appendChild(header);
+            entry.appendChild(nodesWrap);
+            if (idx < MAP_DATA.length - 1) {
+                const hr = document.createElement('hr');
+                hr.className = 'map-divider';
+                entry.appendChild(hr);
+            }
+            block.appendChild(entry);
         });
     }
 
@@ -9061,6 +9154,8 @@ window.toggleUploadZone = function(btn) {
             if (typeof craftRenderChips === 'function') craftRenderChips();
             if (typeof craftRenderResult === 'function') craftRenderResult();
         }
+        // 重載海圖進度
+        if (typeof loadMapNodeState === 'function') { loadMapNodeState(); renderMapNodes(); }
     });
 
     function _setStatus(msg, ok) {
