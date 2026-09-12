@@ -743,7 +743,19 @@
         .map-entry-actions { display:flex; gap:6px; }
         .map-node-btn { background:none; border:none; font-size:11px; color:#888; cursor:pointer; padding:2px 4px; border-radius:4px; }
         .map-node-btn:hover { color:var(--accent-color); }
-        .map-nodes { display:flex; flex-wrap:wrap; gap:5px; }
+        .map-nodes {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            overflow: hidden;
+            max-height: 2000px;
+            transition: max-height 0.3s ease, opacity 0.3s ease;
+            opacity: 1;
+        }
+        .map-nodes.collapsing {
+            max-height: 0 !important;
+            opacity: 0;
+        }
         .map-node { display:inline-flex; align-items:center; justify-content:center; width:28px; height:28px; border-radius:6px; border:1px solid #444; background:var(--edit-bg); color:var(--text-color); font-size:11px; font-weight:bold; cursor:pointer; user-select:none; transition:all 0.15s; }
         .map-node:hover { border-color:var(--accent-color); color:var(--accent-color); }
         .map-node.on { background:var(--accent-color); border-color:var(--accent-color); color:#fff; }
@@ -5293,17 +5305,39 @@ window.showConfirm = showConfirm;
                     <button class="map-node-btn" onclick="event.stopPropagation();setAllMapNodes(${map.id}, false)">全清</button>
                 </div>`;
             header.onclick = () => {
-                if (_mapCollapsed.has(map.id)) _mapCollapsed.delete(map.id);
-                else _mapCollapsed.add(map.id);
-                renderMapNodes();
+                const wrap = document.getElementById(`map-nodes-${map.id}`);
+                const arrowEl = header.querySelector('.map-collapse-arrow');
+                if (_mapCollapsed.has(map.id)) {
+                    // 展開
+                    _mapCollapsed.delete(map.id);
+                    wrap.style.maxHeight = wrap.scrollHeight + 'px';
+                    wrap.classList.remove('collapsing');
+                    if (arrowEl) arrowEl.textContent = '▼';
+                    // 動畫結束後移除 max-height 限制（讓內容可自由伸展）
+                    wrap.addEventListener('transitionend', function onEnd() {
+                        wrap.style.maxHeight = '2000px';
+                        wrap.removeEventListener('transitionend', onEnd);
+                    }, { once: true });
+                } else {
+                    // 收合：先固定當前高度，再設 0 觸發動畫
+                    _mapCollapsed.add(map.id);
+                    wrap.style.maxHeight = wrap.scrollHeight + 'px';
+                    requestAnimationFrame(() => {
+                        requestAnimationFrame(() => {
+                            wrap.classList.add('collapsing');
+                            if (arrowEl) arrowEl.textContent = '▶';
+                        });
+                    });
+                }
                 const contentEl = document.getElementById('content2');
-                if (contentEl && contentEl.style.maxHeight) contentEl.style.maxHeight = contentEl.scrollHeight + 'px';
+                if (contentEl && contentEl.style.maxHeight) {
+                    setTimeout(() => { contentEl.style.maxHeight = contentEl.scrollHeight + 'px'; }, 310);
+                }
             };
 
             const nodesWrap = document.createElement('div');
-            nodesWrap.className = 'map-nodes' + (collapsed ? ' collapsed' : '');
+            nodesWrap.className = 'map-nodes' + (collapsed ? ' collapsing' : '');
             nodesWrap.id = `map-nodes-${map.id}`;
-            if (collapsed) nodesWrap.style.display = 'none';
 
             map.nodes.forEach(node => {
                 const btn = document.createElement('span');
