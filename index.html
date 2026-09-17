@@ -139,7 +139,7 @@
             background: rgba(0,0,0,0.45);
             z-index: 9999;
             opacity: 0; pointer-events: none;
-            transition: opacity 0.15s;
+            transition: opacity 0.3s;
         }
         #manualOverlay.open { opacity: 1; pointer-events: all; }
         .manual-head {
@@ -2721,11 +2721,44 @@
             <button class="collapsible-btn" onclick="toggleCollapse('content4', this)"><span>+</span> 開發日記</button>
             <div id="content4" class="content">
                 <div style="max-height: 300px; overflow-y: auto; padding: 12px; font-size: 13px; line-height: 1.8; color: var(--text-color); scrollbar-width: thin; scrollbar-color: rgba(155,126,200,0.45) transparent;">
+                   <div style="color: var(--accent-color); font-weight: bold; margin-bottom: 6px;">📋 2026/09/13</div>
+                    <ul style="margin: 0; padding-left: 18px;">
+                        <li>海圖跑點新增依標籤分開記錄進度，切換艦隊標籤時海圖同步切換</li>
+                        <li>海圖各海圖區塊支援折疊／展開，含平滑動畫</li>
+                    </ul>
+                   <div style="color: var(--accent-color); font-weight: bold; margin-bottom: 6px;">📋 2026/09/07</div>
+                    <ul style="margin: 0; padding-left: 18px;">
+                        <li>新增使用說明抽屜，含七個章節、互動示意卡片與真實倒數計時</li>
+                        <li>標籤列桌面版改為全展開換行，手機版維持橫向滑動；補上滑鼠滾輪橫捲支援</li>
+                        <li>彈跳視窗依訊息類型自動顯示對應顏色圖示，移除訊息內重複 emoji</li>
+                    </ul>
+                   <div style="color: var(--accent-color); font-weight: bold; margin-bottom: 6px;">📋 2026/09/02</div>
+                    <ul style="margin: 0; padding-left: 18px;">
+                        <li>共同編輯：建立房間者不再產生額外分頁，僅顯示房間代碼供分享；加入者維持獨立分頁</li>
+                        <li>共同編輯：房主可即時查看已加入成員，並可移除成員</li>
+                        <li>共同編輯：修正重整後房主視圖恢復為分頁的問題</li>
+                        <li>共同編輯：防止使用者加入自己建立的房間</li>
+                        <li>修正更換配件後倒數計時跳動問題</li>
+                        <li>修正配件製作資料未同步至雲端，重整後遺失的問題</li>
+                        <li>地圖節點、自訂連結修改後補上雲端同步</li>
+                    </ul>
+                   <div style="color: var(--accent-color); font-weight: bold; margin-bottom: 6px;">📋 2026/08/28</div>
+                    <ul style="margin: 0; padding-left: 18px;">
+                        <li>修正上傳截圖後出現重複船艇小卡的問題</li>
+                        <li>修正切換配件後倒數時間顯示異常</li>
+                        <li>移除每次雲端同步後的彈出提醒</li>
+                        <li>OCR 辨識：4 字元以內英數混合名稱（如 1A、2B）改為精確比對，不再模糊配對</li>
+                    </ul>
+                   <div style="color: var(--accent-color); font-weight: bold; margin-bottom: 6px;">📋 2026/08/14</div>
+                    <ul style="margin: 0; padding-left: 18px;">
+                        <li>新增共同編輯功能：建立房間、加入房間、即時同步船艦資料</li>
+                        <li>新增雲端同步功能：透過專屬 ID 跨裝置同步所有資料</li>
+                    </ul>
                    <div style="color: var(--accent-color); font-weight: bold; margin-bottom: 6px;">📋 2026/08/13</div>
                     <ul style="margin: 0; padding-left: 18px;">
                         <li>船艇小卡新增「路線規劃」按鈕，點選後自動複製該船艇設定至路線規劃分頁並執行搜尋，原有目標物品與進階篩選設定維持不變</li>
                         <li>路線規劃結果小卡新增「使用此路線」按鈕，點選後以當前時間為出航點，將路線耗時套用至對應船艇小卡並更新回港時間；若路線規劃上方有變更等級或配件，一併更新</li>
-                        <li>整體 UI/UX 設計調整改善，含手機版響應式排版優化</li>
+                        <li>整體 UI/UX 設計調整改善，含手機版響應式排版調整</li>
                     </ul>
                    <div style="color: var(--accent-color); font-weight: bold; margin-bottom: 6px;">📋 2026/08/04</div>
                     <ul style="margin: 0; padding-left: 18px;">
@@ -3020,6 +3053,9 @@
                                 <div id="rpSectorExclChips" class="rp-chips"></div>
                             </div>
                         </div>
+                    </div>
+                    <div class="rp-row" style="margin-top:12px;">
+                        <label class="rp-chk"><input type="checkbox" id="rpNodeFilter"> 僅搜尋已開放海點（依船艇標籤的海圖進度設定）</label>
                     </div>
                 </div>
 
@@ -3560,7 +3596,7 @@ function subBestOrder(homeId,ids){
   return{order:bestOrd,totalDist:survD+bestTD,totalRng:survR+bestTR};
 }
 function subCalcStats(rank,h,s,b,br){const rb=SUB_RANKS[rank]||[0,0,0,0,0,0];const sum=i=>[h,s,b,br].reduce((t,p)=>t+(p?p[i]:0),0);return{sur:sum(2)+rb[3],ret:sum(3)+rb[4],spd:sum(4)+rb[1],rng:sum(5)+rb[2],fav:sum(6)+rb[5]};}
-function subFindRoutes(rank,stats,mustInc,mustExcl,mustIncMaps,mustExclMaps,mustLootIds,desiredMin,useTime,letterOnly,lootStrict){
+function subFindRoutes(rank,stats,mustInc,mustExcl,mustIncMaps,mustExclMaps,mustLootIds,desiredMin,useTime,letterOnly,lootStrict,filterByNodeState){
   const results=[];
   const explore=stats.explore||0;
 
@@ -3579,7 +3615,7 @@ function subFindRoutes(rank,stats,mustInc,mustExcl,mustIncMaps,mustExclMaps,must
     if(mustIncMaps.length&&!mustIncMaps.includes(mapId))return;
     if(mustExclMaps.includes(mapId))return;
     const homeId=SUB_HOMES[String(mapId)];if(homeId===undefined)return;
-    const mapSecs=SUB_SECTORS.filter(s=>s[1]===mapId&&s[5]<=rank&&!mustExcl.includes(s[0]));
+    const mapSecs=SUB_SECTORS.filter(s=>s[1]===mapId&&s[5]<=rank&&!mustExcl.includes(s[0])&&(!filterByNodeState||isNodeOn(s[1],s[2])));
     const mustInMap=mustInc.filter(id=>{const s=SECTOR_MAP.get(id);return s&&s[1]===mapId;});
     if(mustInMap.some(id=>!mapSecs.some(s=>s[0]===id)))return;
     const required=mustInMap.map(id=>SECTOR_MAP.get(id));
@@ -3786,7 +3822,17 @@ window.showConfirm = showConfirm;
         if (savedActive) activeGroup = savedActive;
     }
     function saveGroups() { localStorage.setItem('sub_groups', JSON.stringify(customGroups)); if (window.CloudSync?.isEnabled()) window.CloudSync.pushMyData(); }
-    function saveActiveGroup() { localStorage.setItem('sub_active_group', activeGroup); }
+    function saveActiveGroup() {
+        localStorage.setItem('sub_active_group', activeGroup);
+        // 艦隊切換標籤時，海圖同步切換到相同標籤
+        const validGroups = ['未分類', ...customGroups];
+        if (activeGroup === GROUP_ALL) {
+            // 選「全部」時，海圖維持目前選中的標籤不動
+        } else if (validGroups.includes(activeGroup)) {
+            activeMapGroup = activeGroup;
+            if (typeof renderMapNodes === 'function') renderMapNodes();
+        }
+    }
     function allGroupNames() {
         // 房間視圖用房間的群組清單，個人視圖用自己的
         const groups = _viewGroups !== null ? _viewGroups : customGroups;
@@ -7764,6 +7810,12 @@ const CRAFT_BASE = {"火之碎晶":"水晶","冰之碎晶":"水晶","風之碎�
     }
 
     function initRoutePlanner() {
+        // 還原上次的排序選擇
+        const savedRpSort = localStorage.getItem('sub_rp_sort');
+        if (savedRpSort) {
+            const sel = document.getElementById('rpSortSel');
+            if (sel) sel.value = savedRpSort;
+        }
         // ① 船艇下拉（依群組分組）
         const shipSel = document.getElementById('rpShipSelect');
         shipSel.innerHTML = buildShipGroupedOptions();
@@ -8136,6 +8188,8 @@ const CRAFT_BASE = {"火之碎晶":"水晶","冰之碎晶":"水晶","風之碎�
     function rpApplySort() {
         if (!rpAllResults.length) return;
         const mode = (document.getElementById('rpSortSel') || {}).value || 'epm_desc';
+        // 保存排序選擇
+        localStorage.setItem('sub_rp_sort', mode);
         const sorted = [...rpAllResults].sort((a, b) => {
             if (mode === 'exp_desc') return b.exp - a.exp;
             if (mode === 'eta_desc') return b.timeMins - a.timeMins;
@@ -8151,6 +8205,24 @@ const CRAFT_BASE = {"火之碎晶":"水晶","冰之碎晶":"水晶","風之碎�
 
         const stats = rpGetCurrentStats();
         const rank = level;
+
+        // ── 依選中船艦的標籤切換 activeMapGroup ──
+        const shipSel = document.getElementById('rpShipSelect');
+        const selectedTimerId = shipSel ? shipSel.value : '';
+        const selectedTimer = selectedTimerId ? getActiveTimers().find(x => x.id === selectedTimerId) : null;
+        const shipGroup = selectedTimer ? (selectedTimer.group || '未分類') : null;
+        if (shipGroup) activeMapGroup = shipGroup;
+
+        // ── 判斷是否視為全開 ──
+        // 條件：手動輸入（非選擇船艦）或該標籤的海圖進度完全沒有任何勾選
+        const isManual = !selectedTimer;
+        const groupNodeState = mapNodeState[activeMapGroup] || {};
+        const hasAnyNode = Object.values(groupNodeState).some(arr => Array.isArray(arr) && arr.length > 0);
+        const treatAsFullOpen = isManual || !hasAnyNode;
+
+        // ── 讀取「僅搜尋已開放海點」checkbox ──
+        const nodeFilterChecked = (document.getElementById('rpNodeFilter') || {}).checked;
+        const filterByNodeState = nodeFilterChecked && !treatAsFullOpen;
 
         const timeMode = document.querySelector('input[name="rpTimeMode"]:checked').value;
         let useTime = false, desiredMin = 0;
@@ -8201,7 +8273,7 @@ const CRAFT_BASE = {"火之碎晶":"水晶","冰之碎晶":"水晶","風之碎�
         setTimeout(() => {
             let results = [];
             try {
-                results = subFindRoutes(rank, rpStats, mustInc, mustExcl, mustIncMaps, mustExclMaps, mustLootIds, desiredMin, useTime, false, lootStrict);
+                results = subFindRoutes(rank, rpStats, mustInc, mustExcl, mustIncMaps, mustExclMaps, mustLootIds, desiredMin, useTime, false, lootStrict, filterByNodeState);
             } catch (e) {
                 console.error(e);
                 statusEl.innerText = '搜尋時發生錯誤，請檢查篩選條件';
@@ -8212,7 +8284,11 @@ const CRAFT_BASE = {"火之碎晶":"水晶","冰之碎晶":"水晶","風之碎�
             rpMustLootIds = mustLootIds;
             rpPlayerExplore = rpStats.explore;
             rpApplySort();
-            statusEl.innerText = `共找到 ${results.length} 條符合路線，顯示前 ${Math.min(100, results.length)} 條`;
+            if (results.length === 0 && filterByNodeState) {
+                statusEl.innerText = '找不到符合路線，可能是海圖進度尚未設定，或已開放海點不足以組成路線';
+            } else {
+                statusEl.innerText = `共找到 ${results.length} 條符合路線，顯示前 ${Math.min(100, results.length)} 條`;
+            }
             btn.disabled = false;
         }, 30);
     }
@@ -8319,7 +8395,11 @@ const CRAFT_BASE = {"火之碎晶":"水晶","冰之碎晶":"水晶","風之碎�
         const sectorExclChips = document.getElementById('rpSectorExclChips');
         if (sectorExclChips) sectorExclChips.innerHTML = '';
 
-        // 4. 清除結果與狀態
+        // 4. 已開放海點篩選 checkbox
+        const nodeFilter = document.getElementById('rpNodeFilter');
+        if (nodeFilter) nodeFilter.checked = false;
+
+        // 5. 清除結果與狀態
         document.getElementById('routeResults').innerHTML = '';
         document.getElementById('rpStatusText').innerText = '';
     }
