@@ -5283,7 +5283,11 @@ window.showConfirm = showConfirm;
     }
 
     function isNodeOn(mapId, node) {
-        return ((mapNodeState[activeMapGroup] || {})[mapId] || []).includes(node);
+        const groupState = mapNodeState[activeMapGroup] || {};
+        // 該標籤完全沒有任何勾選時，視為全開
+        const hasAnyNode = Object.values(groupState).some(arr => Array.isArray(arr) && arr.length > 0);
+        if (!hasAnyNode) return true;
+        return (groupState[mapId] || []).includes(node);
     }
 
     function toggleMapNode(mapId, node, el) {
@@ -5440,6 +5444,9 @@ window.showConfirm = showConfirm;
         if (presetSel) presetSel.value = '';
         const presetRow = document.getElementById('gpPresetStatRow');
         if (presetRow) presetRow.style.display = 'none';
+        // 依船艦標籤切換 activeMapGroup
+        const shipGroup = t.group || '未分類';
+        activeMapGroup = shipGroup;
         gpRecalc();
     }
 
