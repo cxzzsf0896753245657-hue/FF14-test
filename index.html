@@ -238,11 +238,15 @@ window.UI_ACTIONS = {
     </style>
     <title>FF14 潛水艇計時器</title>
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-    <!-- 網站數據：版本更新時換掉 data 資料夾裡的檔案，並把下面的 DATA_VERSION 改成轉換工具顯示的版本號 -->
+    <!-- 網站數據：版本更新時只要換掉 data 資料夾裡的檔案（包含 version.js），這裡不用改 -->
     <script>
-        window.SUB_DATA_VERSION = '202611071118';
+        /* version.js 每次都重新讀取（不使用快取），裡面的版本號決定要不要重新下載下面 5 個數據檔 */
+        document.write('<script src="data/version.js?t=' + Date.now() + '"><\/script>');
+    </script>
+    <script>
+        window.SUB_DATA_VERSION = window.SUB_DATA_VERSION || '0';
         ['sectors', 'loot', 'items', 'presets', 'craft'].forEach(f =>
-            document.write('<script src="data/' + f + '.js?v=' + window.SUB_DATA_VERSION + '"><\/script>'));
+            document.write('<script src="data/' + f + '.js?v=' + encodeURIComponent(window.SUB_DATA_VERSION) + '"><\/script>'));
     </script>
     <script>
         /* 數據檔沒有載入成功時（例如直接雙擊開檔、或檔案路徑錯誤），顯示提示而不是一片空白 */

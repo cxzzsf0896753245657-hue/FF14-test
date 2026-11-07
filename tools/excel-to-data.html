@@ -34,16 +34,15 @@
 <body>
 <main>
   <h1>數據總表 → 網站數據 轉換工具</h1>
-  <p class="sub">把「FF14潛水艇數據表.xlsx」轉成網站 <code>data</code> 資料夾裡的 5 個檔案。全部在你的瀏覽器裡處理，不會上傳到任何地方。</p>
+  <p class="sub">把「FF14潛水艇數據表.xlsx」轉成網站 <code>data</code> 資料夾裡的 6 個檔案。全部在你的瀏覽器裡處理，不會上傳到任何地方。</p>
 
   <section class="card" aria-labelledby="stepsTitle">
     <h2 id="stepsTitle" style="font-size:15px;margin:0 0 8px">使用步驟</h2>
     <ol>
       <li>在數據總表裡改好資料並存檔。</li>
       <li>把 xlsx 拖到下面的框裡（或點一下框選擇檔案）。</li>
-      <li>確認下方的統計與提醒，按「下載全部 5 個檔案」。</li>
-      <li>用下載的檔案覆蓋網站 <code>data</code> 資料夾裡的同名檔案。</li>
-      <li>把 <code>index.html</code> 開頭的 <code>SUB_DATA_VERSION</code> 改成工具顯示的版本號，玩家的瀏覽器才會重新下載數據。</li>
+      <li>確認下方的統計與提醒，按「下載全部 6 個檔案」。</li>
+      <li>用下載的檔案覆蓋網站 <code>data</code> 資料夾裡的同名檔案，就完成了（版本號已包含在 <code>version.js</code> 裡，玩家的瀏覽器會自動抓新數據）。</li>
     </ol>
   </section>
 
@@ -59,11 +58,9 @@
   <section id="result" class="card" hidden aria-labelledby="resultTitle">
     <h2 id="resultTitle" style="font-size:15px;margin:0 0 8px">轉換結果</h2>
     <table><tbody id="summary"></tbody></table>
-    <p style="margin:14px 0 0">版本號：<span id="ver" class="ver"></span>
-      <button class="secondary" id="copyVer" type="button" style="margin-left:8px">複製</button></p>
-    <p class="sub" style="margin:2px 0 0">在 <code>index.html</code> 開頭找到這一行並換掉數字：<code id="verExample"></code></p>
+    <p style="margin:14px 0 0">數據版本號：<span id="ver" class="ver"></span>（已寫進 version.js）</p>
     <div class="files">
-      <button id="dlAll" type="button">下載全部 5 個檔案</button>
+      <button id="dlAll" type="button">下載全部 6 個檔案</button>
       <span id="dlEach" class="files" style="margin:0"></span>
     </div>
     <div id="warnBox" hidden>
@@ -109,7 +106,6 @@
       ['等級', `1–${s.等級} 級`], ['部件', s.部件], ['物品', s.物品], ['路線用掉落', s.路線用掉落 + ' 筆'], ['製作部件', s.製作部件]];
     document.getElementById('summary').innerHTML = rows.map(([k, v]) => `<tr><th scope="row">${k}</th><td>${v}</td></tr>`).join('');
     document.getElementById('ver').textContent = result.version;
-    document.getElementById('verExample').textContent = `window.SUB_DATA_VERSION = '${result.version}';`;
     const each = document.getElementById('dlEach'); each.innerHTML = '';
     for (const fn of Object.keys(result.files)) {
       const b = document.createElement('button'); b.type = 'button'; b.className = 'secondary'; b.textContent = fn;
@@ -129,10 +125,6 @@
   }
   document.getElementById('dlAll').addEventListener('click', async () => {
     for (const fn of Object.keys(result.files)) { download(fn); await new Promise(r => setTimeout(r, 350)); }
-  });
-  document.getElementById('copyVer').addEventListener('click', async () => {
-    try { await navigator.clipboard.writeText(result.version); setStatus('版本號已複製', 'ok'); }
-    catch { setStatus('無法自動複製，請手動選取版本號', 'err'); }
   });
 </script>
 </body>

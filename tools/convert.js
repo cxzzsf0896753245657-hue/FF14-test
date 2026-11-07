@@ -217,6 +217,7 @@
       路線用掉落: Object.values(SUB_LOOT_TIER).reduce((a, t) => a + t['1'].length + t['2'].length + t['3'].length, 0),
       製作部件: Object.keys(CRAFT_PARTS).length,
     };
+    files['version.js'] = `/* 數據版本號：由 tools/excel-to-data.html 自動產生，每次更新數據時會一起換掉。 */\nwindow.SUB_DATA_VERSION = '${version}';\n`;
     return { files, warnings, summary, version, data };
   }
 
