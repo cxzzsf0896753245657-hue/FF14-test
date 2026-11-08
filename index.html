@@ -885,6 +885,12 @@ window.UI_ACTIONS = {
         /* ── 海圖跑點 ── */
         .map-block { padding: 10px 12px 14px; }
         /* ── 海圖標籤 Tab ── */
+        .map-room-hint { margin: 0 0 10px; padding: 8px 12px; border-radius: 8px; font-size: 13px; line-height: 1.5;
+            background: rgba(var(--room-rgb, 70,180,160), .12); border: 1px solid rgba(var(--room-rgb, 70,180,160), .45); color: var(--text-color); }
+        .map-room-hint b { color: rgb(var(--room-rgb, 70,180,160)); font-weight: 600; }
+        #mapNodeBlock.map-room .map-entry { border-left: 3px solid rgba(var(--room-rgb, 70,180,160), .6); padding-left: 8px; }
+        #mapNodeBlock.map-readonly .map-node { pointer-events: none; }
+        #mapNodeBlock.map-readonly .map-node-btn { display: none; }
         .map-group-tabs {
             display: flex;
             flex-wrap: wrap;
@@ -3365,6 +3371,7 @@ window.SubPalette = (function () {
                         <li>雲端同步改版：每艘船各自記錄修改時間並合併，兩台同時修改、離線修改都不會再互相蓋掉；刪除會同步（包含刪光所有船）；上傳失敗會自動補傳</li>
                         <li>雲端同步：第一次啟用或匯入 ID 時，若雲端和這台都有資料，會先詢問要合併、用雲端或用這台；匯入 ID 後自動重新整理並改用新 ID</li>
                         <li>共同艦隊：檢視別人的房間時，上方顯示「正在檢視○○的艦隊」提示列，船卡改用青綠色邊框；上方船數依目前畫面顯示；房主可設定成員「可以修改／只能看」</li>
+                        <li>共同艦隊：海圖也一起共用。檢視房間時，海圖顯示房間的標籤和已開放的海點，成員修改會同步給房主（房主設定「只能看」時無法修改）；路線規劃與配件規劃的船艇選單也會換成房間的船，搜尋時使用房間的海圖</li>
                         <li>共同艦隊：房主的修改會即時更新到房間，成員在房間裡的修改也會寫回房主的船隊；建立房間後成員列表即時顯示</li>
                         <li>截圖辨識改善：辨識前先轉灰階、反白並放大，船名與時間更準；括號殘字、「7/小時」這類雜訊能正確解析，時間沒讀完整的船不會被更新</li>
                         <li>截圖辨識比對改善：同一張截圖裡每艘船只會對到一次，相似名字（如星海船／月海船）會用排除法、等級與回港時間判斷，分不出來就不更新；5 字以上英文名字不分大小寫；名字有空格（如 Rubber Duck）、含「探索」等字也能正確對上</li>
@@ -4569,7 +4576,7 @@ window.showConfirm = showConfirm;
     function saveActiveGroup() {
         localStorage.setItem('sub_active_group', activeGroup);
         // 艦隊切換標籤時，海圖同步切換到相同標籤
-        const validGroups = ['未分類', ...customGroups];
+        const validGroups = allGroupNames();
         if (activeGroup === GROUP_ALL) {
             // 選「全部」時，海圖維持目前選中的標籤不動
         } else if (validGroups.includes(activeGroup)) {
@@ -6435,9 +6442,15 @@ window.showConfirm = showConfirm;
     let activeMapGroup = '未分類'; // 海圖區目前選中的標籤
     const _mapCollapsed = new Set(); // 已折疊的 mapId（記憶體，不 persist）
 
+    // 目前在檢視別人的房間 → 海圖改用房間的資料
+    function mapRoom() {
+        if (typeof _currentFleetView === 'undefined' || _currentFleetView === 'mine' || typeof _rooms === 'undefined') return null;
+        return _rooms[_currentFleetView] || null;
+    }
     function loadMapNodeState() {
         try {
-            const data = localStorage.getItem('sub_map_nodes');
+            const room = mapRoom();
+            const data = room ? (room.mapNodes && room.mapNodes.d !== 'null' ? room.mapNodes.d : null) : localStorage.getItem('sub_map_nodes');
             const parsed = data ? JSON.parse(data) : {};
             // 偵測舊格式：key 是數字字串（如 "1", "2"）→ 轉換為新格式
             const isOldFormat = Object.keys(parsed).every(k => /^\d+$/.test(k));
@@ -6452,6 +6465,16 @@ window.showConfirm = showConfirm;
     }
 
     function saveMapNodeState() {
+        const room = mapRoom();
+        if (room) {
+            if (room.perm === 'view') {
+                loadMapNodeState(); renderMapNodes();
+                showAlert('⚠️ 房主設定為「只能看」，海圖無法修改');
+                return;
+            }
+            window.SubSync?.saveRoomMap(_currentFleetView, JSON.stringify(mapNodeState));
+            return;
+        }
         localStorage.setItem('sub_map_nodes', JSON.stringify(mapNodeState));
         window.SubSync?.changed();
     }
@@ -6492,8 +6515,22 @@ window.showConfirm = showConfirm;
         if (!block) return;
         block.innerHTML = '';
 
+        // ── 房間檢視：提示正在編輯誰的海圖 ──
+        const room = mapRoom();
+        block.classList.toggle('map-room', !!room);
+        block.classList.toggle('map-readonly', !!room && room.perm === 'view');
+        if (room) {
+            const hint = document.createElement('div');
+            hint.className = 'map-room-hint';
+            const owner = (room.memberNames || {})[room.owner] || '房主';
+            hint.innerHTML = `<b>👥 「${escapeHtml(room.name || '共同艦隊')}」的海圖</b>・${escapeHtml(owner)}` +
+                (room.perm === 'view' ? '・房主設定為只能看' : '・你的修改會同步給房主');
+            block.appendChild(hint);
+        }
+
         // ── 標籤 Tab 列 ──
-        const allGroups = ['未分類', ...customGroups];
+        const allGroups = allGroupNames();
+        if (!allGroups.includes(activeMapGroup)) activeMapGroup = DEFAULT_GROUP;
         const tabBar = document.createElement('div');
         tabBar.className = 'map-group-tabs';
         allGroups.forEach(g => {
@@ -8027,7 +8064,8 @@ const CRAFT_BASE = SUB_DATA.CRAFT_BASE;
         const order = allGroupNames(); // [DEFAULT_GROUP, ...customGroups]
         const groupMap = new Map();
 
-        savedTimers.forEach(t => {
+        // 依目前檢視：我的艦隊用自己的船，房間用房間的船
+        getActiveTimers().forEach(t => {
             const g = t.group || DEFAULT_GROUP;
             if (!groupMap.has(g)) groupMap.set(g, []);
             groupMap.get(g).push(t);
@@ -8062,7 +8100,7 @@ const CRAFT_BASE = SUB_DATA.CRAFT_BASE;
 
         // 記住目前選中的船名（而非 id，因為 id 可能已更換）
         const prevSelectedId = shipSel.value;
-        const prevTimer = savedTimers.find(t => t.id === prevSelectedId);
+        const prevTimer = getActiveTimers().find(t => t.id === prevSelectedId);
         const prevName = prevTimer ? prevTimer.name : null;
 
         // 重建分組選項
@@ -8070,7 +8108,7 @@ const CRAFT_BASE = SUB_DATA.CRAFT_BASE;
 
         // 嘗試用船名恢復選中狀態
         if (prevName) {
-            const matched = savedTimers.find(t => t.name === prevName);
+            const matched = getActiveTimers().find(t => t.name === prevName);
             if (matched) {
                 shipSel.value = matched.id;
                 // 若船艇仍被選中，立即同步等級與配件到路線規劃欄位
@@ -9565,6 +9603,10 @@ window.toggleUploadZone = function(btn) {
         }
         updateRoomBanner();
         if (typeof updateFleetCount === 'function') updateFleetCount();
+        if (typeof loadMapNodeState === 'function') { loadMapNodeState(); renderMapNodes(); }
+        // 路線規劃／配件規劃的船艇選單也換成目前檢視的船
+        if (typeof refreshRpShipSelect === 'function') refreshRpShipSelect();
+        if (typeof gpRefreshShipList === 'function') gpRefreshShipList();
     };
 
     // 房間視圖提示：正在看誰的艦隊、修改會不會同步給房主
@@ -10169,7 +10211,7 @@ window.toggleUploadZone = function(btn) {
                 setStatus('⚠️ 上傳失敗，連線恢復後會自動補傳', false);
                 clearTimeout(retryT); retryT = setTimeout(push, 15000);
             }
-            pushOwnedRoom(ids, mk.includes('groups'));
+            pushOwnedRoom(ids, mk);
         }
         pushing = false;
         if (again) { again = false; push(); }
@@ -10244,9 +10286,13 @@ window.toggleUploadZone = function(btn) {
             // 房主：重新連線後把房間和自己的船隊對齊一次
             const own = window._ownedRoomId;
             if (own && window._fbGet) window._fbGet(own).then(r => { if (r) ownerRoomSync(own, r); }).catch(() => {});
+            else if (pendingOwner) setTimeout(() => { if (pendingOwner) ownerRoomSync(...pendingOwner); }, 0);
             setStatus('✅ 已連線，同步中', true);
             const w = document.getElementById('cloudEnableWrap'); if (w) w.style.display = 'none';
-        } finally { enabling = false; }
+        } finally {
+            enabling = false;
+            if (pendingOwner && window.CloudSync?.isEnabled()) { const p = pendingOwner; setTimeout(() => ownerRoomSync(...p), 0); }
+        }
     }
 
     // ── 共同艦隊房間 ──
@@ -10266,6 +10312,15 @@ window.toggleUploadZone = function(btn) {
         room.owner = raw.owner || room.owner || ''; room.memberNames = raw.memberNames || room.memberNames || {};
         room.name = raw.name || room.name;
         room.perm = raw.perm === 'view' ? 'view' : 'edit';
+        const m = raw.meta && raw.meta.mapNodes;
+        room.mapNodes = m && m.d != null ? { t: +m.t || 0, d: m.d } : null;
+    }
+    // 成員端：在房間檢視修改海圖 → 上傳到房間（房主會寫回自己的海圖）
+    function saveRoomMap(roomId, d) {
+        const room = _rooms[roomId]; if (!room || !window.CloudSync) return;
+        const e = { t: Date.now(), d };
+        room.mapNodes = e;
+        return window.CloudSync.writeRoom(roomId, { 'meta/mapNodes': e }).catch(() => showAlert('⚠️ 房間資料上傳失敗，請確認網路'));
     }
     // 唯讀房間：把畫面上被改動的資料還原成房間的原始資料
     function roomRestore(room) {
@@ -10287,16 +10342,21 @@ window.toggleUploadZone = function(btn) {
         if (Object.keys(patch).length) return window.CloudSync.writeRoom(roomId, patch).catch(() => showAlert('⚠️ 房間資料上傳失敗，請確認網路'));
     }
     // 房主端：把自己有變動的船同步到房間
-    function pushOwnedRoom(ids, groupsChanged) {
+    function pushOwnedRoom(ids, mk) {
         const rid = window._ownedRoomId; if (!rid || !window.CloudSync) return;
         const patch = {};
         ids.forEach(id => { const e = localEntry(id); if (e) patch['ships/' + id] = wire(e); });
-        if (groupsChanged) patch['meta/groups'] = { t: st.metaT.groups || 0, d: metaRaw('groups') || '[]' };
+        if (mk.includes('groups')) patch['meta/groups'] = { t: st.metaT.groups || 0, d: metaRaw('groups') || '[]' };
+        if (mk.includes('mapNodes')) patch['meta/mapNodes'] = { t: st.metaT.mapNodes || 0, d: metaRaw('mapNodes') || '{}' };
         if (Object.keys(patch).length) window.CloudSync.writeRoom(rid, patch).catch(() => {});
     }
     // 房主端：房間有較新的資料（成員修改）→ 寫回自己的船隊；自己較新的 → 補傳到房間
+    let pendingOwner = null;
     function ownerRoomSync(roomId, raw) {
-        if (!window.CloudSync?.isEnabled() || roomId !== window._ownedRoomId) return;
+        if (roomId !== window._ownedRoomId) return;
+        // 還沒連線完成就收到房間資料 → 先記下，連線完成後再對齊
+        if (!window.CloudSync?.isEnabled() || enabling) { pendingOwner = [roomId, raw]; return; }
+        pendingOwner = null;
         load(); scan();
         const legacy = !raw.ships, remote = legacy ? {} : decodeShips(raw), patch = {};
         const arr = savedTimers.slice(); let changed = false;
@@ -10311,8 +10371,16 @@ window.toggleUploadZone = function(btn) {
         });
         const g = metaRaw('groups') || '[]', rg = raw.meta && raw.meta.groups;
         if (!rg || rg.d !== g) patch['meta/groups'] = { t: st.metaT.groups || 0, d: g };
+        // 海圖：成員較新的修改寫回房主（只能看時不採用，改用房主的蓋回去）
+        const lm = metaRaw('mapNodes') || '{}', lmt = st.metaT.mapNodes || 0, rm = raw.meta && raw.meta.mapNodes;
+        let mapChanged = false;
+        if (rm && rm.d != null && rm.d !== lm && (+rm.t || 0) > lmt && raw.perm !== 'view') {
+            localStorage.setItem('sub_map_nodes', rm.d);
+            st.msnap.mapNodes = hash(rm.d); st.metaT.mapNodes = +rm.t; st.mdirty.mapNodes = 1; mapChanged = true;
+        } else if (!rm || rm.d !== lm) patch['meta/mapNodes'] = { t: raw.perm === 'view' && rm && (+rm.t || 0) >= lmt ? Date.now() : lmt, d: lm };
         if (legacy) { patch.timers = null; patch.groups = null; }
-        if (changed) { savedTimers = arr; localStorage.setItem('ffxiv_submarine_timers', JSON.stringify(arr)); save(); refreshUI(); push(); }
+        if (changed) { savedTimers = arr; localStorage.setItem('ffxiv_submarine_timers', JSON.stringify(arr)); }
+        if (changed || mapChanged) { save(); refreshUI(); push(); }
         if (Object.keys(patch).length) window.CloudSync.writeRoom(roomId, patch).catch(() => {});
     }
 
@@ -10320,7 +10388,7 @@ window.toggleUploadZone = function(btn) {
         enable,
         changed() { if (document.readyState !== 'complete' || !savedTimers) return; scan(); push(); },
         resetBase() { load(); st.base = null; save(); },
-        saveRoom, roomLoad, roomRestore, roomTimers, roomGroups, ownerRoomSync, decodeShips,
+        saveRoom, saveRoomMap, roomLoad, roomRestore, roomTimers, roomGroups, ownerRoomSync, decodeShips,
         _state: () => load()
     };
 })();
