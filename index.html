@@ -2957,7 +2957,7 @@ window.UI_ACTIONS = {
             },
             async joinRoom(roomId) {
                 const snap = await get(ref(db, `rooms/${roomId}`));
-                if (!snap.exists()) throw new Error('找不到此房間代碼');
+                if (!snap.exists() || snap.val().closed || !snap.val().owner) throw new Error('找不到此房間代碼');
                 const myName = getMyNickname() || myUUID.slice(0,8);
                 await update(ref(db, `rooms/${roomId}/members`), {[myUUID]:true});
                 await update(ref(db, `rooms/${roomId}/memberNames`), {[myUUID]: myName});
@@ -2972,7 +2972,7 @@ window.UI_ACTIONS = {
             listenRoom(roomId, cb) {
                 if (_roomListeners[roomId]) off(ref(db, `rooms/${roomId}`), 'value', _roomListeners[roomId]);
                 _roomListeners[roomId] = onValue(ref(db, `rooms/${roomId}`), snap => {
-                    if (snap.exists()) cb(snap.val());
+                    cb(snap.exists() ? snap.val() : null);
                 });
             },
             stopListenRoom(roomId) {
@@ -2993,6 +2993,11 @@ window.UI_ACTIONS = {
             async pushNickname() { await pushNickname(); },
             enable() { _syncEnabled = true; },
             isEnabled() { return _syncEnabled; },
+            // 房主解散房間：先標記已解散（成員立刻收到），再刪除整個房間
+            async closeRoom(roomId) {
+                await update(ref(db, `rooms/${roomId}`), { closed: Date.now() });
+                try { await remove(ref(db, `rooms/${roomId}`)); } catch (e) { console.warn('刪除房間失敗（已標記解散）', e); }
+            },
             async kickMember(roomId, targetUUID) {
                 await remove(ref(db, `rooms/${roomId}/members/${targetUUID}`));
                 await remove(ref(db, `rooms/${roomId}/memberNames/${targetUUID}`));
@@ -3374,7 +3379,7 @@ window.SubPalette = (function () {
                         <li>共同艦隊：房主的修改會即時更新到房間，成員在房間裡的修改也會寫回房主的船隊；建立房間後成員列表即時顯示</li>
                         <li>共同艦隊：檢視別人的房間時，上方顯示「正在檢視○○的艦隊」提示列，船卡改用青綠色邊框；上方船數依目前畫面顯示；房主可設定成員「可以修改／只能看」</li>
                         <li>共同艦隊：海圖也一起共用。檢視房間時，海圖顯示房間的標籤和已開放的海點，成員修改會同步給房主（房主設定「只能看」時無法修改）；路線規劃與配件規劃的船艇選單也會換成房間的船，搜尋時使用房間的海圖</li>
-                        <li>共同艦隊：修正建立自己的房間後，無法再加入別人房間的問題；「已加入的房間」不再重複列出自己的房間</li>
+                        <li>共同艦隊：修正建立自己的房間後，無法再加入別人房間的問題；「已加入的房間」不再重複列出自己的房間；房主離開房間時房間會解散，成員會自動離開並收到通知；被房主移除的成員也會自動離開</li>
                         <li>截圖辨識改善：辨識前先轉灰階、反白並放大，船名與時間更準；括號殘字、「7/小時」這類雜訊能正確解析，時間沒讀完整的船不會被更新</li>
                         <li>截圖辨識比對改善：同一張截圖裡每艘船只會對到一次，相似名字（如星海船／月海船）會用排除法、等級與回港時間判斷，分不出來就不更新；5 字以上英文名字不分大小寫；名字有空格（如 Rubber Duck）、含「探索」等字也能正確對上</li>
                         <li>修正：截圖辨識更新等級後，「再出發」可能重複加上一趟的經驗</li>
@@ -9688,7 +9693,7 @@ window.toggleUploadZone = function(btn) {
         }
         window._roomListenerType[roomId] = 'owner';
         window.CloudSync.listenRoom(roomId, function(roomData) {
-            if (!_rooms[roomId]) return;
+            if (!_rooms[roomId] || !roomData || roomData.closed) return;
             _rooms[roomId].memberNames = roomData.memberNames || {};
             _rooms[roomId].owner = roomData.owner || '';
             if (window._ownedRoomId === roomId) window.renderOwnedRoomMembers?.(roomId);
@@ -9698,6 +9703,26 @@ window.toggleUploadZone = function(btn) {
             window.SubSync?.ownerRoomSync(roomId, roomData);
         });
     }
+
+    // 成員端：房間已解散或自己已被移除 → 回傳原因
+    function _roomGoneReason(roomData) {
+        if (!roomData || roomData.closed || !roomData.owner) return 'closed';
+        const me = window.CloudSync?.myUUID || '';
+        if (roomData.members && me && !roomData.members[me] && roomData.owner !== me) return 'kicked';
+        return null;
+    }
+    // 成員端：自動離開房間並通知
+    function _dropRoom(roomId, reason) {
+        const name = (_rooms[roomId] && _rooms[roomId].name) || '共同艦隊';
+        window.CloudSync?.leaveRoom(roomId);
+        delete _rooms[roomId];
+        if (window._roomListenerType) delete window._roomListenerType[roomId];
+        _removeRoomTab(roomId);
+        document.getElementById(`room-card-${roomId}`)?.remove();
+        window.renderRoomList();
+        showAlert(reason === 'kicked' ? `你已被房主移出「${name}」` : `房主已解散「${name}」，已自動離開這個房間`);
+    }
+    window._roomGoneReason = _roomGoneReason;
 
     function _listenRoomTimers(roomId, roomName) {
         if (!_rooms[roomId]) _rooms[roomId] = { name: roomName, timers: [], groups: [], owner: '', memberNames: {} };
@@ -9709,6 +9734,8 @@ window.toggleUploadZone = function(btn) {
         window._roomListenerType[roomId] = 'member';
         window.CloudSync.listenRoom(roomId, function(roomData) {
             if (!_rooms[roomId]) return;
+            const gone = _roomGoneReason(roomData);
+            if (gone) return _dropRoom(roomId, gone);
             window.SubSync?.roomLoad(_rooms[roomId], roomData);
             _rooms[roomId].owner = roomData.owner || '';
             _rooms[roomId].memberNames = roomData.memberNames || {};
@@ -9829,14 +9856,16 @@ window.toggleUploadZone = function(btn) {
         } catch(e) { showAlert('⚠️ 移除失敗：' + e.message); }
     };
 
-    window.cloudLeaveRoom = function() {
-        if (_currentFleetView !== 'mine') {
-            // 加入的房間才需要走分頁離開流程
-            cloudLeaveRoomById({ stopPropagation:()=>{} }, _currentFleetView);
-        }
-        // 房主：停止 Firebase 監聽、清除記憶體資料
+    window.cloudLeaveRoom = async function() {
         const ownedId = window._ownedRoomId;
-        if (ownedId) {
+        if (!ownedId) return;
+        const n = Object.keys((_rooms[ownedId] || {}).memberNames || {}).filter(u => u !== (window.CloudSync?.myUUID || '')).length;
+        try { await showConfirm(`離開後房間「${(_rooms[ownedId] || {}).name || ownedId}」會解散${n ? `，${n} 位成員也會一起被移出` : ''}。你自己的艦隊資料不受影響。確定要離開嗎？`, '解散房間'); }
+        catch (e) { return; }
+        try { await window.CloudSync?.closeRoom(ownedId); }
+        catch (e) { showAlert('⚠️ 解散房間失敗，請確認網路後再試一次'); return; }
+        // 房主：停止 Firebase 監聽、清除記憶體資料
+        {
             window.CloudSync?.leaveRoom(ownedId);
             if (_rooms[ownedId]) delete _rooms[ownedId];
             if (window._roomListenerType) delete window._roomListenerType[ownedId];
@@ -9873,7 +9902,12 @@ window.toggleUploadZone = function(btn) {
         savedRooms.forEach(async ({ id: roomId, name: roomName }) => {
             try {
                 const snap = await window._fbGet(roomId);
-                if (!snap) { window.CloudSync?.leaveRoom(roomId); return; }
+                const gone = snap && snap.owner === (window.CloudSync?.myUUID || '') ? (snap.closed ? 'closed' : null) : window._roomGoneReason(snap);
+                if (gone) {
+                    window.CloudSync?.leaveRoom(roomId);
+                    if (!snap || snap.owner !== (window.CloudSync?.myUUID || '')) showAlert(gone === 'kicked' ? `你已被房主移出「${snap.name || roomName}」` : `房主已解散「${snap?.name || roomName}」，已自動離開這個房間`);
+                    return;
+                }
                 const actualName = snap.name || roomName;
                 const myUUID = window.CloudSync?.myUUID || '';
                 const isOwner = snap.owner === myUUID;
