@@ -885,6 +885,9 @@ window.UI_ACTIONS = {
         /* ── 海圖跑點 ── */
         .map-block { padding: 10px 12px 14px; }
         /* ── 海圖標籤 Tab ── */
+        #roomActionWrap.owns-room [data-on-click="a31"], #roomActionWrap .own-only, #roomActionWrap.owns-room .own-not { display: none; }
+        #roomActionWrap.owns-room .own-only { display: inline; }
+        #roomActionWrap.owns-room { margin-top: 10px; }
         .map-room-hint { margin: 0 0 10px; padding: 8px 12px; border-radius: 8px; font-size: 13px; line-height: 1.5;
             background: rgba(var(--room-rgb, 70,180,160), .12); border: 1px solid rgba(var(--room-rgb, 70,180,160), .45); color: var(--text-color); }
         .map-room-hint b { color: rgb(var(--room-rgb, 70,180,160)); font-weight: 600; }
@@ -3341,7 +3344,7 @@ window.SubPalette = (function () {
                             </div>
                             <div class="u28" id="roomActionWrap" style="display: flex;">
                                 <button type="button" class="u31" data-on-click="a31" style="background: rgba(var(--accent-rgb),0.12); border: 1px solid rgba(var(--accent-rgb),0.3); color: var(--accent-color); border-radius: 8px; cursor: pointer;">＋ 建立房間</button>
-                                <button type="button" class="u31" data-on-click="a32" style="background: rgba(255,255,255,0.04); border: 1px solid var(--edit-border); color: #aaa; border-radius: 8px; cursor: pointer;">加入房間</button>
+                                <button type="button" class="u31" data-on-click="a32" style="background: rgba(255,255,255,0.04); border: 1px solid var(--edit-border); color: #aaa; border-radius: 8px; cursor: pointer;"><span class="own-only">加入別人的房間</span><span class="own-not">加入房間</span></button>
                             </div>
                             <!-- 建立房間名稱輸入列 -->
                             <div class="u32" id="createRoomInputWrap" style="display: none;">
@@ -3366,17 +3369,21 @@ window.SubPalette = (function () {
                 <div class="u38" style="color: var(--text-color);">
                    <div class="u39" style="color: var(--accent-color);">📋 2026/11/08　v2.4.1</div>
                     <ul class="u40">
-                        <li>新增「再出發」：記住上次航線，回港後一鍵照原航線重新計時，並自動推算經驗與升級後的時間</li>
-                        <li>新增「全部／群組再出發」：一次讓目前標籤內已回港的船一起出發</li>
                         <li>雲端同步改版：每艘船各自記錄修改時間並合併，兩台同時修改、離線修改都不會再互相蓋掉；刪除會同步（包含刪光所有船）；上傳失敗會自動補傳</li>
                         <li>雲端同步：第一次啟用或匯入 ID 時，若雲端和這台都有資料，會先詢問要合併、用雲端或用這台；匯入 ID 後自動重新整理並改用新 ID</li>
+                        <li>共同艦隊：房主的修改會即時更新到房間，成員在房間裡的修改也會寫回房主的船隊；建立房間後成員列表即時顯示</li>
                         <li>共同艦隊：檢視別人的房間時，上方顯示「正在檢視○○的艦隊」提示列，船卡改用青綠色邊框；上方船數依目前畫面顯示；房主可設定成員「可以修改／只能看」</li>
                         <li>共同艦隊：海圖也一起共用。檢視房間時，海圖顯示房間的標籤和已開放的海點，成員修改會同步給房主（房主設定「只能看」時無法修改）；路線規劃與配件規劃的船艇選單也會換成房間的船，搜尋時使用房間的海圖</li>
-                        <li>共同艦隊：房主的修改會即時更新到房間，成員在房間裡的修改也會寫回房主的船隊；建立房間後成員列表即時顯示</li>
+                        <li>共同艦隊：修正建立自己的房間後，無法再加入別人房間的問題；「已加入的房間」不再重複列出自己的房間</li>
                         <li>截圖辨識改善：辨識前先轉灰階、反白並放大，船名與時間更準；括號殘字、「7/小時」這類雜訊能正確解析，時間沒讀完整的船不會被更新</li>
                         <li>截圖辨識比對改善：同一張截圖裡每艘船只會對到一次，相似名字（如星海船／月海船）會用排除法、等級與回港時間判斷，分不出來就不更新；5 字以上英文名字不分大小寫；名字有空格（如 Rubber Duck）、含「探索」等字也能正確對上</li>
                         <li>修正：截圖辨識更新等級後，「再出發」可能重複加上一趟的經驗</li>
                         <li>船艇設定新增「目前航線」：可直接點選海域與地點設定航線（依點選順序，可一鍵排成最快順序），不必經過路線規劃</li>
+                    </ul>
+                    <div class="u39" style="color: var(--accent-color);">📋 2026/11/07</div>
+                    <ul class="u40">
+                        <li>新增「再出發」：記住上次航線，回港後一鍵照原航線重新計時，並自動推算經驗與升級後的時間</li>
+                        <li>新增「全部／群組再出發」：一次讓目前標籤內已回港的船一起出發</li>
                         <li>船卡顯示上次航線與下次回港時間；船艇設定新增選填的「本級經驗」</li>
                         <li>路線規劃：結果改為欄位對齊的列表，點欄位名稱排序、點一行展開掉落物</li>
                         <li>路線規劃：新增回港時段篩選，可選「只要」或「避開」的小時，支援拖曳複選</li>
@@ -9716,6 +9723,7 @@ window.toggleUploadZone = function(btn) {
     // 房間命名：點建立房間先展開輸入框
     window.cloudCreateRoom = async function() {
         if (!window.CloudSync?.isEnabled()) return showAlert('請先啟用雲端同步');
+        if (window._ownedRoomId) return showAlert('你已經有自己的房間了，要建立新房間請先按「離開」');
         const wrap = document.getElementById('createRoomInputWrap');
         if (wrap) { wrap.style.display = 'flex'; document.getElementById('createRoomNameInput')?.focus(); }
     };
@@ -9742,7 +9750,7 @@ window.toggleUploadZone = function(btn) {
             const actions = document.getElementById('roomActionWrap');
             if (code) code.textContent = roomId;
             if (wrap) wrap.style.display = 'block';
-            if (actions) actions.style.display = 'none';
+            if (actions) { actions.style.display = 'flex'; actions.classList.add('owns-room'); }
             // 記錄自己建立的房間代碼，重整後用來還原代碼顯示
             localStorage.setItem('sub_owned_room_id', roomId);
             // 記錄房主正在管理的房間 ID，供成員列表使用
@@ -9837,7 +9845,7 @@ window.toggleUploadZone = function(btn) {
         const actions = document.getElementById('roomActionWrap');
         const labelEl = document.getElementById('currentRoomLabel');
         if (wrap) wrap.style.display = 'none';
-        if (actions) actions.style.display = 'flex';
+        if (actions) { actions.style.display = 'flex'; actions.classList.remove('owns-room'); }
         if (labelEl) labelEl.textContent = '目前加入的房間';
         localStorage.removeItem('sub_owned_room_id');
         window._ownedRoomId = null;
@@ -9881,7 +9889,7 @@ window.toggleUploadZone = function(btn) {
                     if (labelEl) labelEl.textContent = '我的房間（分享代碼給其他人加入）';
                     if (code) code.textContent = roomId;
                     if (wrap) wrap.style.display = 'block';
-                    if (actions) actions.style.display = 'none';
+                    if (actions) { actions.style.display = 'flex'; actions.classList.add('owns-room'); }
                     window._ownedRoomId = roomId;
                     window.renderOwnedRoomMembers?.(roomId);
                     _listenOwnerRoom(roomId);
@@ -9909,8 +9917,10 @@ window.toggleUploadZone = function(btn) {
     window.renderRoomList = function renderRoomList() {
         const wrap = document.getElementById('roomListWrap');
         if (!wrap) return;
-        const roomIds = Object.keys(_rooms);
-        if (!roomIds.length) { wrap.style.display = 'none'; return; }
+        // 自己的房間已在上方「我的房間」管理，這裡只列別人的房間
+        const myId = window.CloudSync?.myUUID || '';
+        const roomIds = Object.keys(_rooms).filter(id => id !== window._ownedRoomId && _rooms[id].owner !== myId);
+        if (!roomIds.length) { wrap.style.display = 'none'; wrap.innerHTML = ''; return; }
         wrap.style.display = 'flex';
         wrap.innerHTML = '<div style="font-size:11px; font-weight:800; letter-spacing:1px; text-transform:uppercase; color:#666; margin-bottom:4px;">已加入的房間</div>';
         roomIds.forEach(roomId => {
@@ -9990,7 +10000,7 @@ window.toggleUploadZone = function(btn) {
         const actions = document.getElementById('roomActionWrap');
         if (wrap) wrap.style.display = 'block';
         if (code) code.textContent = roomId;
-        if (actions) actions.style.display = 'none';
+        if (actions) { actions.style.display = 'flex'; actions.classList.add('owns-room'); }
     }
 
     window.cloudEnableSync = () => window.SubSync?.enable();
