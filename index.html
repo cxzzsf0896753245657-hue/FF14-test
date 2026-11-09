@@ -908,7 +908,7 @@ window.UI_ACTIONS = {
         #timerList.list-mode:empty { border: 0; }
         #timerListHead, #timerList.list-mode .timer-card {
             align-items: center; column-gap: 10px; --col-ind: 15px;
-            grid-template-columns: var(--lc-full, minmax(140px,1fr) minmax(108px,.45fr) minmax(102px,.45fr) minmax(102px,.45fr) minmax(365px,1.5fr) minmax(124px,.4fr) 246px);
+            grid-template-columns: var(--lc-full, minmax(140px,1fr) minmax(108px,.45fr) minmax(102px,.45fr) minmax(102px,.45fr) minmax(320px,1.5fr) minmax(124px,.4fr) 246px);
             grid-template-areas: var(--la-full, "name count dep ret route group act");
             padding: 7px 14px; box-sizing: border-box;
         }
@@ -983,7 +983,7 @@ window.UI_ACTIONS = {
         #timerList.list-mode .timer-footer > span .time-highlight { font-size: 12.5px; }
         #timerList.list-mode .timer-footer > span:first-child .time-highlight { opacity: .8; }
         #timerList.list-mode .sub-config-summary { display: none !important; }
-        #timerList.list-mode .route-line-info { min-width: 0; flex: 0 1 280px; display: flex; flex-direction: column; gap: 1px; }
+        #timerList.list-mode .route-line-info { min-width: 0; flex: 0 1 230px; display: flex; flex-direction: column; gap: 1px; }
         #timerList.list-mode .route-line-txt, #timerList.list-mode .route-next { font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 0; }
         #timerList.list-mode .route-next-dur { display: none; }
         #timerList.list-mode .btn-redepart { flex: none; padding: 4px 10px; font-size: 12px; margin: 0; }
@@ -1001,10 +1001,60 @@ window.UI_ACTIONS = {
         #panelFleet.room-readonly #timerListHead, #panelFleet.room-readonly #timerList.list-mode .timer-card {
             grid-template-columns: var(--lc-ro-full); grid-template-areas: var(--la-ro-full); }
         #panelFleet.room-readonly #timerListHead > [data-col=act], #panelFleet.room-readonly #timerListHead > [data-col=group] { display: none; }
+        /* ══ 條列：閱讀重點（狀態 → 回港 → 下一步），次要資訊退後 ══ */
+        #timerListHead, #timerList.list-mode .timer-card { padding-top: 10px; padding-bottom: 10px; }
+        #timerList.list-mode .timer-card { min-height: 60px; }
+        #timerList.list-mode .timer-name { font-size: 15px; font-weight: 700; }
+        #timerList.list-mode .timer-level { font-size: 12px; font-weight: 600; margin-left: 4px; opacity: .8; }
+        /* 剩餘：大字，下方一條細進度條 */
+        #timerList.list-mode .timer-countdown { font-family: inherit; font-size: 15.5px; font-weight: 800; letter-spacing: .3px; align-self: center; margin-top: -7px; }
+        #timerList.list-mode .progress-bar-bg { position: static; grid-area: count; align-self: center; margin: 22px 0 0 var(--col-ind); width: calc(100% - var(--col-ind) - 16px); height: 3px; border-radius: 2px; background: color-mix(in srgb, var(--text-color) 12%, transparent); overflow: hidden; }
+        #timerList.list-mode .progress-bar { height: 3px; border-radius: 2px; }
+        /* 已回港：綠色標籤 */
+        #timerList.list-mode .timer-card:has(.progress-bar-bg.finished) .timer-countdown { font-size: 0; margin-top: 0; }
+        #timerList.list-mode .timer-card:has(.progress-bar-bg.finished) .timer-countdown::after {
+            content: '✓ 已回港'; display: inline-block; font-size: 12.5px; font-weight: 800; letter-spacing: .5px; line-height: 1.4;
+            color: #fff; background: var(--success-color); padding: 3px 11px; border-radius: 999px; box-shadow: 0 1px 4px rgba(0,0,0,.18); }
+        /* 時間：回港最醒目，出航退後 */
+        #timerList.list-mode .timer-footer > span:first-child .time-highlight { font-size: 12.5px; font-weight: 600; opacity: .7; }
+        #timerList.list-mode .timer-footer > span:last-child .time-highlight { font-size: 14px; font-weight: 800; }
+        /* 航線：海域與路線清楚、下次回港時間醒目 */
+        #timerList.list-mode .route-line-txt .rl-k { display: none; }
+        #timerList.list-mode .route-line-txt { font-size: 12px; color: color-mix(in srgb, var(--text-color) 55%, transparent); }
+        #timerList.list-mode .route-line-txt .rl-v { color: color-mix(in srgb, var(--text-color) 88%, transparent); font-weight: 600; }
+        #timerList.list-mode .route-next { font-size: 12.5px; color: color-mix(in srgb, var(--text-color) 78%, transparent); }
+        #timerList.list-mode .route-next b { font-size: 13px; color: var(--hl-return); }
+        /* 次要操作：平常淡一點，滑到那一列才清楚 */
+        #timerList.list-mode .card-group-select { background: transparent; border-color: transparent; color: color-mix(in srgb, var(--text-color) 72%, transparent); transition: border-color .15s, background-color .15s; }
+        #timerList.list-mode .timer-card:hover .card-group-select, #timerList.list-mode .card-group-select:focus { border-color: var(--edit-border); background-color: var(--card-color); color: var(--text-color); }
+        #timerList.list-mode .card-action-btns { opacity: .55; transition: opacity .15s; }
+        #timerList.list-mode .timer-card:hover .card-action-btns, #timerList.list-mode .card-action-btns:focus-within { opacity: 1; }
+        /* 滑到哪一列：紫色底＋左側色條，一眼看出是哪艘船 */
+        #timerList.list-mode .timer-card { transition: background-color .12s ease, box-shadow .12s ease; }
+        #timerList.list-mode .timer-card:hover, #timerList.list-mode .timer-card:focus-within {
+            background-color: rgba(var(--accent-rgb), .22); background-image: none;
+            box-shadow: inset 5px 0 0 var(--accent-color); }
+        #timerList.list-mode .timer-card:has(.progress-bar-bg.finished):hover, #timerList.list-mode .timer-card:has(.progress-bar-bg.finished):focus-within {
+            background-color: color-mix(in srgb, var(--success-color) 22%, transparent);
+            background-image: linear-gradient(rgba(var(--accent-rgb), .30), rgba(var(--accent-rgb), .30));
+            box-shadow: inset 5px 0 0 var(--accent-color); }
+        #timerList.list-mode .timer-card:hover .timer-name { color: var(--accent-color); }
+        /* ══ 卡片／條列切換轉場 ══ */
+        html.fl-vt::view-transition-group(*) { animation-duration: .42s; animation-timing-function: cubic-bezier(.22,.8,.24,1); }
+        html.fl-vt::view-transition-old(*), html.fl-vt::view-transition-new(*) { animation-duration: .3s; }
+        html.fl-vt::view-transition-group(.fl-card) { overflow: clip; border-radius: 8px; }
+        html.fl-vt::view-transition-old(.fl-card), html.fl-vt::view-transition-new(.fl-card) { height: auto; width: auto; object-fit: none; object-position: left top; }
+        html.fl-vt::view-transition-old(.fl-card) { animation: flOut var(--fl-out, .14s) ease-out both; }
+        html.fl-vt::view-transition-new(.fl-card) { animation: flNew var(--fl-in, .26s) ease-out var(--fl-in-delay, .1s) both; }
+        @keyframes flOut { from { opacity: 1; } to { opacity: 0; } }
+        @keyframes flNew { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes flIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+        #timerList.fl-anim > .timer-card, #timerListHead.fl-anim { animation: flIn .32s ease-out both; }
+        @media (prefers-reduced-motion: reduce) { #timerList.fl-anim > .timer-card, #timerListHead.fl-anim { animation: none; } }
         /* 中等寬度：拿掉標籤欄 */
-        @container fleet (max-width: 1279px) {
+        @container fleet (max-width: 1229px) {
             #timerListHead, #timerList.list-mode .timer-card {
-                grid-template-columns: var(--lc-mid, minmax(130px,1fr) minmax(104px,.45fr) minmax(100px,.45fr) minmax(100px,.45fr) minmax(365px,1.5fr) 236px);
+                grid-template-columns: var(--lc-mid, minmax(130px,1fr) minmax(104px,.45fr) minmax(100px,.45fr) minmax(100px,.45fr) minmax(320px,1.5fr) 236px);
                 grid-template-areas: var(--la-mid, "name count dep ret route act");
             }
             #timerListHead > [data-col=group], #timerList.list-mode .card-group-select { display: none; }
@@ -1016,7 +1066,7 @@ window.UI_ACTIONS = {
                 grid-template-columns: var(--lc-ro-mid); grid-template-areas: var(--la-ro-mid); }
         }
         /* 窄畫面（手機）：兩行，點一下展開航線和操作 */
-        @container fleet (max-width: 1112px) {
+        @container fleet (max-width: 1067px) {
             #timerListHead.on { display: none; }
             #timerList.list-mode .timer-footer > span:first-child { display: none; }
             #timerList.list-mode { border-radius: 10px; }
@@ -1046,6 +1096,12 @@ window.UI_ACTIONS = {
             #timerList.list-mode .timer-card.expanded .route-line-txt { display: block; white-space: normal; }
             #timerList.list-mode .timer-card.expanded { background: color-mix(in srgb, var(--text-color) 6%, transparent); }
             #timerList.list-mode .timer-card.expanded:has(.progress-bar-bg.finished) { background: color-mix(in srgb, var(--success-color) 26%, transparent); }
+            /* 兩行版：進度條回到列底部 */
+            #timerList.list-mode .progress-bar-bg { position: absolute; grid-area: auto; left: 0; right: 0; bottom: 0; margin: 0; width: auto; height: 2px; border-radius: 0; background: transparent; }
+            #timerList.list-mode .progress-bar { height: 2px; border-radius: 0; }
+            #timerList.list-mode .timer-countdown { margin-top: 0; font-size: 15px; }
+            #timerList.list-mode .timer-card:has(.progress-bar-bg.finished) .timer-countdown::after { font-size: 12px; padding: 1px 9px; }
+            #timerList.list-mode .card-action-btns { opacity: 1; }
         }
         .map-room-hint { margin: 0 0 10px; padding: 8px 12px; border-radius: 8px; font-size: 13px; line-height: 1.5;
             background: rgba(var(--room-rgb, 70,180,160), .12); border: 1px solid rgba(var(--room-rgb, 70,180,160), .45); color: var(--text-color); }
@@ -3351,7 +3407,7 @@ window.SubPalette = (function () {
             <button type="button" class="drawer-close" id="drawerClose" aria-label="關閉面板" title="關閉（Esc）">✕</button>
         </div>
         <div class="header-wrapper">
-            <h1>FF14 潛水艇計時器2.4.1 <span>阿緋@鳳凰</span></h1>
+            <h1>FF14 潛水艇計時器2.4.2 <span>阿緋@鳳凰</span></h1>
             <!-- 控制列 -->
             <div class="lp-controls">
                 <button type="button" class="lp-icon-btn u1" data-on-click="a11" title="使用說明" aria-label="使用說明">📖</button>
@@ -3531,37 +3587,32 @@ window.SubPalette = (function () {
             <button type="button" class="collapsible-btn" data-on-click="a36" aria-expanded="false" aria-controls="content4"><span>+</span> 開發日記</button>
             <div id="content4" class="content">
                 <div class="u38" style="color: var(--text-color);">
-                   <div class="u39" style="color: var(--accent-color);">📋 2026/11/09</div>
+                   <div class="u39" style="color: var(--accent-color);">📋 2026/11/09　v2.4.2</div>
                     <ul class="u40">
-                        <li>艦隊新增「條列」顯示：右上角可以在卡片和條列之間切換，一個畫面看得到更多船；條列也顯示出航和回港時間，電腦版可以拖曳欄位名稱（⠿）調整欄位順序，拖曳時會標示整欄和放下的位置，移動後可以復原；已回港的船整列淡綠色；手機上點一下那列展開航線和操作按鈕；每台裝置各自記住</li>
+                        <li>艦隊新增「條列」顯示，可隨時和卡片切換，切換時有轉場動畫</li>
+                        <li>條列（電腦版）可拖曳欄位名稱調整欄位順序</li>
+                        <li>條列重點更清楚：已回港綠色標籤、剩餘時間進度條、回港時間醒目</li>
                     </ul>
                     <div class="u39" style="color: var(--accent-color);">📋 2026/11/08　v2.4.1</div>
                     <ul class="u40">
-                        <li>雲端同步改版：每艘船各自記錄修改時間並合併，兩台同時修改、離線修改都不會再互相蓋掉；刪除會同步（包含刪光所有船）；上傳失敗會自動補傳</li>
-                        <li>雲端同步：第一次啟用或匯入 ID 時，若雲端和這台都有資料，會先詢問要合併、用雲端或用這台；匯入 ID 後自動重新整理並改用新 ID</li>
-                        <li>共同艦隊：房主的修改會即時更新到房間，成員在房間裡的修改也會寫回房主的船隊；建立房間後成員列表即時顯示</li>
-                        <li>共同艦隊：檢視別人的房間時，上方顯示「正在檢視○○的艦隊」提示列，船卡改用青綠色邊框；上方船數依目前畫面顯示；房主可設定成員「可以修改／只能看」</li>
-                        <li>共同艦隊：海圖也一起共用。檢視房間時，海圖顯示房間的標籤和已開放的海點，成員修改會同步給房主（房主設定「只能看」時無法修改）；路線規劃與配件規劃的船艇選單也會換成房間的船，搜尋時使用房間的海圖</li>
-                        <li>共同艦隊：修正建立自己的房間後，無法再加入別人房間的問題；「已加入的房間」不再重複列出自己的房間；房主離開房間時房間會解散，成員會自動離開並收到通知；被房主移除的成員也會自動離開</li>
-                        <li>截圖辨識改善：辨識前先轉灰階、反白並放大，船名與時間更準；括號殘字、「7/小時」這類雜訊能正確解析，時間沒讀完整的船不會被更新</li>
-                        <li>截圖辨識比對改善：同一張截圖裡每艘船只會對到一次，相似名字（如星海船／月海船）會用排除法、等級與回港時間判斷，分不出來就不更新；5 字以上英文名字不分大小寫；名字有空格（如 Rubber Duck）、含「探索」等字也能正確對上</li>
-                        <li>修正：截圖辨識更新等級後，「再出發」可能重複加上一趟的經驗</li>
-                        <li>船艇設定新增「目前航線」：可直接點選海域與地點設定航線（依點選順序，可一鍵排成最快順序），不必經過路線規劃</li>
+                        <li>雲端同步改版：多台裝置同時或離線修改都能正確合併</li>
+                        <li>第一次啟用同步或匯入 ID 時，可選擇合併、用雲端或用這台</li>
+                        <li>共同艦隊：房主和成員的修改即時互通，房主可設定「可以修改／只能看」</li>
+                        <li>共同艦隊：海圖和路線規劃會改用房間的資料</li>
+                        <li>共同艦隊：有自己的房間也能加入別人的房間；房主離開時房間解散</li>
+                        <li>截圖辨識更準確，名字相似的船不會再對錯</li>
+                        <li>船艇設定可以直接設定目前航線</li>
+                        <li>修正：截圖更新等級後，再出發可能重複計算經驗</li>
                     </ul>
                     <div class="u39" style="color: var(--accent-color);">📋 2026/11/07</div>
                     <ul class="u40">
-                        <li>新增「再出發」：記住上次航線，回港後一鍵照原航線重新計時，並自動推算經驗與升級後的時間</li>
-                        <li>新增「全部／群組再出發」：一次讓目前標籤內已回港的船一起出發</li>
-                        <li>船卡顯示上次航線與下次回港時間；船艇設定新增選填的「本級經驗」</li>
-                        <li>路線規劃：結果改為欄位對齊的列表，點欄位名稱排序、點一行展開掉落物</li>
-                        <li>路線規劃：新增回港時段篩選，可選「只要」或「避開」的小時，支援拖曳複選</li>
-                        <li>新增「主題」：32 種低飽和配色（深色 18、淺色 14），取代原本的深淺色切換</li>
-                        <li>艦隊：船卡一排可放 3～4 張；部隊標籤改為整齊格狀並顯示船數與已回港提示</li>
-                        <li>配件製作：點格子直接 +1、可用 − 減少，並修正同一配件會被加兩次的問題</li>
-                        <li>自訂連結重新設計，顯示網址、刪除前會先確認</li>
-                        <li>使用說明全面改寫；左側工具列改為圖示加文字</li>
-                        <li>資料校正：鯊魚改級船首數值、部分地點經驗與門檻，並補上各地點開放版本</li>
-                        <li>修正：標籤要點兩下才選取、截圖辨識沒讀到等級時會清空等級、窄畫面切回寬畫面版面錯亂、手機版船卡超出畫面、路線搜尋時畫面卡住</li>
+                        <li>新增「再出發」與「全部／群組再出發」</li>
+                        <li>船卡顯示上次航線與下次回港時間</li>
+                        <li>路線規劃：結果改為列表，新增回港時段篩選</li>
+                        <li>新增 32 種「主題」配色</li>
+                        <li>艦隊版面調整：船卡一排 3～4 張、部隊標籤格狀排列</li>
+                        <li>配件製作、自訂連結、使用說明重新設計</li>
+                        <li>資料校正與多項錯誤修正</li>
                     </ul>
                    <div class="u39" style="color: var(--accent-color);">📋 2026/11/02</div>
                     <ul class="u40">
@@ -3733,7 +3784,7 @@ window.SubPalette = (function () {
 
     <!-- ══ RIGHT PANEL ══ -->
     <div class="right-panel">
-        <div class="desk-brand" aria-hidden="true">FF14 潛水艇計時器 <span>2.4.1・阿緋@鳳凰</span></div>
+        <div class="desk-brand" aria-hidden="true">FF14 潛水艇計時器 <span>2.4.2・阿緋@鳳凰</span></div>
         <!-- 分頁切換列 -->
         <div class="rp-panel-tabs" id="rpPanelTabs" role="tablist" aria-label="主要功能">
             <button type="button" class="rp-panel-tab active" id="tabFleet" role="tab" aria-controls="panelFleet" aria-selected="true" data-on-click="a37">⚓ 潛水艇艦隊 <span class="u43" id="fleetCount" style="background: rgba(var(--accent-rgb),0.2); color: var(--accent-color); border: 1px solid #555; border-radius: 6px; display: inline-block; min-width: 36px;">0 艘</span></button>
@@ -4664,10 +4715,14 @@ window.showConfirm = showConfirm;
     // ── 更新內容通知（每位使用者、每個瀏覽器只顯示一次）──
     // 之後要再通知：改 id 與 items，所有人就會再看到一次
     const UPDATE_NOTICE = {
-        id: '2.4.1',
-        title: '🆕 2.4.1 更新',
-        date: '2026/11/08',
+        id: '2.4.2',
+        title: '🆕 2.4.2 更新',
+        date: '2026/11/09',
         pages: [
+            { tab: '條列顯示', icon: '☰', title: '新增條列顯示',
+              lead: '艦隊右上角可以切換「卡片」和「條列」。',
+              items: ['一個畫面看得到更多船，已回港的船一眼就看出來',
+                      '電腦版可以拖曳欄位名稱，調整欄位順序'] },
             { tab: '雲端同步', icon: '☁️', title: '同步更穩定，資料不會互相蓋掉',
               lead: '多台裝置一起用也不怕。',
               items: ['兩台裝置同時修改、離線修改，都會正確合併',
@@ -6490,7 +6545,7 @@ window.showConfirm = showConfirm;
         count: { full: 'minmax(108px,.45fr)', mid: 'minmax(104px,.45fr)', area: 'count' },
         dep:   { full: 'minmax(102px,.45fr)', mid: 'minmax(100px,.45fr)', area: 'dep' },
         ret:   { full: 'minmax(102px,.45fr)', mid: 'minmax(100px,.45fr)', area: 'ret' },
-        route: { full: 'minmax(365px,1.5fr)', mid: 'minmax(365px,1.5fr)', area: 'route' },
+        route: { full: 'minmax(320px,1.5fr)', mid: 'minmax(320px,1.5fr)', area: 'route' },
         group: { full: 'minmax(124px,.4fr)', mid: null, area: 'group' },
         act:   { full: '246px', mid: '236px', area: 'act' }
     };
@@ -6682,9 +6737,43 @@ window.showConfirm = showConfirm;
         applyListOrder();
     })();
     window.setFleetLayout = function (m) {
-        try { localStorage.setItem('sub_fleet_layout', m === 'list' ? 'list' : 'card'); } catch (e) {}
-        document.querySelectorAll('#timerList .timer-card.expanded').forEach(c => c.classList.remove('expanded'));
-        applyFleetLayout();
+        const want = m === 'list' ? 'list' : 'card', list = document.getElementById('timerList');
+        const cur = list && list.classList.contains('list-mode') ? 'list' : 'card';
+        const apply = () => {
+            try { localStorage.setItem('sub_fleet_layout', want); } catch (e) {}
+            document.querySelectorAll('#timerList .timer-card.expanded').forEach(c => c.classList.remove('expanded'));
+            applyFleetLayout();
+        };
+        let reduce = false; try { reduce = matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
+        if (!list || cur === want || reduce) return apply();
+        if (document.startViewTransition) {
+            // 畫面上看得到的船：從卡片位置變形到條列位置（或反過來）
+            const vh = innerHeight, picked = [];
+            for (const c of list.querySelectorAll('.timer-card')) {
+                if (picked.length >= 48) break;
+                if (!c.offsetParent) continue;
+                const r = c.getBoundingClientRect();
+                if (r.bottom < -40 || r.top > vh + 40) continue;
+                picked.push(c);
+            }
+            picked.forEach((c, i) => { c.style.viewTransitionName = 'flc' + i; c.style.viewTransitionClass = 'fl-card'; });
+            document.documentElement.classList.add('fl-vt');
+            const done = () => {
+                picked.forEach(c => { c.style.viewTransitionName = ''; c.style.viewTransitionClass = ''; });
+                document.documentElement.classList.remove('fl-vt');
+            };
+            let t = null;
+            try { t = document.startViewTransition(apply); } catch (e) { apply(); }
+            if (t && t.finished) t.finished.then(done, done); else done();
+            return;
+        }
+        // 不支援的瀏覽器：淡入
+        apply();
+        [list, document.getElementById('timerListHead')].forEach(el => {
+            if (!el) return;
+            el.classList.remove('fl-anim'); void el.offsetWidth; el.classList.add('fl-anim');
+            setTimeout(() => el.classList.remove('fl-anim'), 450);
+        });
     };
     applyFleetLayout();
     // 條列（窄畫面）：點一下整列展開／收合
@@ -9243,7 +9332,7 @@ const CRAFT_BASE = SUB_DATA.CRAFT_BASE;
             const eta = base + Math.round(plan.calc.timeMins * 60) * 1000;
             nextTxt = `<span class="route-next">${returned ? '現在出發' : '回港後出發'} → <b>${subFmtEta(eta)}</b> 回港<span class="route-next-dur">（${subFmtMins(plan.calc.timeMins)}）</span></span>`;
         }
-        el.innerHTML = `<div class="route-line-info"><span class="route-line-txt">上次航線：${escapeHtml(MAP_NAMES[r.mapId] || '')} ${subRouteLetters(r)}${lvTxt}</span>${nextTxt}</div>`
+        el.innerHTML = `<div class="route-line-info"><span class="route-line-txt"><span class="rl-k">上次航線：</span><span class="rl-v">${escapeHtml(MAP_NAMES[r.mapId] || '')} ${subRouteLetters(r)}</span>${lvTxt}</span>${nextTxt}</div>`
             + `<button type="button" class="card-icon-btn btn-redepart${returned ? ' ready' : ''}" onclick="subRedepart('${t.id}')">再出發</button>`;
         el.style.display = 'flex';
         subRefreshGroupRedepart();
