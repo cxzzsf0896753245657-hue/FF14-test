@@ -1716,7 +1716,10 @@ window.UI_ACTIONS = {
         .rp-suggest-item { padding: 6px 10px; font-size: 12.5px; cursor: pointer; }
         .rp-suggest-item:hover { background: rgba(var(--accent-rgb),0.15); }
         .rp-suggest-empty { padding: 8px 10px; font-size: 12px; color: #888; }
-        .rp-suggest-group, .cfg-an-sug-group { position: sticky; top: 0; z-index: 1; padding: 4px 10px; font-size: 11.5px; font-weight: 700; letter-spacing: .5px; color: var(--accent-color); background: color-mix(in srgb, var(--card-color, #232129) 92%, var(--accent-color)); border-bottom: 1px solid var(--edit-border); }
+        .rp-suggest-group, .cfg-an-sug-group { position: sticky; top: 0; z-index: 1; display: flex; align-items: center; gap: 6px; padding: 7px 10px; font-size: 13.5px; font-weight: 800; letter-spacing: .5px; color: #fff; background: color-mix(in srgb, var(--accent-color) 78%, #000); border-left: 4px solid var(--accent-color); box-shadow: 0 1px 0 rgba(0,0,0,.25); }
+        .rp-suggest-group svg.ic, .cfg-an-sug-group svg.ic { width: 1.05em; height: 1.05em; }
+        .rp-suggest-group em, .cfg-an-sug-group em { margin-left: auto; font-style: normal; font-size: 12px; font-weight: 700; padding: 0 8px; border-radius: 999px; background: rgba(255,255,255,.2); }
+        body.light-mode .rp-suggest-group, body.light-mode .cfg-an-sug-group { background: var(--accent-color); }
         .rp-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
         .rp-chip { background: rgba(var(--accent-rgb),0.15); border: 1px solid var(--accent-color); color: var(--accent-color); border-radius: 12px; padding: 3px 8px 3px 10px; font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 6px; }
         .rp-chip.inc { background: rgba(100,180,130,0.15); border-color: #5dba8a; color: #5dba8a; }
@@ -3710,6 +3713,7 @@ window.icHtml = function (t) {
                         <li>配件規劃：可以把配件存成「我的配置」，自己取名、寫備註，會雲端同步</li>
                         <li>船艇設定的目前航線只顯示地點代號，畫面更簡潔</li>
                         <li>船卡的自動導航只顯示需要注意的提醒，不再重複航線</li>
+                        <li>物品選單的海圖分段標題更明顯，並顯示該海圖的物品數</li>
                         <li>物品清單依海圖排序，三個分頁的分類統一</li>
                         <li>介面：全新圖示、寬螢幕的規劃頁改兩欄、配件製作文字放大</li>
                         <li>操作：刪除船可以復原、成功訊息不用再按確定、填錯會直接標出欄位</li>
@@ -7805,9 +7809,10 @@ window.showConfirm = showConfirm;
     // 依海域分段：rowFn(item) 回傳每列 HTML
     function itemsGroupedHtml(list, rowFn, headCls) {
         let last = null, out = '';
+        const cnt = {}; list.forEach(x => { const m = itemMapKey(x.id)[0]; cnt[m] = (cnt[m] || 0) + 1; });
         list.forEach(x => {
             const m = itemMapKey(x.id)[0];
-            if (m !== last) { out += `<div class="${headCls}">${escapeHtml(MAP_NAMES[m] || '其他')}</div>`; last = m; }
+            if (m !== last) { out += `<div class="${headCls}">${IC('map')}<span>${escapeHtml(MAP_NAMES[m] || '其他')}</span><em>${cnt[m]}</em></div>`; last = m; }
             out += rowFn(x);
         });
         return out;
