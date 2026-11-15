@@ -1411,7 +1411,7 @@ window.UI_ACTIONS = {
         .cfg-rt-btn { background:none; border:1px solid var(--edit-border); color: var(--text-color); border-radius:6px; padding:5px 10px; font-size:12.5px; cursor:pointer; }
         .cfg-rt-btn:hover:not(:disabled) { border-color: var(--accent-color); color: var(--accent-color); }
         .cfg-rt-btn:disabled { opacity:.35; cursor:default; }
-        .cfg-rt-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap:6px; margin-top:10px; }
+        .cfg-rt-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap:6px; margin-top:10px; }
         .cfg-rt-sec { position:relative; display:flex; align-items:center; gap:7px; padding:6px 8px; border-radius:7px; border:1px solid var(--edit-border); background: var(--edit-bg); color: var(--text-color); font-size:13px; text-align:left; cursor:pointer; min-width:0; }
         .cfg-rt-sec .l { flex:none; width:22px; height:22px; border-radius:5px; display:grid; place-items:center; font-weight:bold; font-size:12.5px; background: rgba(255,255,255,.06); }
         .cfg-rt-sec .n { flex:1; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
@@ -1542,14 +1542,36 @@ window.UI_ACTIONS = {
         .cfg-an-goal-desc { flex-basis: 100%; font-size: 12px; opacity: .75; }
         .cfg-an-gold { display: flex; flex-direction: column; gap: 8px; }
         .cfg-an-gold-route { font-size: 13px; }
-        .cfg-an-gold-chk { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 6px; }
-        .cfg-an-gold-chk .gk { padding: 6px 10px; border-radius: 8px; font-size: 12.5px; line-height: 1.5; background: rgba(var(--accent-rgb), .08); }
-        .cfg-an-gold-chk .gk b { margin-right: 4px; }
-        .cfg-an-gold-chk .gk.bad { background: rgba(255, 92, 92, .12); color: #ff8a8a; }
-        .cfg-an-gold-chk .gk.warn { background: rgba(255, 203, 107, .12); color: #ffcb6b; }
-        body.light-mode .cfg-an-gold-chk .gk.bad { color: #c62828; }
-        body.light-mode .cfg-an-gold-chk .gk.warn { color: #b26a00; }
-        .cfg-an-gold-chk .gk small { display: block; opacity: .8; }
+        .cfg-an-gold-chk { display: flex; flex-direction: column; gap: 10px; }
+        .gk-sec-t { font-size: 13px; font-weight: 700; margin-bottom: 6px; color: var(--text-color); }
+        .gk-sec-t span { font-weight: 400; font-size: 12.5px; opacity: .65; margin-left: 8px; }
+        .gk-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+        @media (max-width: 640px) {
+            .gk-row { grid-template-columns: 1fr; gap: 6px; }
+            .cfg-an-gold-chk .gk { display: flex; flex-wrap: wrap; align-items: center; column-gap: 10px; padding: 8px 12px; }
+            .gk-top { flex: 1; }
+            .gk-gap { order: 2; }
+            .gk-val { margin-top: 0; order: 1; }
+            .gk-hint { flex-basis: 100%; order: 3; margin-top: 2px; }
+        }
+        .cfg-an-gold-chk .gk { padding: 9px 12px; border-radius: 10px; border: 1px solid var(--edit-border); background: var(--edit-bg); line-height: 1.35; }
+        .gk-top { display: flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 700; }
+        .gk-top svg.ic { width: 1.1em; height: 1.1em; }
+        .gk.ok .gk-top svg.ic { color: #4caf7d; }
+        .gk.bad .gk-top svg.ic { color: #e5534b; }
+        .gk.warn .gk-top svg.ic { color: #e0a040; }
+        .gk-gap { margin-left: auto; font-size: 13px; font-weight: 800; padding: 1px 8px; border-radius: 999px; }
+        .gk.bad .gk-gap { background: rgba(229, 83, 75, .16); color: #ff8a84; }
+        .gk.warn .gk-gap { background: rgba(224, 160, 64, .16); color: #f0b45a; }
+        body.light-mode .gk.bad .gk-gap { color: #c62828; }
+        body.light-mode .gk.warn .gk-gap { color: #a35f00; }
+        .gk-val { margin-top: 4px; font-variant-numeric: tabular-nums; }
+        .gk-have { font-size: 18px; font-weight: 800; }
+        .gk-need { font-size: 13px; opacity: .7; margin-left: 4px; }
+        .gk-txt { font-size: 14px; }
+        .gk-hint { margin-top: 3px; font-size: 12.5px; opacity: .7; }
+        .cfg-an-gold-chk .gk.bad { border-color: rgba(229, 83, 75, .45); background: rgba(229, 83, 75, .07); }
+        .cfg-an-gold-chk .gk.warn { border-color: rgba(224, 160, 64, .45); background: rgba(224, 160, 64, .07); }
         .cfg-an-salv { border: 1px solid var(--edit-border); border-radius: 8px; padding: 8px 10px; font-size: 12.5px; }
         .cfg-an-salv .sv-head { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; margin-bottom: 6px; font-weight: 700; font-size: 13px; }
         .cfg-an-salv .sv-ok { color: #5dba8a; font-weight: 600; }
@@ -3004,7 +3026,7 @@ window.UI_ACTIONS = {
 
             /* 船艇設定 Modal */
             .sub-modal-box { padding: 16px 12px; }
-            .cfg-rt-grid { grid-template-columns: 1fr 1fr; }
+            .cfg-rt-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
             .cfg-rt-tools { margin-left:0; }
             .sub-part-grid { grid-template-columns: 1fr 1fr !important; gap: 10px; }
             .sub-part-item select { width: 100%; }
@@ -3680,6 +3702,7 @@ window.icHtml = function (t) {
                         <li>新增「自動導航」：選練等、挖寶、開圖或撈金，按「再出發」就自動排好下一趟</li>
                         <li>撈金：檢查 OJ／ROJZ／MROJZ 跑不跑得動、每站拿不拿得到沉船系列，不夠時建議升級或換配件</li>
                         <li>配件規劃：可以把配件存成「我的配置」，自己取名、寫備註，會雲端同步</li>
+                        <li>船艇設定的目前航線只顯示地點代號，畫面更簡潔</li>
                         <li>物品清單依海圖排序，三個分頁的分類統一</li>
                         <li>介面：全新圖示、寬螢幕的規劃頁改兩欄、配件製作文字放大</li>
                         <li>操作：刪除船可以復原、成功訊息不用再按確定、填錯會直接標出欄位</li>
@@ -6573,7 +6596,7 @@ window.showConfirm = showConfirm;
         const chips = cfgRt.secIds.map((id, i) => {
             const s = SECTOR_MAP.get(id) || [];
             return (i ? '<span class="cfg-rt-arrow">→</span>' : '')
-                + `<button type="button" class="cfg-rt-chip" data-idx="${i}" data-on-click="a127" title="移除"><b>${escapeHtml(s[2] || '?')}</b>${escapeHtml(s[4] || '')}<span class="x"><svg class="ic ic-x" aria-hidden="true"><use href="#i-x"/></svg></span></button>`;
+                + `<button type="button" class="cfg-rt-chip" data-idx="${i}" data-on-click="a127" title="${escapeHtml(s[4] || '')}・點一下移除"><b>${escapeHtml(s[2] || '?')}</b><span class="x"><svg class="ic ic-x" aria-hidden="true"><use href="#i-x"/></svg></span></button>`;
         }).join('');
         document.getElementById('cfg-rt-chips').innerHTML = chips || '<span class="cfg-rt-empty">點下方地點加入，最多 5 個（依點選順序航行）</span>';
         // 這個海域的所有地點
@@ -6583,7 +6606,7 @@ window.showConfirm = showConfirm;
             const cls = 'cfg-rt-sec' + (on ? ' on' : '') + (lock ? ' lock' : '');
             const dis = !on && full ? ' disabled' : '';
             const order = on ? cfgRt.secIds.indexOf(s[0]) + 1 : '';
-            return `<button type="button" class="${cls}" data-sec="${s[0]}" data-on-click="a123"${dis} title="${escapeHtml(s[4])}・需要 ${s[5]} 級"><span class="l">${on ? order : escapeHtml(s[2])}</span><span class="n">${on ? escapeHtml(s[2]) + ' ' : ''}${escapeHtml(s[4])}</span><span class="r">${lock ? '<svg class="ic ic-lock" aria-hidden="true"><use href="#i-lock"/></svg>' : ''}Lv${s[5]}</span></button>`;
+            return `<button type="button" class="${cls}" data-sec="${s[0]}" data-on-click="a123"${dis} title="${escapeHtml(s[4])}・需要 ${s[5]} 級"><span class="l">${on ? order : escapeHtml(s[2])}</span><span class="n">${on ? escapeHtml(s[2]) : ''}</span><span class="r">${lock ? '<svg class="ic ic-lock" aria-hidden="true"><use href="#i-lock"/></svg>' : ''}Lv${s[5]}</span></button>`;
         }).join('');
         document.getElementById('cfg-rt-fast').disabled = cfgRt.secIds.length < 2;
         document.getElementById('cfg-rt-clear').disabled = !cfgRt.secIds.length;
@@ -10020,14 +10043,19 @@ const CRAFT_BASE = SUB_DATA.CRAFT_BASE;
             const g = goldCheck(cfgAn.route, lv, stats, autoNodeState(group));
             document.getElementById('cfg-an-gold-route').innerHTML = `航線：<b>溺沒海 ${g.secIds.map(id => escapeHtml(secLabel(id).split(' ').slice(1).join(' '))).join(' → ')}</b>`
                 + (g.calc ? `<br><small style="opacity:.75">需要等級 ${g.rows[1].need}、航距 ${g.calc.range}・經驗 ${g.calc.exp.toLocaleString()}・耗時 ${subFmtMins(g.calc.timeMins)}</small>` : '');
-            document.getElementById('cfg-an-gold-chk').innerHTML = g.rows.map(r => {
-                const cls = r.ok ? '' : (r.block ? ' bad' : ' warn');
-                const head = `${r.ok ? '✓' : (r.block ? '✗' : '△')} <b>${r.k}</b>`;
-                const body = r.need != null
-                    ? (r.ok ? `${r.have} / ${r.need}` : `差 ${r.need - r.have}（需要 ${r.need}，目前 ${r.have}）`)
-                    : escapeHtml(r.txt);
-                return `<div class="gk${cls}">${head}${body}${r.hint ? `<small>${r.block ? '' : '建議・'}${escapeHtml(r.hint)}</small>` : (r.block ? '<small>必要條件</small>' : '')}</div>`;
-            }).join('');
+            const gkHtml = r => {
+                const st = r.ok ? 'ok' : (r.block ? 'bad' : 'warn');
+                const ico = IC(r.ok ? 'circle-check' : (r.block ? 'circle-x' : 'triangle-alert'));
+                const val = r.need != null
+                    ? `<span class="gk-have">${r.have}</span><span class="gk-need">／需要 ${r.need}</span>`
+                    : `<span class="gk-txt">${escapeHtml(r.txt)}</span>`;
+                const gap = !r.ok && r.need != null ? `<span class="gk-gap">差 ${r.need - r.have}</span>` : '';
+                return `<div class="gk ${st}"><div class="gk-top">${ico}<span class="gk-k">${r.k}</span>${gap}</div><div class="gk-val">${val}</div>${r.hint ? `<div class="gk-hint">${escapeHtml(r.hint)}</div>` : ''}</div>`;
+            };
+            const must = g.rows.filter(r => r.block), tip = g.rows.filter(r => !r.block);
+            document.getElementById('cfg-an-gold-chk').innerHTML =
+                `<div class="gk-sec"><div class="gk-sec-t">必要條件<span>不符合就跑不了</span></div><div class="gk-row">${must.map(gkHtml).join('')}</div></div>`
+                + `<div class="gk-sec"><div class="gk-sec-t">建議<span>影響收穫多寡</span></div><div class="gk-row">${tip.map(gkHtml).join('')}</div></div>`;
             // 🪙 沉船系列：每一站拿不拿得到
             const sv = g.salvage;
             const cellHtml = c => !c ? '<td class="na">—</td>'
@@ -10096,14 +10124,14 @@ const CRAFT_BASE = SUB_DATA.CRAFT_BASE;
                 const eta = tmp.endTime && tmp.endTime > Date.now() ? tmp.endTime : Date.now();
                 let extra = '';
                 if (an.mode === 'loot' && an.items.length) extra = `・目標 ${(b.covered || []).length}/${an.items.length}`;
-                if (an.mode === 'gold' && res.gold && res.gold.hourOff != null) extra = `・${IC('triangle-alert')} 回港 ${res.gold.hourOff} 點不在設定時段（固定航線無法調整）`;
+                if (an.mode === 'gold' && res.gold && res.gold.hourOff != null) extra = `・⚠️ 回港 ${res.gold.hourOff} 點不在設定時段（固定航線無法調整）`;
                 if (an.mode === 'chart' && res.chart) {
                     const vis = new Set(b.secIds);
                     const hit = [...res.chart.next].filter(([, srcs]) => srcs.some(s => vis.has(s))).map(([id]) => secShort(id));
                     extra = `・有機會開出 ${hit.join('、')}`;
                 }
                 pv.innerHTML = `下次航線：<b>${escapeHtml(MAP_NAMES[b.mapId] || '')} ${b.secIds.map(id => escapeHtml(secLabel(id).split(' ').slice(1).join(' '))).join(' → ')}</b><br>`
-                    + `經驗 ${b.exp.toLocaleString()}・耗時 ${subFmtMins(b.timeMins)}・約 ${subFmtEta(eta + Math.round(b.timeMins * 60) * 1000)} 回港${escapeHtml(extra)}`;
+                    + `經驗 ${b.exp.toLocaleString()}・耗時 ${subFmtMins(b.timeMins)}・約 ${subFmtEta(eta + Math.round(b.timeMins * 60) * 1000)} 回港${icHtml(extra)}`;
             }).catch(() => { if (seq === _cfgAnSeq) pv.innerHTML = '<span class="bad"><svg class="ic ic-triangle-alert" aria-hidden="true"><use href="#i-triangle-alert"/></svg> 規劃時發生錯誤</span>'; });
         }, 250);
     }
