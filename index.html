@@ -1469,7 +1469,13 @@ window.UI_ACTIONS = {
         .route-next-dur { color: #999; font-size: 12px; margin-left: 2px; }
         .route-next.warn { color: #ffcb6b; font-size: 12px; }
         /* ── 自動導航 ── */
-        .route-auto { font-size: 12px; color: color-mix(in srgb, var(--text-color) 80%, transparent); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .route-auto { font-size: 12px; color: color-mix(in srgb, var(--text-color) 80%, transparent); display: flex; flex-wrap: wrap; gap: 4px; }
+        .an-pill { display: inline-flex; align-items: center; gap: 3px; padding: 1px 8px; border-radius: 999px; font-size: 12px; line-height: 1.6; white-space: nowrap; background: color-mix(in srgb, var(--text-color) 8%, transparent); }
+        .an-pill.warn { background: rgba(224, 160, 64, .15); color: #f0b45a; }
+        .an-pill.bad { background: rgba(229, 83, 75, .15); color: #ff8a84; }
+        body.light-mode .an-pill.warn { color: #9a5800; }
+        body.light-mode .an-pill.bad { color: #c62828; }
+        .an-pill svg.ic { color: inherit !important; width: 1em; height: 1em; }
         .route-auto.warn { color: #ffcb6b; }
         .route-line-auto .rl-k { color: var(--accent-color); font-weight: 700; }
         #timerList.list-mode .route-line-auto .rl-v::before { content: ''; display: inline-block; width: 1em; height: 1em; margin-right: 4px; vertical-align: -0.15em; background: currentColor; -webkit-mask: var(--ic-compass) center/contain no-repeat; mask: var(--ic-compass) center/contain no-repeat; }   /* 條列版沒有「下次航線：」字樣，用圖示標出是自動導航的航線 */
@@ -3703,6 +3709,7 @@ window.icHtml = function (t) {
                         <li>撈金：檢查 OJ／ROJZ／MROJZ 跑不跑得動、每站拿不拿得到沉船系列，不夠時建議升級或換配件</li>
                         <li>配件規劃：可以把配件存成「我的配置」，自己取名、寫備註，會雲端同步</li>
                         <li>船艇設定的目前航線只顯示地點代號，畫面更簡潔</li>
+                        <li>船卡的自動導航只顯示需要注意的提醒，不再重複航線</li>
                         <li>物品清單依海圖排序，三個分頁的分類統一</li>
                         <li>介面：全新圖示、寬螢幕的規劃頁改兩欄、配件製作文字放大</li>
                         <li>操作：刪除船可以復原、成功訊息不用再按確定、填錯會直接標出欄位</li>
@@ -9846,36 +9853,42 @@ const CRAFT_BASE = SUB_DATA.CRAFT_BASE;
         }, 150);
     }
     // 船卡上的一行：🧭 練等 下次：灰海 A→B→C
+    function autoNavShortWhy(res, an) {
+        const w = res && res.why;
+        if (w === 'gold') return '跑不了：' + ((res.gold && res.gold.rows.filter(r => r.block && !r.ok).map(r => r.need != null ? `${r.k}差 ${r.need - r.have}` : `${r.k}未開`).join('、')) || '條件不足');
+        return { nomap: '海圖進度未設定', alldone: '海圖已全部開完', allmaps: '海圖已全部開放', mapopen: '這張圖已開放', mapdone: '這張圖已開完',
+                 rank: '來源地點等級不夠', nolevel: '未設定等級配件', hours: '沒有路線符合回港時段', range: '航距不夠', noitem: '目標物品都拿不到' }[w] || '找不到路線';
+    }
+    // 船卡上自動導航的提醒：只放「需要注意」的事，航線本身已經顯示在上次／下次回港
     function autoNavLineHtml(t, plan) {
-        const an = autoNavOf(t); const m = AUTO_NAV_MODES[an.mode];
-        const tag = '';
+        const an = autoNavOf(t);
         const c = autoNavCached(t);
         if (!c || !c.res) return '';
         const res = c.res;
-        if (!res.best) return `<span class="route-auto warn" title="${escapeHtml(autoNavWhyText(res, an))}">${tag}<svg class="ic ic-triangle-alert" aria-hidden="true"><use href="#i-triangle-alert"/></svg> ${escapeHtml(autoNavWhyText(res, an))}${t.lastRoute ? '，改用上次航線' : ''}${res.why === 'gold' ? '（<svg class="ic ic-lightbulb" aria-hidden="true"><use href="#i-lightbulb"/></svg> 船艇設定裡有升等／換配件建議）' : ''}</span>`;
-        const b = res.best;
-        let extra = '';
+        const pill = (txt, tip, cls) => `<span class="an-pill${cls ? ' ' + cls : ''}" title="${escapeHtml(tip || txt)}">${txt}</span>`;
+        const warnIc = IC('triangle-alert');
+        if (!res.best) {
+            const tip = autoNavWhyText(res, an) + (t.lastRoute ? '，再出發會改用上次航線' : '') + (res.why === 'gold' ? '\n船艇設定裡有升等／換配件建議' : '');
+            return `<span class="route-auto">${pill(warnIc + ' ' + escapeHtml(autoNavShortWhy(res, an)), tip, 'bad')}${t.lastRoute ? pill('改用上次航線', tip) : ''}</span>`;
+        }
+        const b = res.best, out = [];
         if (an.mode === 'loot' && (an.items || []).length) {
             const n = (b.covered || []).length, all = an.items.length;
-            extra = n < all ? `<span class="an-warn" style="margin-left:0" title="有 ${all - n} 個目標這趟拿不到"><svg class="ic ic-gem" aria-hidden="true"><use href="#i-gem"/></svg> 目標 ${n}/${all}</span>` : `<span style="opacity:.8"><svg class="ic ic-gem" aria-hidden="true"><use href="#i-gem"/></svg> 目標 ${n}/${all} 都拿得到</span>`;
+            if (n < all) out.push(pill(`${warnIc} 目標 ${n}/${all}`, `有 ${all - n} 個目標這趟拿不到`, 'warn'));
         }
         if (an.mode === 'gold' && res.gold) {
-            const miss = res.gold.rows.filter(r => !r.block && !r.ok);
             const sv = res.gold.salvage;
-            const svTxt = sv && sv.need3 && sv.explore < sv.need3
-                ? `<span class="an-warn" title="每站都拿得到上等沉船需要探索 ${sv.need3}">上等沉船差 ${sv.need3 - sv.explore}</span>`
-                : (sv && sv.need3 ? '<span style="opacity:.8;margin-left:4px"><svg class="ic ic-ship-wheel" aria-hidden="true"><use href="#i-ship-wheel"/></svg> 上等沉船 ✓</span>' : '');
-            extra = `<span style="opacity:.8"><svg class="ic ic-coins" aria-hidden="true"><use href="#i-coins"/></svg> ${escapeHtml(res.gold.key)}</span>` + svTxt
-                + (res.gold.hourOff != null ? `<span class="an-warn" title="固定航線無法配合回港時段">回港 ${res.gold.hourOff} 點不在設定時段</span>` : '')
-                + (miss.length ? `<span class="an-warn" title="${escapeHtml(miss.map(goldGapText).join('\n'))}">建議：${escapeHtml(miss.map(r => `${r.k}差 ${r.need - r.have}`).join('、'))}</span>` : '');
+            if (res.gold.hourOff != null) out.push(pill(`${warnIc} 回港時段外`, `回港 ${res.gold.hourOff} 點不在設定的回港時段（固定航線無法調整）`, 'warn'));
+            if (sv && sv.need3 && sv.explore < sv.need3) out.push(pill(`上等沉船 探索差 ${sv.need3 - sv.explore}`, `每站都拿得到上等沉船需要探索 ${sv.need3}，目前 ${sv.explore}`, 'warn'));
+            res.gold.rows.filter(r => !r.block && !r.ok && r.k !== '探索').forEach(r => out.push(pill(`${r.k}差 ${r.need - r.have}`, goldGapText(r) + '（建議值）', 'warn')));
         }
         if (an.mode === 'chart' && res.chart) {
-            const mm = res.chart.m;
             const vis = new Set(b.secIds);
             const hit = [...res.chart.next].filter(([, srcs]) => srcs.some(s => vis.has(s))).map(([id]) => res.chart.dest ? secShort(id) : (SECTOR_MAP.get(id) || [])[2]);
-            extra = `<span style="opacity:.8"><svg class="ic ic-map" aria-hidden="true"><use href="#i-map"/></svg> ${res.chart.dest ? '往' : '開'}${escapeHtml(MAP_NAMES[mm] || '')}${res.chart.dest && res.chart.steps < 99 ? `（還差 ${res.chart.steps} 點）` : ''}${hit.length ? `：有機會開出 ${escapeHtml(hit.join('、'))}` : ''}</span>`;
+            if (hit.length) out.push(pill(`可開 ${escapeHtml(hit.join('、'))}`, `這趟有機會開出：${hit.join('、')}`));
+            if (res.chart.dest && res.chart.steps < 99) out.push(pill(`距${escapeHtml(MAP_NAMES[res.chart.m] || '')}還差 ${res.chart.steps} 點`));
         }
-        return extra ? `<span class="route-auto">${extra}</span>` : '';
+        return out.length ? `<span class="route-auto">${out.join('')}</span>` : '';
     }
     // 船卡上的快速開關＋類型（細項如目標物品、海圖仍在船艇設定）
     function autoNavCtlHtml(t) {
