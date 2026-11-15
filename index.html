@@ -123,6 +123,21 @@ window.UI_ACTIONS = {
     a129: function (event) { setFleetLayout(this.dataset.layout) },
     a130: function (event) { resetListColumns() },
     a131: function (event) { dismissListColTip() },
+    a132: function (event) { craftSetGroupMode(this.dataset.group) },
+    a133: function (event) { cfgAnSetMode(this.dataset.mode) },
+    a134: function (event) { event.preventDefault(); cfgAnAddItem(+this.dataset.id) },
+    a135: function (event) { cfgAnRemoveItem(+this.dataset.id) },
+    a136: function (event) { cfgAnSetMap(+this.value) },
+    a144: function (event) { cfgAnSetGoal(this.dataset.goal) },
+    a146: function (event) { goldApplyParts(this.dataset.combo.split(',')) },
+    a145: function (event) { cfgAn.route = this.dataset.route; cfgAnRender(); },
+    a137: function (event) { cfgAnToggle(this.checked) },
+    a138: function (event) { cfgAnSearch(this.value) },
+    a140: function (event) { autoNavQuickSet(this.dataset.id, { on: this.checked }) },
+    a141: function (event) { autoNavQuickSet(this.dataset.id, { mode: this.value, on: true }) },
+    a142: function (event) { cfgAnSetCat(this.value) },
+    a143: function (event) { cfgAnSearch(this.value, true) },
+    a139: function (event) { if (event.key === 'Enter') { event.preventDefault(); const f = document.querySelector('#cfg-an-suggest .cfg-an-sug'); if (f) cfgAnAddItem(+f.dataset.id); } else if (event.key === 'Escape') { event.stopPropagation(); cfgAnSearch(null); } },
     a123: function (event) { cfgRtToggle(+this.dataset.sec) },
     a124: function (event) { cfgRtFastest() },
     a125: function (event) { cfgRtClear() },
@@ -908,8 +923,8 @@ window.UI_ACTIONS = {
         #timerList.list-mode:empty { border: 0; }
         #timerListHead, #timerList.list-mode .timer-card {
             align-items: center; column-gap: 10px; --col-ind: 15px;
-            grid-template-columns: var(--lc-full, minmax(140px,1fr) minmax(108px,.45fr) minmax(102px,.45fr) minmax(102px,.45fr) minmax(320px,1.5fr) minmax(124px,.4fr) 246px);
-            grid-template-areas: var(--la-full, "name count dep ret route group act");
+            grid-template-columns: var(--lc-full, minmax(140px,1fr) minmax(108px,.45fr) minmax(102px,.45fr) minmax(102px,.45fr) minmax(280px,1.5fr) minmax(160px,.7fr) minmax(124px,.4fr) 246px);
+            grid-template-areas: var(--la-full, "name count dep ret route an group act");
             padding: 7px 14px; box-sizing: border-box;
         }
         #timerList.list-mode .timer-card {
@@ -930,6 +945,7 @@ window.UI_ACTIONS = {
         #timerListHead > [data-col=name] { grid-area: name; } #timerListHead > [data-col=count] { grid-area: count; }
         #timerListHead > [data-col=dep] { grid-area: dep; } #timerListHead > [data-col=ret] { grid-area: ret; }
         #timerListHead > [data-col=route] { grid-area: route; } #timerListHead > [data-col=group] { grid-area: group; }
+        #timerListHead > [data-col=an] { grid-area: an; }
         #timerListHead > [data-col=act] { grid-area: act; justify-self: end; }
         /* 拖曳欄位名稱調整順序：⠿ 常駐，滑過變成可拖曳的膠囊 */
         #timerListHead > [data-col] { position: relative; cursor: grab; user-select: none; outline: none; white-space: nowrap;
@@ -1052,10 +1068,10 @@ window.UI_ACTIONS = {
         #timerList.fl-anim > .timer-card, #timerListHead.fl-anim { animation: flIn .32s ease-out both; }
         @media (prefers-reduced-motion: reduce) { #timerList.fl-anim > .timer-card, #timerListHead.fl-anim { animation: none; } }
         /* 中等寬度：拿掉標籤欄 */
-        @container fleet (max-width: 1229px) {
+        @container fleet (max-width: 1379px) {
             #timerListHead, #timerList.list-mode .timer-card {
-                grid-template-columns: var(--lc-mid, minmax(130px,1fr) minmax(104px,.45fr) minmax(100px,.45fr) minmax(100px,.45fr) minmax(320px,1.5fr) 236px);
-                grid-template-areas: var(--la-mid, "name count dep ret route act");
+                grid-template-columns: var(--lc-mid, minmax(130px,1fr) minmax(104px,.45fr) minmax(100px,.45fr) minmax(100px,.45fr) minmax(280px,1.5fr) minmax(150px,.6fr) 236px);
+                grid-template-areas: var(--la-mid, "name count dep ret route an act");
             }
             #timerListHead > [data-col=group], #timerList.list-mode .card-group-select { display: none; }
             html[data-act-mid="last"] #timerListHead > [data-col=act] { justify-self: end; }
@@ -1066,7 +1082,7 @@ window.UI_ACTIONS = {
                 grid-template-columns: var(--lc-ro-mid); grid-template-areas: var(--la-ro-mid); }
         }
         /* 窄畫面（手機）：兩行，點一下展開航線和操作 */
-        @container fleet (max-width: 1067px) {
+        @container fleet (max-width: 1209px) {
             #timerListHead.on { display: none; }
             #timerList.list-mode .timer-footer > span:first-child { display: none; }
             #timerList.list-mode { border-radius: 10px; }
@@ -1076,10 +1092,10 @@ window.UI_ACTIONS = {
             #timerList.list-mode .card-action-btns { margin-left: 0; }
             #timerList.list-mode .sub-route-line { display: contents !important; margin: 0; }
             #timerList.list-mode .btn-redepart { grid-area: redep; }
-            #panelFleet.room-readonly #timerList.list-mode .timer-card { grid-template-columns: minmax(0,1fr) auto; grid-template-areas: "name count" "next redep" "route route" "act act"; }
+            #panelFleet.room-readonly #timerList.list-mode .timer-card { grid-template-columns: minmax(0,1fr) auto; grid-template-areas: "name count" "next redep" "an an" "route route" "act act"; }
             #timerList.list-mode .timer-card {
                 grid-template-columns: minmax(0,1fr) auto;
-                grid-template-areas: "name count" "next redep" "route route" "act act";
+                grid-template-areas: "name count" "next redep" "an an" "route route" "act act";
                 row-gap: 0; padding: 9px 12px; cursor: pointer;
             }
             #timerList.list-mode .route-line-info { display: contents; }
@@ -1465,6 +1481,103 @@ window.UI_ACTIONS = {
         .route-next b { color: var(--hl-return); font-weight: 800; font-variant-numeric: tabular-nums; }
         .route-next-dur { color: #999; font-size: 12px; margin-left: 2px; }
         .route-next.warn { color: #ffcb6b; font-size: 12px; }
+        /* ── 自動導航 ── */
+        .route-auto { font-size: 12px; color: color-mix(in srgb, var(--text-color) 80%, transparent); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .route-auto .an-tag { display: inline-block; padding: 0 6px; margin-right: 4px; border-radius: 9px; background: rgba(var(--accent-rgb), .2); color: var(--accent-color); font-weight: 700; font-size: 11px; }
+        .route-auto .an-v { font-weight: 700; }
+        .route-auto.warn { color: #ffcb6b; }
+        .route-line-auto .rl-k { color: var(--accent-color); font-weight: 700; }
+        #timerList.list-mode .route-line-auto .rl-v::before { content: '🧭 '; }   /* 條列版沒有「下次航線：」字樣，用圖示標出是自動導航的航線 */
+        #timerList.list-mode .route-line-auto .rl-v { color: var(--accent-color); }
+        .an-box { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+        .an-ctl { display: inline-flex; align-items: center; gap: 8px; margin: 1px 0; }
+        .an-mini-switch { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; font-size: 12px; font-weight: 600; }
+        .an-mini-switch input { position: absolute; opacity: 0; pointer-events: none; }
+        .an-mini-switch .cfg-an-knob { width: 28px; height: 16px; border-radius: 8px; }
+        .an-mini-switch .cfg-an-knob::after { width: 12px; height: 12px; top: 2px; left: 2px; }
+        .an-mini-switch input:checked + .cfg-an-knob { background: var(--accent-color); }
+        .an-mini-switch input:checked + .cfg-an-knob::after { transform: translateX(12px); }
+        .an-mini-switch input:focus-visible + .cfg-an-knob { outline: 2px solid var(--accent-color); outline-offset: 2px; }
+        .an-mini-switch input:not(:checked) ~ .an-mini-txt { opacity: .6; }
+        .an-mini-mode { background: var(--edit-bg); color: var(--text-color); border: 1px solid var(--edit-border); border-radius: 6px; font-size: 12px; padding: 2px 4px; cursor: pointer; }
+        .an-mini-mode:disabled { opacity: .45; cursor: default; }
+        #panelFleet.room-readonly .an-ctl { pointer-events: none; opacity: .6; }
+        #timerList.list-mode .an-box .route-auto { min-width: 0; }
+        .sub-an-line { margin-top: 6px; padding: 5px 10px; border-radius: 8px; border: 1px dashed color-mix(in srgb, var(--text-color) 16%, transparent); }
+        .sub-an-line.on { border-style: solid; border-color: rgba(var(--accent-rgb), .35); background: rgba(var(--accent-rgb), .06); }
+        .sub-an-line:empty { display: none; }
+        #timerList.list-mode .sub-an-line { grid-area: an; margin: 0 0 0 var(--col-ind); padding: 0; border: 0; background: none; min-width: 0; }
+        #timerList.list-mode .an-mini-txt { display: none; }   /* 電腦版條列：欄位名稱已寫「自動導航」 */
+        #timerList.list-mode .an-ctl { white-space: nowrap; }
+        @container fleet (max-width: 1209px) { #timerList.list-mode .sub-an-line { margin: 2px 0 0; } #timerList.list-mode .an-mini-txt { display: inline; } }
+        .route-auto .an-warn { color: #ffcb6b; margin-left: 4px; }
+        #timerList.list-mode .route-auto { font-size: 11.5px; }
+
+        .cfg-an { display: flex; flex-direction: column; gap: 10px; }
+        .cfg-an-switch { display: inline-flex; align-items: center; gap: 10px; cursor: pointer; font-size: 14px; font-weight: 600; width: max-content; }
+        .cfg-an-switch input { position: absolute; opacity: 0; pointer-events: none; }
+        .cfg-an-knob { width: 38px; height: 22px; border-radius: 11px; background: rgba(128,128,128,.35); position: relative; transition: background .2s; flex: none; }
+        .cfg-an-knob::after { content: ''; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%; background: #fff; transition: transform .2s; }
+        .cfg-an-switch input:checked + .cfg-an-knob { background: var(--accent-color); }
+        .cfg-an-switch input:checked + .cfg-an-knob::after { transform: translateX(16px); }
+        .cfg-an-switch input:focus-visible + .cfg-an-knob { outline: 2px solid var(--accent-color); outline-offset: 2px; }
+        .cfg-an-body { display: flex; flex-direction: column; gap: 10px; }
+        .cfg-an.off .cfg-an-body { display: none; }
+        .cfg-an-modes { align-self: flex-start; }
+        .cfg-an-modes button { padding: 7px 12px; }
+        .cfg-an-desc { font-size: 12.5px; opacity: .8; line-height: 1.6; }
+        .cfg-an-search { position: relative; }
+        .cfg-an-pickrow { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px; margin-bottom: 6px; }
+        .cfg-an-field { display: flex; flex-direction: column; gap: 4px; font-size: 12px; }
+        .cfg-an-field label { opacity: .75; }
+        .cfg-an-field select { width: 160px; }
+        .cfg-an-field.cfg-an-search { flex: 1; min-width: 200px; }
+        .cfg-an-search input:disabled { opacity: .55; cursor: not-allowed; }
+        .cfg-an-search input { width: 100%; box-sizing: border-box; }
+        .cfg-an-suggest { display: none; position: absolute; left: 0; right: 0; top: calc(100% + 4px); z-index: 30; max-height: 260px; overflow: auto; border: 1px solid var(--edit-border); border-radius: 8px; background: var(--card-bg, #232129); box-shadow: 0 8px 24px rgba(0,0,0,.35); }
+        body.light-mode .cfg-an-suggest { background: #fff; }
+        .cfg-an-suggest.open { display: block; }
+        .cfg-an-sug { display: flex; justify-content: space-between; gap: 8px; width: 100%; padding: 7px 10px; border: 0; background: transparent; color: var(--text-color); font: inherit; font-size: 13px; text-align: left; cursor: pointer; }
+        .cfg-an-sug:hover, .cfg-an-sug:focus { background: rgba(var(--accent-rgb), .15); outline: none; }
+        .cfg-an-sug small { opacity: .6; white-space: nowrap; }
+        .cfg-an-sug-empty { padding: 8px 10px; font-size: 12.5px; opacity: .7; }
+        .cfg-an-items { display: flex; flex-direction: column; gap: 6px; }
+        .cfg-an-items:empty::before { content: '還沒有目標物品：會找「可拿到的物品種類最多」的路線'; font-size: 12.5px; opacity: .65; }
+        .cfg-an-item { display: flex; align-items: flex-start; gap: 8px; padding: 6px 8px; border-radius: 8px; background: rgba(var(--accent-rgb), .08); font-size: 13px; }
+        .cfg-an-item.bad { background: rgba(255, 203, 107, .12); }
+        .cfg-an-item .nm { font-weight: 700; flex: none; }
+        .cfg-an-item .st { flex: 1; font-size: 12px; opacity: .85; line-height: 1.5; }
+        .cfg-an-item.bad .st { color: #ffcb6b; opacity: 1; }
+        body.light-mode .cfg-an-item.bad .st { color: #b26a00; }
+        .cfg-an-item .x { border: 0; background: transparent; color: inherit; opacity: .6; cursor: pointer; font-size: 13px; padding: 0 2px; }
+        .cfg-an-item .x:hover { opacity: 1; }
+        .cfg-an-chart { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 13px; }
+        .cfg-an-goals { flex-basis: 100%; align-self: flex-start; max-width: max-content; }
+        .cfg-an-goals button { padding: 6px 12px; }
+        .cfg-an-goal-desc { flex-basis: 100%; font-size: 12px; opacity: .75; }
+        .cfg-an-gold { display: flex; flex-direction: column; gap: 8px; }
+        .cfg-an-gold-route { font-size: 13px; }
+        .cfg-an-gold-chk { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 6px; }
+        .cfg-an-gold-chk .gk { padding: 6px 10px; border-radius: 8px; font-size: 12.5px; line-height: 1.5; background: rgba(var(--accent-rgb), .08); }
+        .cfg-an-gold-chk .gk b { margin-right: 4px; }
+        .cfg-an-gold-chk .gk.bad { background: rgba(255, 92, 92, .12); color: #ff8a8a; }
+        .cfg-an-gold-chk .gk.warn { background: rgba(255, 203, 107, .12); color: #ffcb6b; }
+        body.light-mode .cfg-an-gold-chk .gk.bad { color: #c62828; }
+        body.light-mode .cfg-an-gold-chk .gk.warn { color: #b26a00; }
+        .cfg-an-gold-chk .gk small { display: block; opacity: .8; }
+        .cfg-an-gold-adv { padding: 8px 12px; border-radius: 8px; background: rgba(var(--accent-rgb), .1); font-size: 13px; line-height: 1.7; }
+        .cfg-an-gold-adv ul { margin: 4px 0 0; padding-left: 18px; }
+        .cfg-an-gold-adv b { color: var(--accent-color); }
+        .cfg-an-apply { margin-left: 6px; padding: 1px 10px; border-radius: 10px; border: 1px solid var(--accent-color); background: transparent; color: var(--accent-color); font-size: 12px; cursor: pointer; }
+        .cfg-an-apply:hover { background: rgba(var(--accent-rgb), .18); }
+        .cfg-an-chart-st { flex-basis: 100%; font-size: 12.5px; line-height: 1.6; opacity: .9; }
+        .cfg-an-chart-st.bad { color: #ffcb6b; }
+        body.light-mode .cfg-an-chart-st.bad { color: #b26a00; }
+        .cfg-an-preview { padding: 8px 10px; border-radius: 8px; border: 1px dashed var(--edit-border); font-size: 13px; line-height: 1.6; }
+        .cfg-an-preview b { color: var(--accent-color); }
+        .cfg-an-preview .bad { color: #ffcb6b; }
+        body.light-mode .cfg-an-preview .bad { color: #b26a00; }
+        .cfg-an-hours { font-size: 12px; opacity: .7; }
         body.light-mode .route-next { color: #333; }
         body.light-mode .route-line-txt { color: #666; }
         .card-icon-btn.btn-redepart { height: 30px; padding: 0 14px; flex-shrink: 0; background: transparent; color: var(--accent-color); box-shadow: inset 0 0 0 1px var(--accent-color); }
@@ -1580,6 +1693,7 @@ window.UI_ACTIONS = {
         .rp-suggest-item { padding: 6px 10px; font-size: 12.5px; cursor: pointer; }
         .rp-suggest-item:hover { background: rgba(var(--accent-rgb),0.15); }
         .rp-suggest-empty { padding: 8px 10px; font-size: 12px; color: #888; }
+        .rp-suggest-group, .cfg-an-sug-group { position: sticky; top: 0; z-index: 1; padding: 4px 10px; font-size: 11.5px; font-weight: 700; letter-spacing: .5px; color: var(--accent-color); background: color-mix(in srgb, var(--card-color, #232129) 92%, var(--accent-color)); border-bottom: 1px solid var(--edit-border); }
         .rp-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
         .rp-chip { background: rgba(var(--accent-rgb),0.15); border: 1px solid var(--accent-color); color: var(--accent-color); border-radius: 12px; padding: 3px 8px 3px 10px; font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 6px; }
         .rp-chip.inc { background: rgba(100,180,130,0.15); border-color: #5dba8a; color: #5dba8a; }
@@ -2420,6 +2534,8 @@ window.UI_ACTIONS = {
             user-select: none;
         }
         .craft-inv-cat-row:first-child td { border-top: none; }
+        .craft-group-bar { display: flex; align-items: center; justify-content: flex-end; gap: 8px; margin: 0 0 8px; }
+        .craft-group-label { font-size: 13px; opacity: .7; }
         body.light-mode .craft-inv-cat-row td {
             background: rgba(var(--accent-rgb),0.10);
             border-top-color: rgba(var(--accent-rgb),0.20);
@@ -3587,7 +3703,29 @@ window.SubPalette = (function () {
             <button type="button" class="collapsible-btn" data-on-click="a36" aria-expanded="false" aria-controls="content4"><span>+</span> 開發日記</button>
             <div id="content4" class="content">
                 <div class="u38" style="color: var(--text-color);">
-                   <div class="u39" style="color: var(--accent-color);">📋 2026/11/09　v2.4.2</div>
+                   <div class="u39" style="color: var(--accent-color);">📋 2026/11/15</div>
+                    <ul class="u40">
+                        <li>新增自動導航：可選練等、挖寶、開圖、撈金，「再出發」會自動規劃下一趟；船卡上可直接開關、切換類型，航線欄會換成規劃好的下次航線</li>
+                        <li>開圖可選「未開的點都撞」或「優先開下一張圖」</li>
+                        <li>新增撈金類型：固定航線 OJ／ROJZ／MROJZ，會檢查等級、航距、海圖並列出差距，還會推薦升級或換配件（可一鍵套用）</li>
+                        <li>挖寶的目標物品等級或探索不足時，也會推薦升級或換配件</li>
+                        <li>自動導航會遵守路線規劃的回港時段，只走海圖上已開的地點</li>
+                        <li>挖寶的目標物品先選類別再挑選（同配件規劃），若海圖未開、等級或探索性能不足會直接提示原因</li>
+                        <li>配件規劃、挖寶的物品清單改依海圖排序，並以海域分段</li>
+                        <li>數據表新增各地點的「解鎖來源」，供開圖使用</li>
+                    </ul>
+                   <div class="u39" style="color: var(--accent-color);">📋 2026/11/12</div>
+                    <ul class="u40">
+                        <li>群組標籤的綠點改為即時：船回港後不用重新整理就會亮</li>
+                    </ul>
+                   <div class="u39" style="color: var(--accent-color);">📋 2026/11/11</div>
+                    <ul class="u40">
+                        <li>「甲鱉級」更名為「甲鱟級」，原本的製作清單會自動沿用</li>
+                        <li>配件製作：改級的成品、半成品欄補上原級部位所需的素材，數量和基礎素材一致</li>
+                        <li>配件製作：成品、半成品可切換用「素材類別」或「製作職業」分類</li>
+                        <li>配件製作：依遊戲配方全面校正，修正甲鱟級船首、腔棘魚級船首、鬚鯨級船首、鯊魚級艦橋、鯊魚改級船首／船尾，以及玻璃板、翼膠、皇金錠的素材數量；新增星極油配方</li>
+                    </ul>
+                    <div class="u39" style="color: var(--accent-color);">📋 2026/11/09　v2.4.2</div>
                     <ul class="u40">
                         <li>艦隊新增「條列」顯示，可隨時和卡片切換，切換時有轉場動畫</li>
                         <li>條列（電腦版）可拖曳欄位名稱調整欄位順序</li>
@@ -3832,7 +3970,7 @@ window.SubPalette = (function () {
                 </div>
             </div>
             <div id="listColTip" hidden>💡 按住欄位名稱前的 <b>⠿</b> 左右拖曳，可以調整欄位順序<button type="button" data-on-click="a131" aria-label="關閉提示" title="不再顯示">✕</button></div>
-            <div id="timerListHead" role="toolbar" aria-label="欄位順序（拖曳欄位名稱，或用 Alt + ← → 調整）"><span data-col="name">船名</span><span data-col="count">剩餘</span><span data-col="dep">出航</span><span data-col="ret">回港</span><span data-col="route">上次航線／下次回港</span><span data-col="group">標籤</span><span data-col="act">操作</span></div>
+            <div id="timerListHead" role="toolbar" aria-label="欄位順序（拖曳欄位名稱，或用 Alt + ← → 調整）"><span data-col="name">船名</span><span data-col="count">剩餘</span><span data-col="dep">出航</span><span data-col="ret">回港</span><span data-col="route">上次航線／下次回港</span><span data-col="an">自動導航</span><span data-col="group">標籤</span><span data-col="act">操作</span></div>
             <div class="timer-list" id="timerList"></div>
         </div>
 
@@ -4282,6 +4420,63 @@ window.SubPalette = (function () {
             <div class="cfg-rt-sum" id="cfg-rt-sum"></div>
         </div>
 
+        <div class="sub-modal-section-title">自動導航<span class="cfg-rt-note">開啟後，「再出發」會依目標自動規劃下一趟</span></div>
+        <div class="cfg-an" id="cfg-an">
+            <label class="cfg-an-switch"><input type="checkbox" id="cfg-an-on" data-on-change="a137"><span class="cfg-an-knob" aria-hidden="true"></span><span class="cfg-an-switch-txt">開啟自動導航</span></label>
+            <div class="cfg-an-body" id="cfg-an-body">
+                <div class="fleet-layout-toggle cfg-an-modes" role="radiogroup" aria-label="導航類型">
+                    <button type="button" data-mode="exp" data-on-click="a133">📈 練等</button>
+                    <button type="button" data-mode="loot" data-on-click="a133">💎 挖寶</button>
+                    <button type="button" data-mode="chart" data-on-click="a133">🗺️ 開圖</button>
+                    <button type="button" data-mode="gold" data-on-click="a133">💰 撈金</button>
+                </div>
+                <div class="cfg-an-desc" id="cfg-an-desc"></div>
+                <div class="cfg-an-loot" id="cfg-an-loot">
+                    <div class="cfg-an-pickrow">
+                        <div class="cfg-an-field">
+                            <label for="cfg-an-cat">類別</label>
+                            <select id="cfg-an-cat" class="cfg-rt-map" data-on-change="a142">
+                                <option value="">— 選擇類別 —</option>
+                                <option value="all">全部物品</option>
+                                <option value="workshop">工坊材料</option>
+                                <option value="other">其他材料</option>
+                                <option value="rare">稀有物品</option>
+                            </select>
+                        </div>
+                        <div class="cfg-an-field cfg-an-search">
+                            <label for="cfg-an-q">道具</label>
+                            <input type="text" class="edit-input" id="cfg-an-q" placeholder="— 請先選擇類別 —" disabled autocomplete="off" data-on-input="a138" data-on-focus="a143" data-on-keydown="a139" aria-label="新增目標物品">
+                            <div class="cfg-an-suggest" id="cfg-an-suggest" role="listbox"></div>
+                        </div>
+                    </div>
+                    <div class="cfg-an-items" id="cfg-an-items"></div>
+                    <div class="cfg-an-gold-adv" id="cfg-an-loot-adv" style="display:none;margin-top:8px"></div>
+                </div>
+                <div class="cfg-an-chart" id="cfg-an-chart">
+                    <div class="fleet-layout-toggle cfg-an-goals" role="radiogroup" aria-label="開圖方式">
+                        <button type="button" data-goal="all" data-on-click="a144">未開的點都撞</button>
+                        <button type="button" data-goal="next" data-on-click="a144">優先開下一張圖</button>
+                    </div>
+                    <div class="cfg-an-goal-desc" id="cfg-an-goal-desc"></div>
+                    <label for="cfg-an-map" id="cfg-an-map-lbl">要開的海圖</label>
+                    <select id="cfg-an-map" class="cfg-rt-map" data-on-change="a136"></select>
+                    <div class="cfg-an-chart-st" id="cfg-an-chart-st"></div>
+                </div>
+                <div class="cfg-an-gold" id="cfg-an-gold">
+                    <div class="fleet-layout-toggle cfg-an-goals" role="radiogroup" aria-label="撈金航線">
+                        <button type="button" data-route="OJ" data-on-click="a145">OJ</button>
+                        <button type="button" data-route="ROJZ" data-on-click="a145">ROJZ</button>
+                        <button type="button" data-route="MROJZ" data-on-click="a145">MROJZ</button>
+                    </div>
+                    <div class="cfg-an-gold-route" id="cfg-an-gold-route"></div>
+                    <div class="cfg-an-gold-chk" id="cfg-an-gold-chk"></div>
+                    <div class="cfg-an-gold-adv" id="cfg-an-gold-adv"></div>
+                </div>
+                <div class="cfg-an-preview" id="cfg-an-preview" aria-live="polite"></div>
+                <div class="cfg-an-hours" id="cfg-an-hours"></div>
+            </div>
+        </div>
+
         <div class="sub-modal-actions">
             <button type="button" class="btn-top" data-on-click="a88">取消</button>
             <button type="button" class="btn-top" style="background:var(--accent-color); color:#fff; border-color:var(--accent-color);" data-on-click="a90">儲存</button>
@@ -4492,6 +4687,84 @@ function subFindRoutes(rank,stats,mustInc,mustExcl,mustIncMaps,mustExclMaps,must
   });
 }
 
+/* ===== 自動導航：依目標找「一條」最好的路線 =====
+ * mode：exp＝總經驗最高；loot＝拿到最多目標物品（沒指定目標時＝可拿到的物品種類最多）；chart＝去撞能開新地點的地點
+ * o.weights：{地點ID: 權重}（開圖用：去這個地點可能開出幾個新地點）
+ * o.depart：出發時刻（毫秒）；o.inc／o.exc：回港時段（小時，只要／避開） */
+function subAutoRoute(rank,stats,allowed,o){
+  const explore=stats.explore||0,spd=stats.spd,rngCap=stats.rng;
+  if(!spd)return {best:null,why:'nospeed'};
+  const allow=allowed?new Set(allowed):null;
+  const inc=new Set(o.inc||[]),exc=new Set(o.exc||[]);
+  const targets=o.targets||[],tset=new Set(targets),weights=o.weights||{};
+  const lootOf=new Map();
+  function reach(id){
+    let v=lootOf.get(id);if(v)return v;
+    const sec=SECTOR_MAP.get(id),tier=SUB_LOOT_TIER[id]||{},ids=[];
+    if(sec){if(explore>=sec[11]&&tier[3])ids.push(...tier[3]);if(explore>=sec[10]&&tier[2])ids.push(...tier[2]);if(explore>=sec[8]&&tier[1])ids.push(...tier[1]);}
+    v=[...new Set(ids)];lootOf.set(id,v);return v;
+  }
+  const hitsOf=id=>reach(id).filter(x=>tset.has(x));
+  const prioVal=s=>{
+    if(o.mode==='loot')return targets.length?hitsOf(s[0]).length:reach(s[0]).length;
+    if(o.mode==='chart')return weights[s[0]]||0;
+    return 0;
+  };
+  let best=null,bestKey=null,seen=0,hourCut=0,rangeCut=0;
+  const better=(a,b)=>{for(let i=0;i<a.length;i++){if(a[i]!==b[i])return a[i]>b[i];}return false;};
+  Object.keys(MAP_NAMES).map(Number).forEach(mapId=>{
+    const homeId=SUB_HOMES[String(mapId)];if(homeId===undefined)return;
+    const avail=SUB_SECTORS.filter(s=>s[1]===mapId&&s[5]<=rank&&(!allow||allow.has(s[1]+'|'+s[2])));
+    if(!avail.length)return;
+    let prio=[];
+    if(o.mode!=='exp'){prio=avail.filter(s=>prioVal(s)>0).sort((a,b)=>prioVal(b)-prioVal(a)||b[6]-a[6]);if(!prio.length)return;}
+    prio=prio.slice(0,25);
+    const rest=avail.filter(s=>!prio.includes(s)).sort((a,b)=>b[6]-a[6]).slice(0,Math.max(0,25-prio.length));
+    const cand=[...prio,...rest],N=cand.length+1,ids=[homeId,...cand.map(s=>s[0])];
+    const DIST=new Float64Array(N*N),RNG=new Float64Array(N*N);
+    for(let i=0;i<N;i++)for(let j=0;j<N;j++){const e=(SUB_DIST[ids[i]]||{})[ids[j]];DIST[i*N+j]=e?e[0]:Infinity;RNG[i*N+j]=e?e[1]:0;}
+    const pos=new Int32Array(5),M=cand.length;
+    const tryCombo=k=>{
+      let survD=0,survR=0,exp=0;
+      for(let a=0;a<k;a++){const s=cand[pos[a]-1];survD+=s[7]||0;survR+=s[8]||0;exp+=s[6];}
+      if(survR>rngCap){rangeCut++;return;}   /* 光偵查航距就超過，不用排路線 */
+      /* 先算分數，分數不可能贏就不用排路線 */
+      let key;
+      if(o.mode==='exp')key=[exp];
+      else if(o.mode==='loot'){
+        if(targets.length){const cov=new Set();let hits=0;for(let a=0;a<k;a++){const h=hitsOf(cand[pos[a]-1][0]);hits+=h.length;h.forEach(x=>cov.add(x));}if(!cov.size)return;key=[cov.size,hits,exp];}
+        else{const all=new Set();for(let a=0;a<k;a++)reach(cand[pos[a]-1][0]).forEach(x=>all.add(x));key=[all.size,exp];}
+      }else{let w=0;for(let a=0;a<k;a++)w+=weights[cand[pos[a]-1][0]]||0;if(!w)return;key=[w,exp];}
+      if(bestKey&&!better(key,bestKey)&&!(key.every((v,i)=>v===bestKey[i])))return;
+      const perms=SUB_PERM_CACHE[k];let bestTD=Infinity,bestTR=0,bestP=null;
+      for(let p=0;p<perms.length;p++){
+        const perm=perms[p];let td=0,tr=0,prev=0,ok=true;
+        for(let q=0;q<k;q++){const cur=pos[perm[q]];const off=prev*N+cur;const dd=DIST[off];if(dd===Infinity){ok=false;break;}td+=dd;tr+=RNG[off];prev=cur;if(td>=bestTD){ok=false;break;}}
+        if(ok&&td<bestTD){bestTD=td;bestTR=tr;bestP=perm;}
+      }
+      if(bestP===null)return;
+      seen++;
+      const range=survR+bestTR;if(range>rngCap){rangeCut++;return;}
+      const timeMins=(survD+bestTD)/spd+720;
+      if(inc.size||exc.size){const h=new Date(o.depart+timeMins*60000).getHours();if(exc.has(h)||(inc.size&&!inc.has(h))){hourCut++;return;}}
+      /* 同分：耗時短的優先 */
+      if(bestKey&&key.every((v,i)=>v===bestKey[i])&&timeMins>=best.timeMins)return;
+      const order=new Array(k);for(let q=0;q<k;q++)order[q]=ids[pos[bestP[q]]];
+      bestKey=key;best={mapId,secIds:order,exp,timeMins,range,score:key};
+    };
+    for(let n=1;n<=Math.min(5,M);n++){
+      const c=new Int32Array(n);for(let i=0;i<n;i++)c[i]=i;
+      while(true){
+        for(let i=0;i<n;i++)pos[i]=1+c[i];
+        tryCombo(n);
+        let i=n-1;while(i>=0&&c[i]===M-n+i)i--;
+        if(i<0)break;c[i]++;for(let j=i+1;j<n;j++)c[j]=c[j-1]+1;
+      }
+    }
+  });
+  if(best&&o.mode==='loot'&&targets.length){const cov=new Set();best.secIds.forEach(id=>hitsOf(id).forEach(x=>cov.add(x)));best.covered=[...cov];}
+  return {best,why:best?'':(seen?(hourCut?'hours':'range'):'none'),seen,hourCut,rangeCut};
+}
 </script>
 <script>
 /* ── 路線搜尋：放到背景執行緒（Web Worker）執行，搜尋時畫面不會卡住 ──
@@ -4499,9 +4772,9 @@ function subFindRoutes(rank,stats,mustInc,mustExcl,mustIncMaps,mustExclMaps,must
 const SubRouteWorker = (() => {
     let worker = null, broken = false, seq = 0;
     const pending = new Map();
-    function runOnMainThread(args) {
+    function runOnMainThread(args, fn) {
         return new Promise((resolve, reject) => setTimeout(() => {
-            try { resolve(subFindRoutes(...args)); } catch (e) { reject(e); }
+            try { resolve((fn === 'auto' ? subAutoRoute : subFindRoutes)(...args)); } catch (e) { reject(e); }
         }, 30));
     }
     function create() {
@@ -4512,9 +4785,9 @@ const SubRouteWorker = (() => {
 let __allowed = null;
 function isNodeOn(m, l) { return !__allowed || __allowed.has(m + '|' + l); }
 self.onmessage = (e) => {
-    const { id, args, allowed } = e.data;
+    const { id, args, allowed, fn } = e.data;
     __allowed = allowed ? new Set(allowed) : null;
-    try { self.postMessage({ id, ok: true, results: subFindRoutes(...args) }); }
+    try { self.postMessage({ id, ok: true, results: (fn === 'auto' ? subAutoRoute : subFindRoutes)(...args) }); }
     catch (err) { self.postMessage({ id, ok: false, error: String((err && err.message) || err) }); }
 };`;
             const need = ['MAP_NAMES','SUB_HOMES','SUB_SECTORS','SUB_PATCH','SUB_TANK','SUB_DIST','SUB_RANKS','SUB_CAP','PARTS','SUB_LOOT','SUB_LOOT_TIER','COMMON_LOOT','PRIORITY_LOOT_GROUPS'];
@@ -4532,7 +4805,7 @@ self.onmessage = (e) => {
                 try { worker.terminate(); } catch (_) {}
                 worker = null;
                 // 已送出但尚未完成的搜尋改在主執行緒跑完
-                for (const [id, p] of pending) { pending.delete(id); runOnMainThread(p.args).then(p.resolve, p.reject); }
+                for (const [id, p] of pending) { pending.delete(id); runOnMainThread(p.args, p.fn).then(p.resolve, p.reject); }
             };
         } catch (e) { broken = true; worker = null; }
         return worker;
@@ -4548,6 +4821,16 @@ self.onmessage = (e) => {
             return new Promise((resolve, reject) => {
                 pending.set(id, { resolve, reject, args });
                 w.postMessage({ id, args, allowed });
+            });
+        },
+        // 自動導航：已開放地點由呼叫端直接放在參數裡（每艘船依自己的群組海圖）
+        runAuto(args) {
+            const w = create();
+            if (!w) return runOnMainThread(args, 'auto');
+            const id = ++seq;
+            return new Promise((resolve, reject) => {
+                pending.set(id, { resolve, reject, args, fn: 'auto' });
+                w.postMessage({ id, args, fn: 'auto' });
             });
         }
     };
@@ -4924,10 +5207,14 @@ window.showConfirm = showConfirm;
             if (!el) return;
             const n = g === GROUP_ALL ? timers.length : (cnt[g] || 0);
             const r = g === GROUP_ALL ? Object.values(ret).reduce((a, b) => a + b, 0) : (ret[g] || 0);
-            el.innerHTML = (r ? '<i class="group-tab-ret"></i>' : '') + n;
+            const html = (r ? '<i class="group-tab-ret"></i>' : '') + n;
+            if (el.innerHTML !== html) el.innerHTML = html;   // 沒變就不動畫面
             tab.title = r ? `${n} 艘，其中 ${r} 艘已回港` : `${n} 艘`;
         });
     }
+    // 船一回港，標籤的綠點就要亮：每秒重算一次（不用重新整理頁面）
+    setInterval(refreshGroupTabCounts, 1000);
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) refreshGroupTabCounts(); });
 
     // ── 群組標籤 Pointer 拖曳（水平，仿自訂連結設計）──
     let groupTabDragState = null;
@@ -6219,8 +6506,17 @@ window.showConfirm = showConfirm;
             sel.innerHTML = buildPartOptions(key);
             sel.addEventListener('change', refreshComputedStats);
         });
-        document.getElementById('cfg-level').addEventListener('input', () => { refreshComputedStats(); refreshCfgExpHint(); cfgRtRender(); });
-        PART_KEYS.forEach(key => document.getElementById(`cfg-part-${key}`).addEventListener('change', cfgRtRender));
+        document.getElementById('cfg-level').addEventListener('input', () => { refreshComputedStats(); refreshCfgExpHint(); cfgRtRender(); cfgAnRender(); });
+        PART_KEYS.forEach(key => document.getElementById(`cfg-part-${key}`).addEventListener('change', () => { cfgRtRender(); cfgAnRender(); }));
+        document.getElementById('cfg-an-map').innerHTML = '<option value="0">依海圖順序（由前往後開）</option>' + Object.keys(MAP_NAMES).map(k => `<option value="${k}">${escapeHtml(MAP_NAMES[k])}</option>`).join('');
+        // 點選物品清單以外的地方就關閉清單（用捕獲階段，視窗內部攔下 click 也收得到）
+        document.addEventListener('pointerdown', e => { if (!e.target.closest('.cfg-an-search')) cfgAnSearch(null); }, true);
+        // 在清單上按（含捲軸）不讓輸入框失焦，清單才不會被關掉
+        ['cfg-an-suggest', 'gpSuggestBox'].forEach(id => document.getElementById(id)?.addEventListener('mousedown', e => e.preventDefault()));
+        // 用鍵盤 Tab 離開時也關閉
+        document.getElementById('cfg-an-q').addEventListener('blur', () => setTimeout(() => {
+            if (!document.activeElement || !document.activeElement.closest('.cfg-an-search')) cfgAnSearch(null);
+        }, 120));
         document.getElementById('cfg-rt-map').innerHTML = Object.keys(MAP_NAMES).map(k => `<option value="${k}">${escapeHtml(MAP_NAMES[k])}</option>`).join('');
         document.getElementById('subConfigModal').addEventListener('click', closeSubConfigModal);
     }
@@ -6247,6 +6543,7 @@ window.showConfirm = showConfirm;
             ? { mapId: lr.mapId || (SECTOR_MAP.get(lr.secIds[0]) || [])[1] || 1, secIds: [...lr.secIds] }
             : { mapId: cfgRtDefaultMap(t), secIds: [] };
         cfgRtRender();
+        cfgAnOpen(t);
         document.getElementById('subConfigModal').style.display = 'flex';
     }
 
@@ -6392,6 +6689,7 @@ window.showConfirm = showConfirm;
         const parts = createEmptyParts();
         PART_KEYS.forEach(key => { parts[key] = document.getElementById(`cfg-part-${key}`).value; });
         t.parts = parts;
+        cfgAnSave(t);
         delete t.stats;
         delete t.statsUpdatedAt;
         saveActiveTimers();
@@ -6439,7 +6737,7 @@ window.showConfirm = showConfirm;
         const card = document.createElement('div'); 
         card.className = 'timer-card'; 
         card.id = `card-${timer.id}`; 
-        card.innerHTML = `<div class="timer-header" id="header-${timer.id}"><span class="timer-name"><span id="name-${timer.id}">${escapeHtml(String(timer.name||''))}</span> <span class="timer-level" id="level-${timer.id}">${timer.level ? `[${escapeHtml(String(timer.level))}]` : ''}</span></span><span class="timer-countdown" id="count-${timer.id}">計算中...</span></div><div class="progress-bar-bg" id="bg-${timer.id}"><div class="progress-bar" id="bar-${timer.id}" style="width: 100%"></div></div><div class="timer-footer"><span>出航：<span class="time-highlight">${formatDateTime(timer.startTime)}</span></span><span>回港：<span class="time-highlight target">${formatDateTime(timer.endTime)}</span></span></div><div class="sub-config-summary" id="config-summary-${timer.id}"></div><div class="sub-route-line" id="route-line-${timer.id}"></div><div class="delete-btn-wrapper"><select class="card-group-select" id="group-select-${timer.id}" onchange="changeCardGroup('${timer.id}', this.value)">${groupSelectOptionsHtml(timer.group || DEFAULT_GROUP)}</select><div class="card-action-btns"><button class="card-icon-btn btn-route" onclick="sendCardToRoutePlanner('${timer.id}')">路線規劃</button><button class="card-icon-btn btn-config" onclick="openSubConfigModal('${timer.id}')">船艇設定</button><button class="card-icon-btn btn-delete" onclick="deleteTimer('${timer.id}')">刪除</button></div></div>`; 
+        card.innerHTML = `<div class="timer-header" id="header-${timer.id}"><span class="timer-name"><span id="name-${timer.id}">${escapeHtml(String(timer.name||''))}</span> <span class="timer-level" id="level-${timer.id}">${timer.level ? `[${escapeHtml(String(timer.level))}]` : ''}</span></span><span class="timer-countdown" id="count-${timer.id}">計算中...</span></div><div class="progress-bar-bg" id="bg-${timer.id}"><div class="progress-bar" id="bar-${timer.id}" style="width: 100%"></div></div><div class="timer-footer"><span>出航：<span class="time-highlight">${formatDateTime(timer.startTime)}</span></span><span>回港：<span class="time-highlight target">${formatDateTime(timer.endTime)}</span></span></div><div class="sub-config-summary" id="config-summary-${timer.id}"></div><div class="sub-route-line" id="route-line-${timer.id}"></div><div class="sub-an-line" id="an-line-${timer.id}"></div><div class="delete-btn-wrapper"><select class="card-group-select" id="group-select-${timer.id}" onchange="changeCardGroup('${timer.id}', this.value)">${groupSelectOptionsHtml(timer.group || DEFAULT_GROUP)}</select><div class="card-action-btns"><button class="card-icon-btn btn-route" onclick="sendCardToRoutePlanner('${timer.id}')">路線規劃</button><button class="card-icon-btn btn-config" onclick="openSubConfigModal('${timer.id}')">船艇設定</button><button class="card-icon-btn btn-delete" onclick="deleteTimer('${timer.id}')">刪除</button></div></div>`; 
         // 先停掉這艘船舊卡片的倒數，避免舊計時器把舊卡片又塞回清單（造成重複卡片）
         if (_timerIntervals.has(timer.id)) { clearInterval(_timerIntervals.get(timer.id)); _timerIntervals.delete(timer.id); }
         timerList.appendChild(card); 
@@ -6545,14 +6843,17 @@ window.showConfirm = showConfirm;
         count: { full: 'minmax(108px,.45fr)', mid: 'minmax(104px,.45fr)', area: 'count' },
         dep:   { full: 'minmax(102px,.45fr)', mid: 'minmax(100px,.45fr)', area: 'dep' },
         ret:   { full: 'minmax(102px,.45fr)', mid: 'minmax(100px,.45fr)', area: 'ret' },
-        route: { full: 'minmax(320px,1.5fr)', mid: 'minmax(320px,1.5fr)', area: 'route' },
+        route: { full: 'minmax(280px,1.5fr)', mid: 'minmax(280px,1.5fr)', area: 'route' },
+        an:    { full: 'minmax(160px,.7fr)', mid: 'minmax(150px,.6fr)', area: 'an' },
         group: { full: 'minmax(124px,.4fr)', mid: null, area: 'group' },
         act:   { full: '246px', mid: '236px', area: 'act' }
     };
-    const LIST_DEFAULT = ['name', 'count', 'dep', 'ret', 'route', 'group', 'act'];
+    const LIST_DEFAULT = ['name', 'count', 'dep', 'ret', 'route', 'an', 'group', 'act'];
     function getListOrder() {
         try {
-            const a = JSON.parse(localStorage.getItem('sub_list_cols') || 'null');
+            let a = JSON.parse(localStorage.getItem('sub_list_cols') || 'null');
+            // 舊的欄位順序沒有「自動導航」：插在航線後面
+            if (Array.isArray(a) && !a.includes('an') && a.includes('route')) { a = a.slice(); a.splice(a.indexOf('route') + 1, 0, 'an'); }
             if (Array.isArray(a) && a.length === LIST_DEFAULT.length && LIST_DEFAULT.every(k => a.includes(k))) return a;
         } catch (e) {}
         return LIST_DEFAULT.slice();
@@ -6980,6 +7281,7 @@ window.showConfirm = showConfirm;
         }
         localStorage.setItem('sub_map_nodes', JSON.stringify(mapNodeState));
         window.SubSync?.changed();
+        autoNavRefreshAll();
     }
 
     function isNodeOn(mapId, node) {
@@ -7436,6 +7738,48 @@ window.showConfirm = showConfirm;
             </div>`;
     }
 
+    // ── 目標物品共用：類別 → 物品；依海圖排序（物品最早出現的海域、地點），清單用海域分段 ──
+    function lootItemsByCat(cat) {
+        if (!cat) return [];
+        const lootIdSet = (typeof RP_LOOT_ID_SET !== 'undefined') ? RP_LOOT_ID_SET : (() => {
+            const s = new Set(); Object.values(SUB_LOOT).forEach(arr => arr.forEach(id => s.add(id))); return s;
+        })();
+        let ids;
+        if (cat === 'all') ids = [...lootIdSet];
+        else if (cat === 'workshop') ids = [...WORKSHOP_IDS].filter(id => lootIdSet.has(id));
+        else if (cat === 'rare') ids = [...RARE_IDS].filter(id => lootIdSet.has(id));
+        else ids = [...lootIdSet].filter(id => !WORKSHOP_IDS.has(id) && !RARE_IDS.has(id));
+        const exclude = /魔晶石|之(碎晶|水晶|晶簇)$|黑暗物質/;
+        return sortItemsByMap(ids.map(id => ({ id, name: ITEM_DB[id] || '' })).filter(x => x.name && !exclude.test(x.name)));
+    }
+    const _itemMapKeyCache = new Map();
+    function itemMapKey(id) {
+        let k = _itemMapKeyCache.get(id);
+        if (k) return k;
+        let best = null;
+        Object.entries(SUB_LOOT_TIER).forEach(([sid, tiers]) => {
+            if (![1, 2, 3].some(t => (tiers[t] || []).includes(id))) return;
+            const s = SECTOR_MAP.get(+sid); if (!s) return;
+            if (!best || s[1] < best[0] || (s[1] === best[0] && s[0] < best[1])) best = [s[1], s[0]];
+        });
+        k = best || [99, 0];
+        _itemMapKeyCache.set(id, k);
+        return k;
+    }
+    function sortItemsByMap(list) {
+        return list.sort((a, b) => { const ka = itemMapKey(a.id), kb = itemMapKey(b.id); return ka[0] - kb[0] || ka[1] - kb[1] || a.name.localeCompare(b.name, 'zh-TW'); });
+    }
+    // 依海域分段：rowFn(item) 回傳每列 HTML
+    function itemsGroupedHtml(list, rowFn, headCls) {
+        let last = null, out = '';
+        list.forEach(x => {
+            const m = itemMapKey(x.id)[0];
+            if (m !== last) { out += `<div class="${headCls}">${escapeHtml(MAP_NAMES[m] || '其他')}</div>`; last = m; }
+            out += rowFn(x);
+        });
+        return out;
+    }
+
     // ── 配件規劃：道具選擇 ──
     function gpOnCategoryChange() {
         const cat = document.getElementById('gpItemCategory').value;
@@ -7451,23 +7795,8 @@ window.showConfirm = showConfirm;
             return;
         }
 
-        // 先確保 RP_LOOT_ID_SET 可用
-        const lootIdSet = (typeof RP_LOOT_ID_SET !== 'undefined') ? RP_LOOT_ID_SET : (() => {
-            const s = new Set();
-            Object.values(SUB_LOOT).forEach(arr => arr.forEach(id => s.add(id)));
-            return s;
-        })();
-
-        let ids;
-        if (cat === 'all') ids = [...lootIdSet];
-        else if (cat === 'workshop') ids = [...WORKSHOP_IDS].filter(id => lootIdSet.has(id));
-        else if (cat === 'rare')     ids = [...RARE_IDS].filter(id => lootIdSet.has(id));
-        else ids = [...lootIdSet].filter(id => !WORKSHOP_IDS.has(id) && !RARE_IDS.has(id));
-
-        const exclude = /魔晶石|之(碎晶|水晶|晶簇)$|黑暗物質/;
-        window._gpCurrentItems = ids.map(id => ({ id, name: ITEM_DB[id] || '' }))
-            .filter(x => x.name && !exclude.test(x.name))
-            .sort((a, b) => a.name.localeCompare(b.name, 'zh-TW'));
+        // 依海圖排序（溺沒海 → 北洋海；同海域依地點）
+        window._gpCurrentItems = lootItemsByCat(cat);
 
         input.disabled = false;
         input.placeholder = '輸入關鍵字篩選…';
@@ -7483,9 +7812,8 @@ window.showConfirm = showConfirm;
         if (filtered.length === 0) {
             box.innerHTML = `<div class="rp-suggest-empty">無符合結果</div>`;
         } else {
-            box.innerHTML = filtered.slice(0, 500).map(x =>
-                `<div class="rp-suggest-item" onmousedown="gpAddItemById(${x.id},'${x.name.replace(/'/g,"\\'")}'); document.getElementById('gpItemSearch').value=''; document.getElementById('gpSuggestBox').style.display='none';">${x.name}</div>`
-            ).join('');
+            box.innerHTML = itemsGroupedHtml(filtered.slice(0, 500), x =>
+                `<div class="rp-suggest-item" onmousedown="gpAddItemById(${x.id},'${x.name.replace(/'/g,"\\'")}'); document.getElementById('gpItemSearch').value=''; document.getElementById('gpSuggestBox').style.display='none';">${x.name}</div>`, 'rp-suggest-group');
         }
         box.style.display = 'block';
     }
@@ -7787,8 +8115,22 @@ const CRAFT_BASE = SUB_DATA.CRAFT_BASE;
         } catch(e) {}
     }
 
+    // 舊名稱「甲鱉級」的存檔自動改成「甲鱟級」（開啟網頁、雲端同步後都會檢查）
+    function craftMigrateNames() {
+        try {
+            let renamed = false;
+            [CRAFT_STORAGE_PARTS, CRAFT_STORAGE_OWNED].forEach(k => {
+                const v = localStorage.getItem(k);
+                if (v && v.includes('\u7532\u9c49')) { localStorage.setItem(k, v.split('\u7532\u9c49').join('甲鱟')); renamed = true; }
+            });
+            if (renamed) setTimeout(() => window.SubSync?.changed(), 0);
+        } catch (e) {}
+    }
+    craftMigrateNames();
+
     function craftLoadFromStorage() {
         try {
+            craftMigrateNames();
             const parts = localStorage.getItem(CRAFT_STORAGE_PARTS);
             if (parts) craftSelectedParts = JSON.parse(parts);
         } catch(e) { craftSelectedParts = []; }
@@ -8046,7 +8388,7 @@ const CRAFT_BASE = SUB_DATA.CRAFT_BASE;
             midTotals.set(name, (midTotals.get(name) || 0) + qty);
             // 若該素材每次製作產出 > 1（yield 欄位），則實際需要製作的次數為 ceil(qty / yield)
             const matYield = mat.yield || 1;
-            const craftTimes = Math.ceil(qty / matYield);
+            const craftTimes = Math.sign(qty) * Math.ceil(Math.abs(qty) / matYield);
             Object.entries(mat.recipe).forEach(([ing, ingQty]) => {
                 craftExpand(ing, ingQty * craftTimes, leafTotals, midTotals);
             });
@@ -8064,6 +8406,27 @@ const CRAFT_BASE = SUB_DATA.CRAFT_BASE;
         }
         // 沒有更進一步配方，視為基礎素材（原礦、水晶、怪物掉落、採集品等）
         leafTotals.set(name, (leafTotals.get(name) || 0) + qty);
+    }
+
+    // 彙總清單的全部需求：need＝每種素材／半成品／骨架總共需要的數量；
+    // handIn＝直接交給工房的數量（含骨架所需原級部位的配方）
+    function craftTotals(selected) {
+        const need = new Map(), handIn = new Map();
+        const add = (m, n, q) => m.set(n, (m.get(n) || 0) + q);
+        const recipeOf = n => CRAFT_PARTS[n]
+            ? Object.assign({}, CRAFT_PARTS[n].recipe || {}, CRAFT_PARTS[n].frame ? { [CRAFT_PARTS[n].frame]: CRAFT_PARTS[n].frameQty || 1 } : {})
+            : (CRAFT_MATS[n] && CRAFT_MATS[n].recipe) || null;
+        const order = [], seen = new Set();
+        const visit = n => { if (seen.has(n)) return; seen.add(n); const r = recipeOf(n); if (r) Object.keys(r).forEach(visit); order.push(n); };
+        selected.forEach(x => { if (CRAFT_PARTS[x.name]) { visit(x.name); add(need, x.name, x.qty); } });
+        order.reverse().forEach(n => {
+            const q = need.get(n) || 0, r = recipeOf(n);
+            if (!q || !r) return;
+            const isPart = !!CRAFT_PARTS[n];
+            const times = isPart ? q : Math.ceil(q / (CRAFT_MATS[n].yield || 1));
+            Object.entries(r).forEach(([ing, x]) => { add(need, ing, x * times); if (isPart) add(handIn, ing, x * times); });
+        });
+        return { need, handIn };
     }
 
     // ── 當前庫存數量（以素材名稱為 key，跨渲染保留） ──
@@ -8115,7 +8478,8 @@ const CRAFT_BASE = SUB_DATA.CRAFT_BASE;
                 // 中間素材（成品/半成品）完成時，連動其配方所需的下層素材
                 const mat = CRAFT_MATS[name];
                 if (mat && mat.recipe) {
-                    craftApplyMatDelta(mat.recipe, delta, mat.yield);
+                    const y = mat.yield || 1;
+                    craftApplyMatDelta(mat.recipe, Math.ceil(newVal / y) - Math.ceil(oldVal / y), 1);
                 }
             }
         }
@@ -8263,6 +8627,25 @@ const CRAFT_BASE = SUB_DATA.CRAFT_BASE;
         </tr>`;
     }
 
+    // 配件製作：成品／半成品欄的分類方式（cat＝素材類別、job＝製作職業），只存在本機
+    const CRAFT_JOB_ORDER = ['木工師', '鍛造師', '甲冑師', '金工師', '皮革師', '裁縫師', '鍊金術師', '烹調師'];
+    let craftGroupMode = (function () { try { return localStorage.getItem('sub_craft_group') === 'job' ? 'job' : 'cat'; } catch (e) { return 'cat'; } })();
+    function craftGroupOf(name) {
+        const meta = craftLookupMeta(name);
+        if (craftGroupMode === 'job') return meta.job || meta.category || '其他';
+        return meta.category || '其他';
+    }
+    function craftGroupRank(g) {
+        if (craftGroupMode !== 'job') return 0;
+        const i = CRAFT_JOB_ORDER.indexOf(g);
+        return i < 0 ? 99 : i;
+    }
+    function craftSetGroupMode(mode) {
+        craftGroupMode = mode === 'job' ? 'job' : 'cat';
+        try { localStorage.setItem('sub_craft_group', craftGroupMode); } catch (e) {}
+        craftRenderResult();
+    }
+
     function craftRenderResult() {
         const box = document.getElementById('craftResult');
         if (!box) return;
@@ -8272,27 +8655,15 @@ const CRAFT_BASE = SUB_DATA.CRAFT_BASE;
             return;
         }
 
-        const leafTotals = new Map();  // 基礎素材（採集/購買）
-        const midTotals  = new Map();  // 中間半成品（過渡品）
-
-        craftSelectedParts.forEach(({ name, qty }) => {
-            const p = CRAFT_PARTS[name];
-            if (!p) return;
-            Object.entries(p.recipe || {}).forEach(([ing, ingQty]) => {
-                craftExpand(ing, ingQty * qty, leafTotals, midTotals);
-            });
-            if (p.frame) craftExpand(p.frame, (p.frameQty || 1) * qty, leafTotals, midTotals);
-        });
-
-        // ── 直接素材（配件的直接配方成分，含過渡品與基礎品混合）──
-        const directMatTotals = new Map();
-        craftSelectedParts.forEach(({ name, qty }) => {
-            const p = CRAFT_PARTS[name];
-            if (!p) return;
-            Object.entries(p.recipe || {}).forEach(([ing, ingQty]) => {
-                directMatTotals.set(ing, (directMatTotals.get(ing) || 0) + ingQty * qty);
-            });
-            if (p.frame) directMatTotals.set(p.frame, (directMatTotals.get(p.frame) || 0) + (p.frameQty || 1) * qty);
+        // 全部需求（含改級骨架所需原級部位的素材），成品／半成品／基礎素材三欄用同一份結果
+        const { need: allNeed, handIn } = craftTotals(craftSelectedParts);
+        const leafTotals = new Map();        // 基礎素材（採集/購買）
+        const finishedMatTotals = new Map(); // 成品（level=2）
+        const semiMatTotals = new Map();     // 半成品（level=1）與骨架
+        allNeed.forEach((qty, name) => {
+            const mat = CRAFT_MATS[name];
+            if (mat && mat.recipe) (mat.level === 2 ? finishedMatTotals : semiMatTotals).set(name, qty);
+            else if (!CRAFT_PARTS[name]) leafTotals.set(name, qty);
         });
 
         // ── 欄 1：計算隊列（已選配件）── 配件是最終製作目標，需追蹤庫存 ──
@@ -8315,81 +8686,42 @@ const CRAFT_BASE = SUB_DATA.CRAFT_BASE;
             return gearRow;
         }).join('');
 
-        // ── 欄 2：成品（直接素材中 level=2，已二次加工的成品，如鉚釘、板材、連接板）──
-        // ── 欄 3：半成品（直接素材中 level=1，初階加工的中間品，如錠、塊、怪物素材）──
-        // 注意：directMatTotals 包含配件直接用到的所有材料，依 CRAFT_MATS.level 分流
-        const finishedMatTotals = new Map(); // 成品（level=2）
-        const semiMatTotals     = new Map(); // 半成品（level=1）總需求量（直接+間接展開），用於缺少欄
-        const directSemiNeeded  = new Map(); // 半成品直接需求量（只來自配件配方直接用到的），用於目標欄顯示
-
-        directMatTotals.forEach((qty, name) => {
-            const mat = CRAFT_MATS[name];
-            if (mat && mat.recipe) {
-                if (mat.level === 2) {
-                    finishedMatTotals.set(name, qty);
-                } else {
-                    semiMatTotals.set(name, qty);
-                    // 記錄直接需求量（目標欄用）
-                    directSemiNeeded.set(name, qty);
-                }
-            } else {
-                // 無配方的直接素材視為基礎素材，已由 leafTotals 涵蓋，不重複列出
-            }
-        });
-
-        // ── 將 col2 成品（level=2）的 level=1 原料也納入 col3 半成品（過度半成品，目標顯示 -）──
-        const transitionalSemi = new Set(); // 過度半成品：從 col2 展開，不顯示目標
-        finishedMatTotals.forEach((qty, name) => {
-            const mat = CRAFT_MATS[name];
-            if (!mat || !mat.recipe) return;
-            Object.entries(mat.recipe).forEach(([ing, ingQty]) => {
-                const ingMat = CRAFT_MATS[ing];
-                if (ingMat && ingMat.recipe && ingMat.level === 1) {
-                    semiMatTotals.set(ing, (semiMatTotals.get(ing) || 0) + ingQty * qty);
-                    // 若不是直接素材（不在 directMatTotals），標記為過度半成品
-                    if (!directMatTotals.has(ing)) transitionalSemi.add(ing);
-                }
-            });
-        });
+        // ── 欄 2：成品（level=2，如鉚釘、板材）；欄 3：半成品（level=1，如錠、塊）與骨架 ──
+        // 「目標」＝直接交給工房的數量；只是用來做其他素材的顯示 -；「缺少」以總需求計算
 
         function craftCatRow(cat) {
             return `<tr class="craft-inv-cat-row" data-cat="${cat.replace(/"/g,'&quot;')}"><td colspan="5"><span class="craft-cat-arrow">－</span><span class="craft-cat-label">${cat}</span><span class="craft-cat-count"></span></td></tr>`;
         }
 
+        const groupSort = (a, b) => {
+            const ga = craftGroupOf(a[0]), gb = craftGroupOf(b[0]);
+            return craftGroupRank(ga) - craftGroupRank(gb) || ga.localeCompare(gb) || a[0].localeCompare(b[0]);
+        };
         function makeSortedColRows(mapEntries, noTarget = false) {
-            const sorted = [...mapEntries].sort((a, b) => {
-                const ca = craftLookupMeta(a[0]).category || '';
-                const cb = craftLookupMeta(b[0]).category || '';
-                return ca.localeCompare(cb) || a[0].localeCompare(b[0]);
-            });
+            const sorted = [...mapEntries].sort(groupSort);
             let lastCat = null;
             return sorted.map(([name, qty]) => {
-                const cat = craftLookupMeta(name).category || '其他';
+                const cat = craftGroupOf(name);
                 let catRow = '';
                 if (cat !== lastCat) {
                     catRow = craftCatRow(cat);
                     lastCat = cat;
                 }
-                return catRow + craftMakeInvRow(name, qty, noTarget);
+                return catRow + craftMakeInvRow(name, qty, noTarget || !handIn.has(name), null, false, false, handIn.get(name));
             }).join('');
         }
 
         // 成品素材（level=2）顯示目標數量
         const col2Rows = makeSortedColRows(finishedMatTotals, false);
         // 半成品（col3）：直接 level=1 顯示目標；過度半成品（transitionalSemi）顯示 -
-        const col3Sorted = [...semiMatTotals].sort((a, b) => {
-            const ca = craftLookupMeta(a[0]).category || '';
-            const cb = craftLookupMeta(b[0]).category || '';
-            return ca.localeCompare(cb) || a[0].localeCompare(b[0]);
-        });
+        const col3Sorted = [...semiMatTotals].sort(groupSort);
         let lastCat3 = null;
         const col3Rows = col3Sorted.map(([name, qty]) => {
-            const cat = craftLookupMeta(name).category || '其他';
+            const cat = craftGroupOf(name);
             let catRow = '';
             if (cat !== lastCat3) { catRow = craftCatRow(cat); lastCat3 = cat; }
-            const isTransit = transitionalSemi.has(name);
-            // displayTarget：若有直接需求就顯示直接需求量，過度半成品則為 null（顯示 -）
-            const displayTarget = isTransit ? null : (directSemiNeeded.get(name) ?? qty);
+            const isTransit = !handIn.has(name);
+            const displayTarget = isTransit ? null : handIn.get(name);
             return catRow + craftMakeInvRow(name, qty, isTransit, null, false, false, displayTarget);
         }).join('');
 
@@ -8425,6 +8757,13 @@ const CRAFT_BASE = SUB_DATA.CRAFT_BASE;
         </tr></thead>`;
 
         box.innerHTML = `
+            <div class="craft-group-bar">
+                <span class="craft-group-label">素材分類</span>
+                <div class="fleet-layout-toggle craft-group-toggle" role="group" aria-label="素材分類方式">
+                    <button type="button" data-group="cat" data-on-click="a132" aria-pressed="${craftGroupMode === 'cat'}">素材類別</button>
+                    <button type="button" data-group="job" data-on-click="a132" aria-pressed="${craftGroupMode === 'job'}">製作職業</button>
+                </div>
+            </div>
             <div class="craft-mat-cols-wrap">
             <div class="craft-mob-tabs" style="display:none;">
                 <button class="craft-mob-tab active" onclick="craftMobTab(this,0)">配件</button>
@@ -9081,7 +9420,7 @@ const CRAFT_BASE = SUB_DATA.CRAFT_BASE;
         if (on) { rpHours[kind].add(h); rpHours[other].delete(h); }   // 同一小時不會同時「只要」又「避開」
         else rpHours[kind].delete(h);
     }
-    function rpHoursChanged() { rpHoursSave(); rpHoursRender(); if (rpAllResults.length) rpApplySort(); }
+    function rpHoursChanged() { rpHoursSave(); rpHoursRender(); if (rpAllResults.length) rpApplySort(); autoNavRefreshAll(); }
     function rpHoursRender() {
         const strip = document.getElementById('rpHoursStrip');
         if (!strip) return;
@@ -9258,6 +9597,599 @@ const CRAFT_BASE = SUB_DATA.CRAFT_BASE;
 
     // ── 使用此路線：將耗時套用回船艇小卡，並同步路線規劃上的等級與配件 ──
 
+    // ══ 自動導航：每艘船可設定目標（練等／挖寶／開圖／無），再出發時自動規劃下一趟 ══════════
+    // t.autoNav = { on, mode: 'exp'|'loot'|'chart'|'none', items: [物品ID], mapId: 0（依順序）|海域ID }
+    const AUTO_NAV_MODES = {
+        exp:   { label: '練等', icon: '📈', desc: '在限制內找<b>總經驗最高</b>的路線。' },
+        loot:  { label: '挖寶', icon: '💎', desc: '在限制內找<b>拿得到最多目標物品</b>的路線；沒有加目標時，找可拿到的物品種類最多的路線。' },
+        chart: { label: '開圖', icon: '🗺️', desc: '去撞<b>能開出新地點</b>的地點。依「海圖」勾選的進度判斷哪些還沒開；回港後如果開了新地點，記得到「海圖」勾起來。' },
+        gold:  { label: '撈金', icon: '💰', desc: '固定走溺沒海的<b>撈金航線</b>。會檢查等級、航距、海圖能不能跑，不夠時列出差距；收集、恩惠、探索則列出建議值。' }
+    };
+    const SUB_UNLOCK = SUB_DATA.SUB_UNLOCK || {};
+    const SUB_UNLOCK_KIDS = (() => { const o = {}; Object.entries(SUB_UNLOCK).forEach(([c, ss]) => ss.forEach(s => (o[s] = o[s] || []).push(+c))); return o; })();
+    // 物品 → 可掉落的地點與層級
+    const AUTO_ITEM_SRC = (() => {
+        const o = {};
+        Object.entries(SUB_LOOT_TIER).forEach(([sid, tiers]) => [1, 2, 3].forEach(tr => (tiers[tr] || []).forEach(id => (o[id] = o[id] || []).push({ sec: +sid, tier: tr }))));
+        return o;
+    })();
+    // 撈金固定航線（溺沒海，依照順序航行）
+    const GOLD_ROUTES = { OJ: ['O', 'J'], ROJZ: ['R', 'O', 'J', 'Z'], MROJZ: ['M', 'R', 'O', 'J', 'Z'] };
+    function goldSecIds(key) {
+        return (GOLD_ROUTES[key] || GOLD_ROUTES.OJ).map(l => (SUB_SECTORS.find(s => s[1] === 1 && s[2] === l) || [])[0]).filter(Boolean);
+    }
+    // 檢查能不能跑：block＝跑不了（等級、航距、海圖）；其餘為建議值
+    function goldCheck(key, lv, stats, ns) {
+        const secIds = goldSecIds(key);
+        const secs = secIds.map(id => SECTOR_MAP.get(id));
+        const calc = subRouteCalc(secIds, stats.speed || 1);
+        const rows = [];
+        const locked = secs.filter(s => !ns.on(s[1], s[2]));
+        rows.push({ k: '海圖', block: true, ok: !locked.length, txt: locked.length ? `還沒開：溺沒海 ${locked.map(s => s[2]).join('、')}` : '地點都已開放' });
+        const needRank = Math.max(...secs.map(s => s[5]));
+        rows.push({ k: '等級', block: true, ok: lv >= needRank, need: needRank, have: lv });
+        rows.push({ k: '航距', block: true, ok: calc && stats.range >= calc.range, need: calc ? calc.range : 0, have: stats.range });
+        rows.push({ k: '收集', ok: stats.gather >= Math.max(...secs.map(s => s[13])), need: Math.max(...secs.map(s => s[13])), have: stats.gather, hint: '最佳收集' });
+        rows.push({ k: '恩惠', ok: stats.favor >= Math.max(...secs.map(s => s[9])), need: Math.max(...secs.map(s => s[9])), have: stats.favor, hint: '恩惠門檻' });
+        rows.push({ k: '探索', ok: stats.explore >= Math.max(...secs.map(s => s[11])), need: Math.max(...secs.map(s => s[11])), have: stats.explore, hint: '第三層掉落' });
+        const ok = rows.every(r => !r.block || r.ok);
+        return { key, secIds, calc, rows, ok };
+    }
+    // 撈金：推薦升等或換配件來達到門檻
+    // 必要＝等級＋航距；完整＝再加上收集、恩惠、探索的建議值
+    function goldAdvice(g, lv, parts) {
+        parts = parts || createEmptyParts();
+        const need = Object.fromEntries(g.rows.filter(r => r.need != null).map(r => [r.k, r.need]));
+        const okMust = (s, L) => L >= need['等級'] && s.range >= need['航距'];
+        const okFull = (s, L) => okMust(s, L) && s.gather >= need['收集'] && s.favor >= need['恩惠'] && s.explore >= need['探索'];
+        const cur = computeStats(String(lv), parts);
+        const out = { mustNow: okMust(cur, lv), fullNow: okFull(cur, lv) };
+        if (out.fullNow) return out;
+        // 只升級
+        const lvs = Object.keys(LEVEL_STAT_TABLE).map(Number).sort((a, b) => a - b);
+        const maxLv = lvs[lvs.length - 1];
+        for (const L of lvs) {
+            if (L < lv) continue;
+            const s = computeStats(String(L), parts);
+            if (out.mustLv == null && okMust(s, L)) out.mustLv = L;
+            if (okFull(s, L)) { out.fullLv = L; break; }
+        }
+        out.maxLv = maxLv;
+        // 只換配件（等級不足時以航線需要的等級計算）
+        const Lp = Math.max(lv, need['等級']);
+        out.partsLv = Lp;
+        const grades = PART_GRADES.map(x => x.value).filter(Boolean);
+        const base = LEVEL_STAT_TABLE[String(Lp)] || [0, 0, 0, 0, 0];
+        let bestMust = null, bestFull = null;
+        const rank = (combo) => { let ch = 0, cost = 0; PART_KEYS.forEach((k, i) => { if (combo[i] !== parts[k]) { ch++; cost += grades.indexOf(combo[i]); } }); return [ch, cost]; };
+        const better = (a, b) => !b || a.r[0] < b.r[0] || (a.r[0] === b.r[0] && a.r[1] < b.r[1]);
+        const combo = new Array(4);
+        const rec = (i, acc) => {
+            if (i === 4) {
+                const s = { explore: acc[0], gather: acc[1], speed: acc[2], range: acc[3], favor: acc[4] };
+                const m = okMust(s, Lp), f = m && okFull(s, Lp);
+                if (!m) return;
+                const cand = { combo: combo.slice(), s, r: rank(combo) };
+                if (better(cand, bestMust)) bestMust = cand;
+                if (f && better(cand, bestFull)) bestFull = cand;
+                return;
+            }
+            for (const gr of grades) {
+                const b = PART_STAT_TABLE[PART_KEYS[i]][gr]; if (!b) continue;
+                combo[i] = gr;
+                rec(i + 1, acc.map((v, j) => v + b[j]));
+            }
+        };
+        rec(0, base.slice());
+        out.parts = { must: bestMust, full: bestFull };
+        return out;
+    }
+    function goldPartName(g) { const x = PART_GRADES.find(p => p.value === g); return x && g ? x.label.replace(/^[^-]*-\s*/, '') : '未設定'; }
+    function goldPartsChangeText(parts, cand) {
+        return PART_KEYS.map((k, i) => cand.combo[i] !== (parts[k] || '') ? `${PART_LABELS[k]} ${goldPartName(parts[k] || '')} → <b>${goldPartName(cand.combo[i])}</b>` : '').filter(Boolean).join('、');
+    }
+    // 挖寶：等級／探索不足時，推薦升級或換配件（換配件時盡量保住航距）
+    function lootAdvice(sts, lv, parts) {
+        parts = parts || createEmptyParts();
+        const fix = sts.filter(s => s.reason === 'rank' || s.reason === 'explore');
+        if (!fix.length) return null;
+        const needRank = Math.max(lv, ...fix.map(s => s.needRank || 0));
+        const needExp = Math.max(...fix.map(s => s.needExplore || 0));
+        const cur = computeStats(String(lv), parts);
+        const out = { fix, needRank, needExp, curRange: cur.range };
+        const lvs = Object.keys(LEVEL_STAT_TABLE).map(Number).sort((a, b) => a - b);
+        out.maxLv = lvs[lvs.length - 1];
+        for (const L of lvs) { if (L < needRank) continue; if (computeStats(String(L), parts).explore >= needExp) { out.lvTo = L; break; } }
+        const Lp = needRank; out.partsLv = Lp;
+        const grades = PART_GRADES.map(x => x.value).filter(Boolean);
+        const base = LEVEL_STAT_TABLE[String(Lp)] || [0, 0, 0, 0, 0];
+        let best = null; const combo = new Array(4);
+        const rec = (i, acc) => {
+            if (i === 4) {
+                if (acc[0] < needExp) return;
+                let ch = 0, cost = 0; PART_KEYS.forEach((k, j) => { if (combo[j] !== parts[k]) { ch++; cost += grades.indexOf(combo[j]); } });
+                const c = { combo: combo.slice(), s: { explore: acc[0], gather: acc[1], speed: acc[2], range: acc[3], favor: acc[4] }, ch, cost };
+                if (!best || c.ch < best.ch || (c.ch === best.ch && (c.s.range > best.s.range || (c.s.range === best.s.range && c.cost < best.cost)))) best = c;
+                return;
+            }
+            for (const gr of grades) { const b = PART_STAT_TABLE[PART_KEYS[i]][gr]; if (!b) continue; combo[i] = gr; rec(i + 1, acc.map((v, j) => v + b[j])); }
+        };
+        rec(0, base.slice());
+        out.parts = best;
+        return out;
+    }
+    // 把推薦的配件填到船艇設定的配件欄（按「儲存」才會生效）
+    function goldApplyParts(combo) {
+        PART_KEYS.forEach((k, i) => { const sel = document.getElementById(`cfg-part-${k}`); if (sel && combo[i] != null) sel.value = combo[i]; });
+        PART_KEYS.forEach(k => document.getElementById(`cfg-part-${k}`).dispatchEvent(new Event('change')));
+    }
+    function goldGapText(r) { return r.need != null ? `${r.k}差 ${r.need - r.have}（需要 ${r.need}，目前 ${r.have}）` : r.txt; }
+    function autoNavOf(t) {
+        const a = t && t.autoNav;
+        return a && a.on && a.mode && a.mode !== 'none' && AUTO_NAV_MODES[a.mode] ? a : null;
+    }
+    function secLabel(id) { const s = SECTOR_MAP.get(id); return s ? `${MAP_NAMES[s[1]]} ${s[2]} ${s[4]}` : '?'; }
+    function secShort(id) { const s = SECTOR_MAP.get(id); return s ? `${MAP_NAMES[s[1]]} ${s[2]}` : '?'; }
+    // 某個群組的海圖進度（與 isNodeOn 相同規則：完全沒勾＝視為全開）
+    function autoNodeState(group) {
+        const gs = (mapNodeState && mapNodeState[group || DEFAULT_GROUP]) || {};
+        const empty = !Object.values(gs).some(a => Array.isArray(a) && a.length);
+        return { empty, on: (m, l) => empty || (gs[m] || []).includes(l), json: empty ? '' : JSON.stringify(gs) };
+    }
+    // 出發時的等級與性能（已回港＝領取結果後）
+    function autoNavShip(t) {
+        const p = subPendingResult(t);
+        const lv = p.level || subLevelNum(t);
+        const stats = computeStats(String(lv), t.parts || createEmptyParts());
+        return { lv, stats };
+    }
+    // 開圖：找出「下一步能開的地點」與要去撞的來源地點
+    function autoChartPlan(group, lv, mapId, goal) {
+        const ns = autoNodeState(group);
+        if (ns.empty) return { why: 'nomap' };
+        if (goal === 'next') return autoChartNextMap(ns, lv, mapId);
+        const isOn = id => { const s = SECTOR_MAP.get(id); return s && ns.on(s[1], s[2]); };
+        const forMap = m => {
+            const next = new Map();   // 下一個能開的地點 → 來源（已開）
+            const walk = (id, seen) => {
+                if (seen.has(id)) return; seen.add(id);
+                if (isOn(id)) return;
+                const srcs = SUB_UNLOCK[id] || [];
+                const onSrc = srcs.filter(isOn);
+                if (onSrc.length) next.set(id, onSrc);
+                else srcs.forEach(s => walk(s, seen));
+            };
+            const locked = SUB_SECTORS.filter(s => s[1] === m && !ns.on(s[1], s[2]));
+            locked.forEach(s => walk(s[0], new Set()));
+            const weights = {}, blocked = [];
+            next.forEach((srcs, id) => srcs.forEach(src => {
+                const s = SECTOR_MAP.get(src);
+                if (s && s[5] <= lv) weights[src] = (weights[src] || 0) + 1; else blocked.push(src);
+            }));
+            return { m, locked: locked.length, next, weights, blocked };
+        };
+        if (mapId) {
+            const r = forMap(mapId);
+            if (!r.locked) return { ...r, why: 'mapdone' };
+            if (!Object.keys(r.weights).length) return { ...r, why: 'rank' };
+            return r;
+        }
+        let firstBlocked = null;
+        for (const m of Object.keys(MAP_NAMES).map(Number)) {
+            const r = forMap(m);
+            if (!r.locked) continue;
+            if (Object.keys(r.weights).length) return { ...r, auto: true };
+            if (!firstBlocked) firstBlocked = r;
+        }
+        return firstBlocked ? { ...firstBlocked, auto: true, why: 'rank' } : { why: 'alldone' };
+    }
+    // 開圖・優先開下一張圖：只往「下一張海圖第一個地點」那條解鎖路線撞（同海域其他沒開的點當作順便）
+    function autoChartNextMap(ns, lv, mapId) {
+        const isOn = id => { const s = SECTOR_MAP.get(id); return s && ns.on(s[1], s[2]); };
+        const firstOf = m => SUB_SECTORS.filter(s => s[1] === m).sort((a, b) => a[0] - b[0])[0];
+        const maps = Object.keys(MAP_NAMES).map(Number).filter(m => m > 1 && firstOf(m));
+        let D;
+        if (mapId) {
+            if (mapId === 1 || !firstOf(mapId) || isOn(firstOf(mapId)[0])) return { m: mapId, why: 'mapopen' };
+            D = mapId;
+        } else {
+            D = maps.find(m => !isOn(firstOf(m)[0]));
+            if (!D) return { why: 'allmaps' };
+        }
+        const next = new Map();
+        const depth = new Map();   // 還要再開幾個點才會到下一張圖
+        const walk = (id, d, seen) => {
+            if (seen.has(id)) return; seen.add(id);
+            if (isOn(id)) return;
+            const srcs = SUB_UNLOCK[id] || [];
+            const onSrc = srcs.filter(isOn);
+            if (onSrc.length) { next.set(id, onSrc); depth.set(id, Math.min(depth.get(id) ?? 99, d)); }
+            else srcs.forEach(s => walk(s, d + 1, seen));
+        };
+        walk(firstOf(D)[0], 1, new Set());
+        const weights = {}, blocked = [];
+        next.forEach((srcs, id) => srcs.forEach(src => {
+            const s = SECTOR_MAP.get(src);
+            if (s && s[5] <= lv) weights[src] = (weights[src] || 0) + 100; else blocked.push(src);
+        }));
+        const steps = Math.min(...[...depth.values()], 99);
+        if (!Object.keys(weights).length) return { m: D, next, weights, blocked, steps, dest: true, auto: !mapId, why: 'rank' };
+        // 順便：同海域其他能開的點也加一點分數（路線經驗相同時優先多撞）
+        const fm = new Set([...next.keys()].map(id => (SECTOR_MAP.get(id) || [])[1]));
+        SUB_SECTORS.filter(s => fm.has(s[1]) && !ns.on(s[1], s[2])).forEach(s => {
+            const onSrc = (SUB_UNLOCK[s[0]] || []).filter(isOn);
+            onSrc.forEach(src => { const ss = SECTOR_MAP.get(src); if (ss && ss[5] <= lv) weights[src] = (weights[src] || 0) + 1; });
+        });
+        return { m: D, next, weights, blocked, steps, dest: true, auto: !mapId };
+    }
+    // 挖寶：每個目標物品現在拿不拿得到；拿不到的原因
+    function autoItemStatus(id, group, lv, explore) {
+        const ns = autoNodeState(group);
+        const src = AUTO_ITEM_SRC[id] || [];
+        const name = ITEM_DB[id] || `#${id}`;
+        if (!src.length) return { id, name, ok: false, msg: '目前的掉落資料裡沒有這個物品' };
+        const thr = (s, tier) => tier === 3 ? s[11] : tier === 2 ? s[10] : s[8];
+        const rows = src.map(x => { const s = SECTOR_MAP.get(x.sec); return s ? { ...x, s, on: ns.on(s[1], s[2]), rk: s[5] <= lv, ex: explore >= thr(s, x.tier), need: thr(s, x.tier) } : null; }).filter(Boolean);
+        const good = rows.filter(r => r.on && r.rk && r.ex);
+        if (good.length) return { id, name, ok: true, msg: `可在 ${good.slice(0, 3).map(r => secShort(r.sec)).join('、')}${good.length > 3 ? ` 等 ${good.length} 處` : ''} 取得` };
+        const opened = rows.filter(r => r.on);
+        if (!opened.length) return { id, name, ok: false, msg: `🔒 海圖還沒開：要到 ${rows.slice(0, 3).map(r => secShort(r.sec)).join('、')}${rows.length > 3 ? ' 等地' : ''}` };
+        const ranked = opened.filter(r => r.rk);
+        if (!ranked.length) {
+            const low = opened.sort((a, b) => a.s[5] - b.s[5] || a.need - b.need)[0];
+            return { id, name, ok: false, reason: 'rank', needRank: low.s[5], needExplore: low.need, msg: `等級不足：最低要 ${low.s[5]} 級（${secShort(low.sec)}）` };
+        }
+        const best = ranked.sort((a, b) => a.need - b.need)[0];
+        return { id, name, ok: false, reason: 'explore', needRank: 0, needExplore: best.need, msg: `探索性能不足：要 ${best.need}，目前 ${explore}（${secShort(best.sec)}）` };
+    }
+    function autoNavWhyText(res, an) {
+        const w = res && res.why;
+        if (w === 'nomap') return '這個群組還沒設定海圖進度，請先到「海圖」勾選已開的地點';
+        if (w === 'alldone') return '海圖已經全部開完了';
+        if (w === 'allmaps') return '所有海圖都已經開放了';
+        if (w === 'gold') return `跑不了 ${an.route || 'OJ'}：` + ((res.gold && res.gold.rows.filter(r => r.block && !r.ok).map(goldGapText).join('、')) || '條件不足');
+        if (w === 'mapopen') return `${MAP_NAMES[an.mapId] || '這張海圖'}已經開放了`;
+        if (w === 'mapdone') return `${MAP_NAMES[an.mapId] || '這張海圖'}已經全部開完了`;
+        if (w === 'rank') return '可以開新地點的來源地點等級不夠';
+        if (w === 'nolevel') return '還沒有設定等級與配件';
+        if (w === 'hours') return '沒有路線能在設定的回港時段回港';
+        if (w === 'range') return '航距不夠，到不了需要去的地點';
+        if (w === 'noitem') return '目標物品目前都拿不到';
+        return '找不到符合條件的路線';
+    }
+    const AUTO_NAV_CACHE = new Map();   // 船 ID → { key, res, promise }
+    function autoNavInputs(t, an) {
+        const { lv, stats } = autoNavShip(t);
+        const group = t.group || DEFAULT_GROUP;
+        const ns = autoNodeState(group);
+        const depart = Math.max(Date.now(), t.endTime || 0);
+        const hrs = rpHours.inc.size || rpHours.exc.size;
+        const key = JSON.stringify([an.mode, an.mode === 'loot' ? an.items || [] : 0, an.mode === 'chart' ? [an.mapId || 0, an.goal || 'all'] : an.mode === 'gold' ? an.route || 'OJ' : 0, lv, t.parts || {}, group, ns.json,
+            [...rpHours.inc], [...rpHours.exc], hrs ? Math.floor(depart / 600000) : 0, window.SUB_DATA_VERSION || '']);
+        return { lv, stats, group, ns, depart, key };
+    }
+    function autoNavCached(t) {
+        const an = autoNavOf(t); if (!an) return null;
+        const c = AUTO_NAV_CACHE.get(t.id);
+        return c && c.key === autoNavInputs(t, an).key ? c : null;
+    }
+    // 算一艘船的自動航線（結果依輸入快取，輸入不變就不重算）
+    function autoNavCompute(t, an) {
+        const inp = autoNavInputs(t, an);
+        const { lv, stats, ns, depart } = inp;
+        if (!lv || !stats.speed) return Promise.resolve({ key: inp.key, res: { best: null, why: 'nolevel' } });
+        if (an.mode === 'gold') {
+            const g = goldCheck(an.route || 'OJ', lv, stats, ns);
+            if (!g.ok) return Promise.resolve({ key: inp.key, res: { best: null, why: 'gold', gold: g } });
+            const h = new Date(depart + g.calc.timeMins * 60000).getHours();
+            g.hourOff = (rpHours.exc.has(h) || (rpHours.inc.size && !rpHours.inc.has(h))) ? h : null;
+            return Promise.resolve({ key: inp.key, res: { best: { mapId: 1, secIds: g.secIds, exp: g.calc.exp, timeMins: g.calc.timeMins, range: g.calc.range }, gold: g } });
+        }
+        const o = { mode: an.mode, depart, inc: [...rpHours.inc], exc: [...rpHours.exc] };
+        let chart = null;
+        if (an.mode === 'chart') {
+            chart = autoChartPlan(inp.group, lv, an.mapId || 0, an.goal);
+            if (chart.why) return Promise.resolve({ key: inp.key, res: { best: null, why: chart.why, chart } });
+            o.weights = chart.weights;
+        }
+        if (an.mode === 'loot') o.targets = (an.items || []).slice();
+        const allowed = ns.empty ? null : SUB_SECTORS.filter(s => ns.on(s[1], s[2])).map(s => s[1] + '|' + s[2]);
+        return SubRouteWorker.runAuto([lv, { spd: stats.speed, rng: stats.range, explore: stats.explore }, allowed, o])
+            .then(res => {
+                if (!res.best && an.mode === 'loot' && o.targets.length && res.why === 'none') res.why = 'noitem';
+                res.chart = chart; return { key: inp.key, res };
+            });
+    }
+    function autoNavEnsure(t) {
+        const an = autoNavOf(t); if (!an) return Promise.resolve(null);
+        const key = autoNavInputs(t, an).key;
+        const c = AUTO_NAV_CACHE.get(t.id);
+        if (c && c.key === key) return c.promise;
+        const entry = { key, res: null };
+        entry.promise = autoNavCompute(t, an).then(out => {
+            entry.res = out.res;
+            if (AUTO_NAV_CACHE.get(t.id) === entry) setTimeout(() => updateRouteLine(t.id), 0);
+            return out.res;
+        }).catch(e => { console.error(e); entry.res = { best: null, why: 'error' }; return entry.res; });
+        AUTO_NAV_CACHE.set(t.id, entry);
+        return entry.promise;
+    }
+    let _autoNavRefreshTimer = null;
+    function autoNavRefreshAll() {
+        clearTimeout(_autoNavRefreshTimer);
+        _autoNavRefreshTimer = setTimeout(() => {
+            try { getActiveTimers().forEach(t => { if (autoNavOf(t)) updateRouteLine(t.id); }); } catch (e) {}
+        }, 150);
+    }
+    // 船卡上的一行：🧭 練等 下次：灰海 A→B→C
+    function autoNavLineHtml(t, plan) {
+        const an = autoNavOf(t); const m = AUTO_NAV_MODES[an.mode];
+        const tag = '';
+        const c = autoNavCached(t);
+        if (!c || !c.res) return '';
+        const res = c.res;
+        if (!res.best) return `<span class="route-auto warn" title="${escapeHtml(autoNavWhyText(res, an))}">${tag}⚠️ ${escapeHtml(autoNavWhyText(res, an))}${t.lastRoute ? '，改用上次航線' : ''}${res.why === 'gold' ? '（💡 船艇設定裡有升等／換配件建議）' : ''}</span>`;
+        const b = res.best;
+        let extra = '';
+        if (an.mode === 'loot' && (an.items || []).length) {
+            const n = (b.covered || []).length, all = an.items.length;
+            extra = n < all ? `<span class="an-warn" style="margin-left:0" title="有 ${all - n} 個目標這趟拿不到">💎 目標 ${n}/${all}</span>` : `<span style="opacity:.8">💎 目標 ${n}/${all} 都拿得到</span>`;
+        }
+        if (an.mode === 'gold' && res.gold) {
+            const miss = res.gold.rows.filter(r => !r.block && !r.ok);
+            extra = `<span style="opacity:.8">💰 ${escapeHtml(res.gold.key)}</span>`
+                + (res.gold.hourOff != null ? `<span class="an-warn" title="固定航線無法配合回港時段">回港 ${res.gold.hourOff} 點不在設定時段</span>` : '')
+                + (miss.length ? `<span class="an-warn" title="${escapeHtml(miss.map(goldGapText).join('\n'))}">建議：${escapeHtml(miss.map(r => `${r.k}差 ${r.need - r.have}`).join('、'))}</span>` : '');
+        }
+        if (an.mode === 'chart' && res.chart) {
+            const mm = res.chart.m;
+            const vis = new Set(b.secIds);
+            const hit = [...res.chart.next].filter(([, srcs]) => srcs.some(s => vis.has(s))).map(([id]) => res.chart.dest ? secShort(id) : (SECTOR_MAP.get(id) || [])[2]);
+            extra = `<span style="opacity:.8">🗺️ ${res.chart.dest ? '往' : '開'}${escapeHtml(MAP_NAMES[mm] || '')}${res.chart.dest && res.chart.steps < 99 ? `（還差 ${res.chart.steps} 點）` : ''}${hit.length ? `：有機會開出 ${escapeHtml(hit.join('、'))}` : ''}</span>`;
+        }
+        return extra ? `<span class="route-auto">${extra}</span>` : '';
+    }
+    // 船卡上的快速開關＋類型（細項如目標物品、海圖仍在船艇設定）
+    function autoNavCtlHtml(t) {
+        const a = t.autoNav || {};
+        const on = !!a.on, mode = AUTO_NAV_MODES[a.mode] ? a.mode : 'exp';
+        const opts = Object.entries(AUTO_NAV_MODES).map(([k, v]) => `<option value="${k}"${k === mode ? ' selected' : ''}>${v.label}</option>`).join('');
+        return `<span class="an-ctl"><label class="an-mini-switch" title="自動導航：開啟後「再出發」會自動規劃下一趟"><input type="checkbox" data-id="${t.id}" data-on-change="a140"${on ? ' checked' : ''}><span class="cfg-an-knob" aria-hidden="true"></span><span class="an-mini-txt">🧭 自動導航</span></label>`
+            + `<select class="an-mini-mode" data-id="${t.id}" data-on-change="a141" aria-label="${escapeHtml(t.name || '')} 的導航類型"${on ? '' : ' disabled'}>${opts}</select></span>`;
+    }
+    // 船卡上的「自動導航」列（和上次／下次回港分開）
+    function updateAnLine(t, plan) {
+        const el = document.getElementById(`an-line-${t.id}`);
+        if (!el) return;
+        if (el.contains(document.activeElement) && document.activeElement.tagName === 'SELECT') return;   // 正在選類型時先不重畫
+        const an = autoNavOf(t);
+        el.innerHTML = `<div class="an-box">${autoNavCtlHtml(t)}${an ? autoNavLineHtml(t, plan) : ''}</div>`;
+        el.classList.toggle('on', !!an);
+    }
+    function autoNavQuickSet(id, patch) {
+        const t = getActiveTimers().find(x => x.id === id);
+        if (!t) return;
+        const a = t.autoNav || { on: false, mode: 'exp', items: [], mapId: 0 };
+        t.autoNav = { ...a, ...patch };
+        AUTO_NAV_CACHE.delete(t.id);
+        saveActiveTimers();
+        if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+        updateRouteLine(t.id);
+    }
+    function autoNavConfirmLines(t, plan) {
+        if (!plan.auto) return [];
+        const an = autoNavOf(t), m = AUTO_NAV_MODES[plan.auto.mode];
+        if (plan.auto.fallback) return [`🧭 自動導航（${m.label}）：${plan.auto.res ? autoNavWhyText(plan.auto.res, an) : '還在規劃'}，改用上次航線`];
+        const res = plan.auto.res, out = [`🧭 自動導航（${m.label}）規劃的航線`];
+        if (an.mode === 'loot' && (an.items || []).length) {
+            const cov = new Set(res.best.covered || []);
+            out.push(`目標物品 ${cov.size}/${an.items.length}：` + an.items.map(id => `${cov.has(id) ? '✓' : '✗'}${ITEM_DB[id] || id}`).join('、'));
+        }
+        if (an.mode === 'gold' && res.gold) {
+            const miss = res.gold.rows.filter(r => !r.block && !r.ok);
+            if (miss.length) out.push('建議：' + miss.map(goldGapText).join('、'));
+            if (res.gold.hourOff != null) out.push(`⚠️ 固定航線：回港 ${res.gold.hourOff} 點不在設定的回港時段`);
+        }
+        if (an.mode === 'chart' && res.chart) {
+            const vis = new Set(res.best.secIds);
+            const hit = [...res.chart.next].filter(([id, srcs]) => srcs.some(s => vis.has(s))).map(([id]) => secShort(id));
+            if (hit.length) out.push(`有機會開出：${hit.join('、')}`);
+        }
+        return out;
+    }
+
+    // ── 船艇設定視窗裡的自動導航 ──
+    let cfgAn = { on: false, mode: 'exp', items: [], mapId: 0, goal: 'all', route: 'OJ' };
+    let _cfgAnTimer = null, _cfgAnSeq = 0;
+    function cfgAnOpen(t) {
+        const a = t.autoNav || {};
+        cfgAn = { on: !!a.on, mode: AUTO_NAV_MODES[a.mode] ? a.mode : 'exp', items: [...(a.items || [])], mapId: a.mapId || 0, goal: a.goal === 'next' ? 'next' : 'all', route: GOLD_ROUTES[a.route] ? a.route : 'OJ' };
+        document.getElementById('cfg-an-cat').value = cfgAnCat;
+        cfgAnSetCat(cfgAnCat, true);
+        cfgAnRender();
+    }
+    function cfgAnSave(t) {
+        const a = { on: cfgAn.on, mode: cfgAn.mode, items: [...cfgAn.items], mapId: cfgAn.mapId, goal: cfgAn.goal, route: cfgAn.route };
+        if (!a.on && !t.autoNav) return;
+        t.autoNav = a;
+        AUTO_NAV_CACHE.delete(t.id);
+    }
+    function cfgAnToggle(on) { cfgAn.on = !!on; cfgAnRender(); }
+    function cfgAnSetMode(m) { if (AUTO_NAV_MODES[m]) { cfgAn.mode = m; cfgAnRender(); } }
+    function cfgAnSetMap(id) { cfgAn.mapId = id || 0; cfgAnRender(); }
+    function cfgAnSetGoal(g) { cfgAn.goal = g === 'next' ? 'next' : 'all'; cfgAn.mapId = 0; cfgAnRender(); }
+    function cfgAnAddItem(id, fromMenu) {
+        if (id && !cfgAn.items.includes(id)) cfgAn.items.push(id);
+        document.getElementById('cfg-an-q').value = '';
+        cfgAnSearch(null);
+        cfgAnRender();
+        document.getElementById('cfg-an-q').focus();
+    }
+    // 目標物品：先選類別，再篩選（和配件規劃相同）；清單依海圖排序
+    let cfgAnCat = '';
+    function cfgAnSetCat(cat, silent) {
+        cfgAnCat = cat || '';
+        const q = document.getElementById('cfg-an-q');
+        q.disabled = !cfgAnCat;
+        q.placeholder = cfgAnCat ? '輸入關鍵字篩選…' : '— 請先選擇類別 —';
+        q.value = '';
+        if (cfgAnCat && !silent) { q.focus(); cfgAnSearch('', true); } else cfgAnSearch(null);
+    }
+    function cfgAnRemoveItem(id) { cfgAn.items = cfgAn.items.filter(x => x !== id); cfgAnRender(); }
+    function cfgAnSearch(q, showAll) {
+        const box = document.getElementById('cfg-an-suggest');
+        if (!box) return;
+        if (q === null || !cfgAnCat || (!q.trim() && !showAll)) { box.classList.remove('open'); box.innerHTML = ''; return; }
+        const kw = q.trim().toLowerCase();
+        const hit = lootItemsByCat(cfgAnCat).filter(x => !cfgAn.items.includes(x.id) && (!kw || x.name.toLowerCase().includes(kw)
+            || (((typeof ITEM_DB_EN !== 'undefined' && ITEM_DB_EN) ? ITEM_DB_EN[x.id] : '') || '').toLowerCase().includes(kw)));
+        box.innerHTML = hit.length
+            ? itemsGroupedHtml(hit.slice(0, 500), x => {
+                const src = AUTO_ITEM_SRC[x.id] || [];
+                const maps = [...new Set(src.map(s => MAP_NAMES[(SECTOR_MAP.get(s.sec) || [])[1]]))].filter(Boolean);
+                return `<button type="button" class="cfg-an-sug" role="option" data-id="${x.id}" data-on-mousedown="a134"><span>${escapeHtml(x.name)}</span><small>${escapeHtml(maps.slice(0, 3).join('・'))}</small></button>`;
+            }, 'cfg-an-sug-group')
+            : '<div class="cfg-an-sug-empty">無符合結果</div>';
+        box.classList.add('open');
+    }
+    // 設定視窗裡用「表單上」的等級、配件來判斷
+    function cfgAnTempShip() {
+        const t = getActiveTimers().find(x => x.id === currentConfigTimerId) || {};
+        const parts = createEmptyParts();
+        PART_KEYS.forEach(key => { parts[key] = document.getElementById(`cfg-part-${key}`).value; });
+        const level = document.getElementById('cfg-level').value.trim();
+        return { ...t, id: '__cfg_preview__', level, parts, expTrack: { level: parseInt(level, 10) || 0, exp: 0, known: false }, lastRoute: null,
+                 autoNav: { on: true, mode: cfgAn.mode, items: [...cfgAn.items], mapId: cfgAn.mapId, goal: cfgAn.goal, route: cfgAn.route } };
+    }
+    function cfgAnRender() {
+        const wrap = document.getElementById('cfg-an');
+        if (!wrap) return;
+        document.getElementById('cfg-an-on').checked = cfgAn.on;
+        wrap.classList.toggle('off', !cfgAn.on);
+        wrap.querySelectorAll('.cfg-an-modes [data-mode]').forEach(b => { const on = b.dataset.mode === cfgAn.mode; b.setAttribute('aria-pressed', String(on)); b.setAttribute('role', 'radio'); b.setAttribute('aria-checked', String(on)); });
+        document.getElementById('cfg-an-desc').innerHTML = AUTO_NAV_MODES[cfgAn.mode].desc;
+        document.getElementById('cfg-an-loot').style.display = cfgAn.mode === 'loot' ? '' : 'none';
+        document.getElementById('cfg-an-chart').style.display = cfgAn.mode === 'chart' ? '' : 'none';
+        document.getElementById('cfg-an-gold').style.display = cfgAn.mode === 'gold' ? '' : 'none';
+        // 開圖方式：兩種方式的海圖選單意思不同
+        const nextGoal = cfgAn.goal === 'next';
+        document.querySelectorAll('.cfg-an-goals [data-goal]').forEach(b => { const on = b.dataset.goal === cfgAn.goal; b.setAttribute('aria-pressed', String(on)); b.setAttribute('role', 'radio'); b.setAttribute('aria-checked', String(on)); });
+        document.getElementById('cfg-an-goal-desc').textContent = nextGoal
+            ? '沿著解鎖路線往下一張海圖撞，先把新海圖開出來；路上同海域其他沒開的點會順便撞。'
+            : '撞出這張海圖所有還沒開的點；沒指定時依海圖順序，由前往後開。';
+        document.getElementById('cfg-an-map-lbl').textContent = nextGoal ? '要開到的海圖' : '要開的海圖';
+        const mapSel = document.getElementById('cfg-an-map');
+        mapSel.innerHTML = (nextGoal ? '<option value="0">下一張還沒開的海圖</option>' : '<option value="0">依海圖順序（由前往後開）</option>')
+            + Object.keys(MAP_NAMES).filter(k => !nextGoal || +k > 1).map(k => `<option value="${k}">${escapeHtml(MAP_NAMES[k])}</option>`).join('');
+        mapSel.value = String(cfgAn.mapId || 0);
+        const tmp = cfgAnTempShip();
+        const { lv, stats } = autoNavShip(tmp);
+        const group = tmp.group || DEFAULT_GROUP;
+        if (cfgAn.mode === 'loot') {
+            const sts = cfgAn.items.map(id => autoItemStatus(id, group, lv, stats.explore));
+            document.getElementById('cfg-an-items').innerHTML = sts.map(st => {
+                const id = st.id;
+                return `<div class="cfg-an-item${st.ok ? '' : ' bad'}"><span class="nm">${escapeHtml(st.name)}</span><span class="st">${st.ok ? '' : '⚠️ '}${escapeHtml(st.msg)}</span><button type="button" class="x" data-id="${id}" data-on-click="a135" aria-label="移除 ${escapeHtml(st.name)}">✕</button></div>`;
+            }).join('');
+            // 💡 等級／探索不足時的推薦
+            const advEl = document.getElementById('cfg-an-loot-adv');
+            const tParts = tmp.parts || createEmptyParts();
+            const la = lv ? lootAdvice(sts, lv, tParts) : null;
+            if (!la) { advEl.innerHTML = ''; advEl.style.display = 'none'; }
+            else {
+                const lines = [];
+                const who = la.fix.map(s => s.name).join('、');
+                lines.push(`要拿到 ${escapeHtml(who)}：${la.needRank > lv ? `等級 <b>${la.needRank}</b> 級以上、` : ''}探索 <b>${la.needExp}</b> 以上（目前 ${lv} 級、探索 ${stats.explore}）`);
+                lines.push(la.lvTo != null ? `<b>升級</b>：到 <b>${la.lvTo} 級</b>就夠（配件不換）` : `<b>升級</b>：升到最高 ${la.maxLv} 級探索也不夠，需要換配件`);
+                if (la.parts) {
+                    const lvNote = la.partsLv > lv ? `（等級到 ${la.partsLv} 級後）` : `（維持 ${lv} 級）`;
+                    const rngNote = la.parts.s.range < la.curRange ? `，航距會從 ${la.curRange} 降到 ${la.parts.s.range}` : `・航距 ${la.parts.s.range}`;
+                    lines.push(`<b>換配件</b>${lvNote}：${goldPartsChangeText(tParts, la.parts) || '不用換'}・探索 ${la.parts.s.explore}${rngNote} <button type="button" class="cfg-an-apply" data-combo="${la.parts.combo.join(',')}" data-on-click="a146">套用</button>`);
+                } else lines.push(`<b>換配件</b>：沒有配件組合能讓探索達到 ${la.needExp}`);
+                advEl.innerHTML = '💡 推薦做法<ul>' + lines.map(l => `<li>${l}</li>`).join('') + '</ul>';
+                advEl.style.display = '';
+            }
+        }
+        if (cfgAn.mode === 'gold') {
+            document.querySelectorAll('#cfg-an-gold [data-route]').forEach(b => { const on = b.dataset.route === cfgAn.route; b.setAttribute('aria-pressed', String(on)); b.setAttribute('role', 'radio'); b.setAttribute('aria-checked', String(on)); });
+            const g = goldCheck(cfgAn.route, lv, stats, autoNodeState(group));
+            document.getElementById('cfg-an-gold-route').innerHTML = `航線：<b>溺沒海 ${g.secIds.map(id => escapeHtml(secLabel(id).split(' ').slice(1).join(' '))).join(' → ')}</b>`
+                + (g.calc ? `<br><small style="opacity:.75">需要等級 ${g.rows[1].need}、航距 ${g.calc.range}・經驗 ${g.calc.exp.toLocaleString()}・耗時 ${subFmtMins(g.calc.timeMins)}</small>` : '');
+            document.getElementById('cfg-an-gold-chk').innerHTML = g.rows.map(r => {
+                const cls = r.ok ? '' : (r.block ? ' bad' : ' warn');
+                const head = `${r.ok ? '✓' : (r.block ? '✗' : '△')} <b>${r.k}</b>`;
+                const body = r.need != null
+                    ? (r.ok ? `${r.have} / ${r.need}` : `差 ${r.need - r.have}（需要 ${r.need}，目前 ${r.have}）`)
+                    : escapeHtml(r.txt);
+                return `<div class="gk${cls}">${head}${body}${r.hint ? `<small>${r.block ? '' : '建議・'}${escapeHtml(r.hint)}</small>` : (r.block ? '<small>必要條件</small>' : '')}</div>`;
+            }).join('');
+            // 💡 推薦：升等或換配件
+            const adv = document.getElementById('cfg-an-gold-adv');
+            const tmpParts = tmp.parts || createEmptyParts();
+            const a = goldAdvice(g, lv, tmpParts);
+            if (a.fullNow) { adv.innerHTML = '💡 目前的等級與配件已經達到所有門檻。'; }
+            else {
+                const lines = [];
+                const lockRow = g.rows.find(r => r.k === '海圖' && !r.ok);
+                if (lockRow) lines.push(`先到「海圖」開放：${escapeHtml(lockRow.txt.replace('還沒開：', ''))}`);
+                // 只升級
+                if (!a.mustNow) lines.push(a.mustLv != null ? `<b>升級</b>：到 <b>${a.mustLv} 級</b>就能跑${a.fullLv != null ? `；到 <b>${a.fullLv} 級</b>連建議值也達到` : ''}` : `<b>升級</b>：升到最高 ${a.maxLv} 級也不夠，需要換配件`);
+                else lines.push(a.fullLv != null ? `<b>升級</b>：已經能跑；到 <b>${a.fullLv} 級</b>連建議值也達到` : `<b>升級</b>：已經能跑；建議值要靠換配件`);
+                // 只換配件
+                const lvNote = a.partsLv > lv ? `（等級到 ${a.partsLv} 級後）` : `（維持 ${lv} 級）`;
+                const pm = a.parts.must, pf = a.parts.full;
+                const applyBtn = c => `<button type="button" class="cfg-an-apply" data-combo="${c.combo.join(',')}" data-on-click="a146">套用</button>`;
+                if (!a.mustNow) lines.push(pm ? `<b>換配件</b>${lvNote}：${goldPartsChangeText(tmpParts, pm) || '不用換'}・航距 ${pm.s.range} ${applyBtn(pm)}` : `<b>換配件</b>${lvNote}：沒有配件組合能達到航距 ${g.rows[2].need}`);
+                if (pf && (!pm || pf.combo.join() !== pm.combo.join() || a.mustNow)) lines.push(`<b>連建議值都達到</b>${lvNote}：${goldPartsChangeText(tmpParts, pf) || '不用換'}・收集 ${pf.s.gather}／恩惠 ${pf.s.favor}／探索 ${pf.s.explore} ${applyBtn(pf)}`);
+                else if (!pf) lines.push(`建議值在 ${a.partsLv} 級時沒有配件組合能全部達到`);
+                adv.innerHTML = '💡 推薦做法<ul>' + lines.map(l => `<li>${l}</li>`).join('') + '</ul>';
+            }
+        }
+        if (cfgAn.mode === 'chart') {
+            const el = document.getElementById('cfg-an-chart-st');
+            const cp = lv ? autoChartPlan(group, lv, cfgAn.mapId || 0, cfgAn.goal) : { why: 'nolevel' };
+            if (cp.why && cp.why !== 'rank') { el.className = 'cfg-an-chart-st bad'; el.textContent = '⚠️ ' + autoNavWhyText({ why: cp.why }, cfgAn); }
+            else {
+                const nx = [...cp.next].slice(0, 6).map(([id, srcs]) => `${secShort(id)}（從 ${srcs.map(s => (SECTOR_MAP.get(s) || [])[2]).join('/')}）`);
+                el.className = 'cfg-an-chart-st' + (cp.why ? ' bad' : '');
+                el.innerHTML = (cp.dest
+                        ? `${cp.auto ? '下一張要開的海圖：' : '目標：開到 '}<b>${escapeHtml(MAP_NAMES[cp.m])}</b>（還差 ${cp.steps < 99 ? cp.steps : '?'} 個點）<br>下一步要撞：${escapeHtml(nx.join('、')) || '—'}`
+                        : `${cp.auto ? '依順序，目前要開：' : '目標：'}<b>${escapeHtml(MAP_NAMES[cp.m])}</b>（還有 ${cp.locked} 個地點沒開）<br>下一步可開：${escapeHtml(nx.join('、')) || '—'}`)
+                    + (cp.why ? `<br>⚠️ ${escapeHtml(autoNavWhyText(cp, cfgAn))}：${escapeHtml([...new Set(cp.blocked)].slice(0, 3).map(s => `${secShort(s)} 要 ${(SECTOR_MAP.get(s) || [])[5]} 級`).join('、'))}` : '');
+            }
+        }
+        const pad = n => String(n).padStart(2, '0');
+        const hs = [];
+        if (rpHours.inc.size) hs.push('只要 ' + rpHoursSummary(rpHours.inc).replace('已選：', ''));
+        if (rpHours.exc.size) hs.push('避開 ' + rpHoursSummary(rpHours.exc).replace('已選：', ''));
+        document.getElementById('cfg-an-hours').textContent = '回港時段：' + (hs.length ? hs.join('；') + '（依「路線規劃」的設定）' : '不限（可在「路線規劃」設定）') + '。只會走海圖上已開的地點。';
+        // 預覽：依目前表單內容算一次
+        const pv = document.getElementById('cfg-an-preview');
+        if (cfgAn.mode === 'none') { pv.innerHTML = '再出發會照「目前航線」。'; return; }
+        pv.innerHTML = '🧭 規劃中…';
+        clearTimeout(_cfgAnTimer);
+        const seq = ++_cfgAnSeq;
+        _cfgAnTimer = setTimeout(() => {
+            const an = autoNavOf(tmp);
+            autoNavCompute(tmp, an).then(({ res }) => {
+                if (seq !== _cfgAnSeq) return;
+                if (!res.best) { pv.innerHTML = `<span class="bad">⚠️ ${escapeHtml(autoNavWhyText(res, an))}</span>，再出發時會改用上次航線`; return; }
+                const b = res.best;
+                const eta = tmp.endTime && tmp.endTime > Date.now() ? tmp.endTime : Date.now();
+                let extra = '';
+                if (an.mode === 'loot' && an.items.length) extra = `・目標 ${(b.covered || []).length}/${an.items.length}`;
+                if (an.mode === 'gold' && res.gold && res.gold.hourOff != null) extra = `・⚠️ 回港 ${res.gold.hourOff} 點不在設定時段（固定航線無法調整）`;
+                if (an.mode === 'chart' && res.chart) {
+                    const vis = new Set(b.secIds);
+                    const hit = [...res.chart.next].filter(([, srcs]) => srcs.some(s => vis.has(s))).map(([id]) => secShort(id));
+                    extra = `・有機會開出 ${hit.join('、')}`;
+                }
+                pv.innerHTML = `下次航線：<b>${escapeHtml(MAP_NAMES[b.mapId] || '')} ${b.secIds.map(id => escapeHtml(secLabel(id).split(' ').slice(1).join(' '))).join(' → ')}</b><br>`
+                    + `經驗 ${b.exp.toLocaleString()}・耗時 ${subFmtMins(b.timeMins)}・約 ${subFmtEta(eta + Math.round(b.timeMins * 60) * 1000)} 回港${escapeHtml(extra)}`;
+            }).catch(() => { if (seq === _cfgAnSeq) pv.innerHTML = '<span class="bad">⚠️ 規劃時發生錯誤</span>'; });
+        }, 250);
+    }
+
     // ══ 再出發：記錄航線、累計經驗、依目前等級重新計算航行時間 ══════════════
     const SUB_MAX_RANK = Math.max(...Object.keys(SUB_RANKS).map(Number));
     function subExpNeed(lv) { const r = SUB_RANKS[lv]; return r ? r[0] : 0; }
@@ -9318,31 +10250,51 @@ const CRAFT_BASE = SUB_DATA.CRAFT_BASE;
         const el = document.getElementById(`route-line-${id}`);
         const t = getActiveTimers().find(x => x.id === id);
         if (!el || !t) return;
-        const r = t.lastRoute;
-        if (!r || !r.secIds || !r.secIds.length) { el.style.display = 'none'; el.innerHTML = ''; return; }
+        const r = t.lastRoute, an = autoNavOf(t);
+        const hasLast = !!(r && r.secIds && r.secIds.length);
+        if (!hasLast && !an) { el.style.display = 'none'; el.innerHTML = ''; updateAnLine(t, null); return; }
+        if (an) autoNavEnsure(t);   // 設定或海圖變了才會重算；算完會再更新這一列
         const p = subPendingResult(t), cur = subLevelNum(t);
         const lvTxt = !cur ? '' : (p.level > cur ? ` · 回港後約 ${p.level} 級` : ` · 回港後仍是 ${cur} 級`);
         const now = Date.now(), returned = now >= t.endTime;
         // 下次回港：已回港＝現在出發；航行中＝這趟回港後立刻出發
         const plan = subPlanRedepart(t);
         let nextTxt;
-        if (plan.err) nextTxt = `<span class="route-next warn">⚠️ ${escapeHtml(plan.err.split('：')[0])}，無法再出發</span>`;
+        if (plan.pending) nextTxt = hasLast ? '' : `<span class="route-next">🧭 規劃中…</span>`;
+        else if (plan.err) nextTxt = `<span class="route-next warn">⚠️ ${escapeHtml(plan.err.split('：')[0])}，無法再出發</span>`;
         else {
             const base = returned ? now : t.endTime;
             const eta = base + Math.round(plan.calc.timeMins * 60) * 1000;
             nextTxt = `<span class="route-next">${returned ? '現在出發' : '回港後出發'} → <b>${subFmtEta(eta)}</b> 回港<span class="route-next-dur">（${subFmtMins(plan.calc.timeMins)}）</span></span>`;
         }
-        el.innerHTML = `<div class="route-line-info"><span class="route-line-txt"><span class="rl-k">上次航線：</span><span class="rl-v">${escapeHtml(MAP_NAMES[r.mapId] || '')} ${subRouteLetters(r)}</span>${lvTxt}</span>${nextTxt}</div>`
+        // 自動導航有規劃出航線：航線欄直接換成「下次航線」（再出發就走這條）
+        const autoR = plan.auto && !plan.auto.fallback && plan.r;
+        const lastTxt = autoR
+            ? `<span class="route-line-txt route-line-auto"><span class="rl-k">🧭 下次航線：</span><span class="rl-v">${escapeHtml(MAP_NAMES[autoR.mapId] || '')} ${subRouteLetters(autoR)}</span>${lvTxt}</span>`
+            : (an && plan.pending)
+            ? `<span class="route-line-txt route-line-auto"><span class="rl-k">🧭 下次航線：</span>規劃中…${lvTxt}</span>`
+            : hasLast
+            ? `<span class="route-line-txt"><span class="rl-k">上次航線：</span><span class="rl-v">${escapeHtml(MAP_NAMES[r.mapId] || '')} ${subRouteLetters(r)}</span>${lvTxt}</span>`
+            : (lvTxt ? `<span class="route-line-txt">${lvTxt.replace(' · ', '')}</span>` : '');
+        updateAnLine(t, plan);
+        el.innerHTML = `<div class="route-line-info">${lastTxt}${nextTxt}</div>`
             + `<button type="button" class="card-icon-btn btn-redepart${returned ? ' ready' : ''}" onclick="subRedepart('${t.id}')">再出發</button>`;
         el.style.display = 'flex';
         subRefreshGroupRedepart();
     }
     setInterval(() => {
-        try { getActiveTimers().forEach(t => { if (t.lastRoute && Date.now() >= t.endTime) updateRouteLine(t.id); }); } catch (e) {}
+        try { getActiveTimers().forEach(t => { if ((t.lastRoute || autoNavOf(t)) && Date.now() >= t.endTime) updateRouteLine(t.id); }); } catch (e) {}
     }, 60000);
     // 計算再出發的結果（不寫入）；失敗時回傳 { err }
     function subPlanRedepart(t) {
-        const r = t && t.lastRoute;
+        let r = t && t.lastRoute, auto = null;
+        const an = t && autoNavOf(t);
+        if (an) {
+            const c = autoNavCached(t);
+            if (c && c.res && c.res.best) { r = { mapId: c.res.best.mapId, secIds: c.res.best.secIds }; auto = { mode: an.mode, res: c.res }; }
+            else if (!c || !c.res) { if (!r) return { err: '自動導航規劃中…', pending: true }; auto = { mode: an.mode, pending: true, fallback: true }; }
+            else { if (!r) return { err: autoNavWhyText(c.res, an) }; auto = { mode: an.mode, res: c.res, fallback: true }; }
+        }
         if (!r) return { err: '沒有上次航線' };
         const oldLv = subLevelNum(t);
         if (!oldLv) return { err: '還沒有設定等級，請先到「船艇設定」填寫' };
@@ -9352,7 +10304,7 @@ const CRAFT_BASE = SUB_DATA.CRAFT_BASE;
         if (!calc) return { err: '找不到這條航線的距離資料，請改用路線規劃重新選擇' };
         if (calc.range > stats.range) return { err: `航距不足：這條航線需要 ${calc.range}，目前航距只有 ${stats.range}` };
         if (calc.minRank > p.level) return { err: `等級不足：這條航線需要 ${calc.minRank} 級` };
-        return { r, oldLv, p, calc };
+        return { r, oldLv, p, calc, auto };
     }
     function subCommitRedepart(t, plan, start) {
         const { r, p, calc } = plan;
@@ -9377,9 +10329,10 @@ const CRAFT_BASE = SUB_DATA.CRAFT_BASE;
     const _pad2 = n => String(n).padStart(2, '0');
     function subFmtEta(ms) { const d = new Date(ms); return `${d.getMonth() + 1}/${d.getDate()} ${_pad2(d.getHours())}:${_pad2(d.getMinutes())}`; }
 
-    function subRedepart(id) {
+    async function subRedepart(id) {
         const t = getActiveTimers().find(x => x.id === id);
-        if (!t || !t.lastRoute) return;
+        if (!t || !(t.lastRoute || autoNavOf(t))) return;
+        if (autoNavOf(t)) { try { await autoNavEnsure(t); } catch (e) {} }
         const plan = subPlanRedepart(t);
         if (plan.err) { showAlert('⚠️ ' + plan.err); return; }
         const { r, oldLv, p, calc } = plan;
@@ -9388,6 +10341,7 @@ const CRAFT_BASE = SUB_DATA.CRAFT_BASE;
         const diffTxt = diff ? `（比上次${diff < 0 ? '少' : '多'} ${Math.abs(diff)} 分）` : '（和上次相同）';
         const lines = [
             `${t.name}：${MAP_NAMES[r.mapId] || ''} ${subRouteLetters(r)}`,
+            ...autoNavConfirmLines(t, plan),
             p.level > oldLv ? `等級 ${oldLv} → ${p.level}${p.known ? '' : '（推算）'}` : `等級 ${p.level}（未升級）`,
             `耗時 ${subFmtMins(calc.timeMins)}${diffTxt}`,
             `回港 ${subFmtEta(now + Math.round(calc.timeMins * 60) * 1000)}`
@@ -9404,7 +10358,7 @@ const CRAFT_BASE = SUB_DATA.CRAFT_BASE;
     function subGroupCandidates() {
         const now = Date.now();
         return getActiveTimers().filter(t =>
-            t.lastRoute && t.lastRoute.secIds && t.lastRoute.secIds.length &&
+            ((t.lastRoute && t.lastRoute.secIds && t.lastRoute.secIds.length) || autoNavOf(t)) &&
             now >= t.endTime &&
             (activeGroup === GROUP_ALL || (t.group || DEFAULT_GROUP) === activeGroup));
     }
@@ -9419,18 +10373,22 @@ const CRAFT_BASE = SUB_DATA.CRAFT_BASE;
         btn.innerHTML = `<span class="fleet-add-icon">⚓</span> ${lbl}<span class="grp-rd-count">${n}</span>`;
         btn.title = activeGroup === GROUP_ALL ? '所有已回港、有上次航線的船一起再出發' : `「${activeGroup}」裡已回港、有上次航線的船一起再出發`;
     }
-    function subGroupRedepart() {
+    async function subGroupRedepart() {
         const list = subGroupCandidates();
+        await Promise.all(list.filter(autoNavOf).map(t => autoNavEnsure(t).catch(() => null)));
         if (!list.length) { showAlert('目前沒有可以一起再出發的船。\n\n船要先在「路線規劃」按「使用」出發過一次（才會記住航線），等它回港後，就會算進這個按鈕，可以一次全部再出發。'); return; }
         const ok = [], bad = [];
         list.forEach(t => { const plan = subPlanRedepart(t); (plan.err ? bad : ok).push({ t, plan }); });
         const now = Date.now();
         const lines = [];
-        lines.push(activeGroup === GROUP_ALL ? `以下 ${ok.length} 艘船會照上次航線再出發：` : `「${activeGroup}」以下 ${ok.length} 艘船會照上次航線再出發：`);
+        const anyAuto = ok.some(({ plan }) => plan.auto && !plan.auto.fallback);
+        const how = anyAuto ? '依自動導航或上次航線' : '照上次航線';
+        lines.push(activeGroup === GROUP_ALL ? `以下 ${ok.length} 艘船會${how}再出發：` : `「${activeGroup}」以下 ${ok.length} 艘船會${how}再出發：`);
         ok.forEach(({ t, plan }) => {
             const { r, oldLv, p, calc } = plan;
             const lv = p.level > oldLv ? `${oldLv}→${p.level}級${p.known ? '' : '*'}` : `${p.level}級`;
-            lines.push(`・${t.name}　${MAP_NAMES[r.mapId] || ''} ${subRouteLetters(r)}　${lv}　回港 ${subFmtEta(now + Math.round(calc.timeMins * 60) * 1000)}`);
+            const tag = plan.auto && !plan.auto.fallback ? `🧭${AUTO_NAV_MODES[plan.auto.mode].label} ` : '';
+            lines.push(`・${t.name}　${tag}${MAP_NAMES[r.mapId] || ''} ${subRouteLetters(r)}　${lv}　回港 ${subFmtEta(now + Math.round(calc.timeMins * 60) * 1000)}`);
         });
         if (bad.length) {
             lines.push('', `以下 ${bad.length} 艘無法再出發，會跳過：`);
