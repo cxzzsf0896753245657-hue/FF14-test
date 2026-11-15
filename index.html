@@ -9,7 +9,6 @@
 window.UI_ACTIONS = {
     a1: function (event) { document.getElementById('customAlertOverlay').classList.remove('visible') },
     a2: function (event) { closeUpdateNotice() },
-    a3: function (event) { toggleTheme() },
     a4: function (event) { requestNotificationPermission() },
     a5: function (event) { switchMobileTab('fleet') },
     a6: function (event) { switchMobileTab('route') },
@@ -76,14 +75,7 @@ window.UI_ACTIONS = {
     a69: function (event) { gpOnCategoryChange() },
     a70: function (event) { gpOnItemSearch(this.value) },
     a71: function (event) { setTimeout(()=>{ const b=document.getElementById('gpSuggestBox'); if(b) b.style.display='none'; }, 180) },
-    a72: function (event) { numSpinnerStep('craftQty',1,1,99) },
-    a73: function (event) { numSpinnerStep('craftQty',-1,1,99) },
-    a74: function (event) { craftAddPart() },
     a75: function (event) { craftClearAll() },
-    a76: function (event) { craftMobAdd('船體',this) },
-    a77: function (event) { craftMobAdd('船尾',this) },
-    a78: function (event) { craftMobAdd('船首',this) },
-    a79: function (event) { craftMobAdd('艦橋',this) },
     a80: function (event) { DTPicker.navMonth(-1) },
     a81: function (event) { DTPicker.navMonth(1) },
     a82: function (event) { DTPicker.clear() },
@@ -109,16 +101,10 @@ window.UI_ACTIONS = {
     a102: function (event) { manualGo(4) },
     a103: function (event) { manualGo(5) },
     a104: function (event) { manualGo(6) },
-    a105: function (event) { manualFilter(this,'all') },
-    a106: function (event) { manualFilter(this,'a') },
-    a107: function (event) { manualFilter(this,'b') },
-    a108: function (event) { manualToggleCk(1) },
-    a109: function (event) { manualToggleCk(2) },
-    a110: function (event) { manualToggleCk(3) },
-    a111: function (event) { manualToggleCk(4) },
-    a112: function (event) { this.textContent='已同步 ✓';setTimeout(()=>this.textContent='立即同步',1500) },
     a113: function (event) { manualGo(7) },
     a114: function (event) { subGroupRedepart() },
+    a147: function (event) { openAddShipModal() },
+    a148: function (event) { document.getElementById('fileInput')?.click() },
     a128: function (event) { setRoomPerm(this.dataset.perm) },
     a129: function (event) { setFleetLayout(this.dataset.layout) },
     a130: function (event) { resetListColumns() },
@@ -200,7 +186,6 @@ window.UI_ACTIONS = {
         :where(.u6) { padding: 6px 8px !important; }
         :where(.u7) { text-align: center !important; }
         :where(.u8) { padding: 12px !important; }
-        :where(.u9) { flex-direction: column !important; gap: 8px !important; margin-bottom: 12px !important; }
         :where(.u10) { padding: 12px 14px !important; border-top: none !important; }
         :where(.u11) { margin-bottom: 14px !important; }
         :where(.u12) { font-size: 12px !important; margin-bottom: 6px !important; }
@@ -251,18 +236,10 @@ window.UI_ACTIONS = {
         :where(.u57) { margin-top: 8px !important; }
         :where(.u58) { margin-top: 4px !important; }
         :where(.u59) { padding: 12px 14px 14px !important; }
-        :where(.u60) { padding: 5px 14px !important; font-size: 13px !important; }
-        :where(.u61) { margin-top: 4px !important; justify-content: center !important; }
         :where(.u62) { margin-bottom: 14px !important; flex-wrap: wrap !important; }
         :where(.u63) { flex: 1 !important; }
         :where(.u64) { margin-bottom: 18px !important; }
         :where(.u65) { box-sizing: border-box !important; }
-        :where(.u66) { font-size: 11px !important; }
-        :where(.u67) { margin-left: 4px !important; }
-        :where(.u68) { font-size: 13px !important; margin-bottom: 9px !important; }
-        :where(.u69) { font-size: 13px !important; margin-bottom: 9px !important; line-height: 1.6 !important; }
-        :where(.u70) { font-size: 13px !important; }
-        :where(.u71) { font-size: 11.5px !important; margin-bottom: 5px !important; font-weight: 600 !important; }
         /* 鍵盤操作時清楚顯示目前焦點 */
         :focus-visible { outline: 2px solid var(--accent-color); outline-offset: 2px; }
         .part-sel-opt.kb-active { background: rgba(var(--accent-rgb),0.22); }
@@ -324,7 +301,6 @@ window.UI_ACTIONS = {
         body.light-mode .btn-top, body.light-mode #alarmSelect { 
             background: #dfe6e9; color: #2d3436; border: 1px solid #ced6e0; 
         }
-        body.light-mode .delete-btn, body.light-mode .edit-btn { background-color: #f8f9fa; border: 1px solid #dcdde1; color: #636e72; }
         body.light-mode .upload-zone { background-color: var(--card-color); border-color: var(--edit-border); }
         body.light-mode .upload-zone:hover { background-color: #f1f2f6; }
         body.light-mode #fleetCount { background: #dfe6e9 !important; border-color: #ced6e0 !important; color: var(--accent-color) !important; }
@@ -335,34 +311,15 @@ window.UI_ACTIONS = {
 
         /* ── 亮版配色柔化 ── */
         body.light-mode { --accent-color: #7c5cbf; --accent-rgb: 124,92,191; --accent-2: #6fa3d4; --hl-start: #4a6fa5; --hl-return: #b07d2e; --hl-count: #c0623a; --hl-name: #4a6fa5; --hl-level: #b07d2e; --success-color: #3a9e5f; }
-        body.light-mode .right-panel-title { color: var(--accent-color); }
         body.light-mode h1 { color: var(--accent-color); }
-        body.light-mode .delete-btn { color: #c0392b; }
         body.light-mode .timer-card { background-color: var(--card-color); border: 1px solid var(--edit-border); box-shadow: 0 2px 6px rgba(0,0,0,0.06); }
         
         /* ── 預期獲得數量 ── */
-        .gp-loot-tier-block { margin-bottom:10px; }
-        .gp-loot-tier-label { display:inline-block; font-size:11px; font-weight:800; padding:2px 8px; border-radius:10px; margin-bottom:5px; }
-        .gp-loot-tier-poor   { background:rgba(150,150,150,0.2); color:#aaa; }
-        .gp-loot-tier-normal { background:rgba(100,180,255,0.15); color:#82aaff; }
-        .gp-loot-tier-opt    { background:rgba(100,220,100,0.15); color:#4caf50; }
-        .gp-loot-status      { display:inline-block; font-size:11px; font-weight:700; border-radius:4px; padding:1px 7px; margin-right:6px; }
-        .gp-loot-status.poor   { background:rgba(150,150,150,0.2); color:#aaa; }
-        .gp-loot-status.normal { background:rgba(100,180,255,0.15); color:#82aaff; }
-        .gp-loot-status.opt    { background:rgba(100,220,100,0.15); color:#4caf50; }
-        .gp-loot-item-row { display:flex; align-items:center; gap:8px; padding:3px 0; border-bottom:1px solid rgba(255,255,255,0.04); font-size:12.5px; }
-        body.light-mode .gp-loot-item-row { border-bottom-color:rgba(0,0,0,0.06); }
-        .gp-loot-item-name { flex:1; color:var(--text-color); opacity:0.9; }
+
         .gp-loot-qty { font-weight:700; font-family:monospace; }
         .gp-loot-qty.poor   { color:#aaa; }
         .gp-loot-qty.normal { color:#82aaff; }
         .gp-loot-qty.opt    { color:#4caf50; }
-        .gp-loot-preview-wrap { background:rgba(255,255,255,0.025); border:1px solid var(--edit-border); border-radius:8px; padding:10px 14px; }
-        body.light-mode .gp-loot-preview-wrap { background:rgba(0,0,0,0.02); }
-        .gp-loot-thr-bar { font-size:11px; color:#888; margin-bottom:8px; padding-bottom:6px; border-bottom:1px solid var(--edit-border); }
-        .gp-loot-thr-chip { display:inline-block; padding:1px 7px; border-radius:10px; margin-right:6px; font-weight:700; }
-        .gp-loot-thr-chip.met { color:#4caf50; background:rgba(76,175,80,0.1); }
-        .gp-loot-thr-chip.unmet { color:#f78c6c; background:rgba(247,140,108,0.1); }
 
         /* ── 全局滑軌統一樣式（仿圖二 sector-popup 設計）── */
         ::-webkit-scrollbar { width: 9px; height: 9px; }
@@ -385,25 +342,26 @@ window.UI_ACTIONS = {
             top: 12px;
             right: 18px;
             z-index: 9999;
-            background: linear-gradient(135deg, #f6a623, #f97316);
-            color: #fff;
-            border: none;
+            /* 次要連結：外框樣式，不和主要操作搶注意力 */
+            background: transparent;
+            color: color-mix(in srgb, var(--text-color) 72%, transparent);
+            border: 1px solid var(--edit-border);
             border-radius: 20px;
-            padding: 6px 14px;
+            padding: 5px 13px;
             font-size: 13px;
             font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif;
-            font-weight: bold;
+            font-weight: 600;
             cursor: pointer;
             text-decoration: none;
             display: inline-flex;
             align-items: center;
             gap: 5px;
-            box-shadow: 0 2px 8px rgba(249,115,22,0.45);
-            transition: transform 0.15s, box-shadow 0.15s;
+            transition: color 0.15s, border-color 0.15s, background 0.15s;
         }
         #sponsorBtn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 14px rgba(249,115,22,0.6);
+            color: #f97316;
+            border-color: rgba(249,115,22,0.6);
+            background: rgba(249,115,22,0.08);
         }
 
         /* ── 使用說明抽屜（步驟優先、重點突出）── */
@@ -516,25 +474,25 @@ window.UI_ACTIONS = {
             top: 12px;
             right: 148px;
             z-index: 9999;
-            background: linear-gradient(135deg, #5c8ee6, #3b6fd4);
-            color: #fff;
-            border: none;
+            background: transparent;
+            color: color-mix(in srgb, var(--text-color) 72%, transparent);
+            border: 1px solid var(--edit-border);
             border-radius: 20px;
-            padding: 6px 14px;
+            padding: 5px 13px;
             font-size: 13px;
             font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif;
-            font-weight: bold;
+            font-weight: 600;
             cursor: pointer;
             text-decoration: none;
             display: inline-flex;
             align-items: center;
             gap: 5px;
-            box-shadow: 0 2px 8px rgba(59,111,212,0.45);
-            transition: transform 0.15s, box-shadow 0.15s;
+            transition: color 0.15s, border-color 0.15s, background 0.15s;
         }
         #reportBtn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 14px rgba(59,111,212,0.6);
+            color: #5c8ee6;
+            border-color: rgba(92,142,230,0.6);
+            background: rgba(92,142,230,0.08);
         }
 
         body { font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif; background-color: var(--bg-color); color: var(--text-color); margin: 0; padding: 20px;
@@ -782,9 +740,6 @@ window.UI_ACTIONS = {
         .time-highlight { font-weight: 800; color: var(--hl-start); font-size: 15px; }
         .time-highlight.target { color: var(--hl-return); font-size: 15px; }
         .delete-btn-wrapper { margin-top: 10px; display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
-        .delete-btn, .edit-btn { background-color: #333; border: 1px solid #444; color: #e0e0e0; cursor: pointer; padding: 6px 14px; border-radius: 6px; font-size: 12px; min-height: 36px; display:inline-flex; align-items:center; }
-        .delete-btn { color: #ff5370; }
-        .delete-btn:hover, .edit-btn:hover { background-color: #444; }
 
         /* ── 船艇小卡三按鈕：MD3 層次設計 ── */
         .card-action-btns {
@@ -877,9 +832,7 @@ window.UI_ACTIONS = {
         .link-text { display: flex; flex-direction: column; min-width: 0; flex: 1; }
         .link-name { font-size: 14px; font-weight: 700; color: var(--text-color); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .link-host { font-size: 11.5px; color: #8a8a8a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .link-open { color: #888; font-size: 13px; flex-shrink: 0; }
         .link-main:hover .link-name { color: var(--accent-color); }
-        .link-main:hover .link-open { color: var(--accent-color); }
         .link-act { width: 30px; height: 30px; border-radius: 8px; border: 0; background: transparent; color: #8a8a8a; font-size: 13px; cursor: pointer; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; }
         .link-act:hover { background: rgba(var(--accent-rgb),0.14); color: var(--accent-color); }
         .link-act.danger:hover { background: rgba(255,83,112,0.14); color: #ff5370; }
@@ -895,7 +848,7 @@ window.UI_ACTIONS = {
         .link-add .edit-input { width: 100%; box-sizing: border-box; }
         .link-add-btn { height: 36px; border-radius: 8px; border: 0; background: var(--accent-color); color: #fff; font-size: 13.5px; font-weight: 700; cursor: pointer; font-family: inherit; }
         .link-add-btn:hover { filter: brightness(1.08); }
-        body.light-mode .link-host, body.light-mode .link-act, body.light-mode .link-open { color: #777; }
+        body.light-mode .link-host, body.light-mode .link-act{ color: #777; }
         .link-drag-handle:active { cursor: grabbing; }
         .link-item { transition: box-shadow 0.15s; }
         .link-placeholder { flex-shrink: 0; }
@@ -1353,7 +1306,8 @@ window.UI_ACTIONS = {
         .grp-redepart-btn { display: inline-flex; align-items: center; gap: 5px; background: transparent; color: var(--accent-color); border: 1px solid var(--accent-color); border-radius: 8px; padding: 5px 10px 5px 12px; font-size: 13px; font-weight: 700; cursor: pointer; white-space: nowrap; transition: background 0.15s; }
         .grp-redepart-btn:hover { background: rgba(var(--accent-rgb),0.14); }
         .grp-redepart-btn[hidden] { display: none; }
-        .grp-redepart-btn.is-empty { color: #8a8798; border-color: rgba(var(--accent-rgb),0.35); }
+        .grp-redepart-btn.is-empty { color: #8a8798; border-color: rgba(var(--accent-rgb),0.35); opacity: .55; cursor: default; }
+        .grp-redepart-btn.is-empty:hover { background: transparent; }
         .grp-redepart-btn.is-empty .grp-rd-count { background: rgba(var(--accent-rgb),0.3); }
         body.light-mode .grp-redepart-btn.is-empty { color: #8a8798; }
         #customAlertMsg { white-space: pre-line; }
@@ -1451,9 +1405,7 @@ window.UI_ACTIONS = {
         .sub-stat-value { width:110px; box-sizing:border-box; background: rgba(var(--accent-rgb),0.08); color: var(--accent-color); border:1px dashed var(--edit-border); padding:6px 10px; border-radius:6px; font-size:15px; font-weight:800; text-align:center; user-select:none; }
         .sub-modal-actions { display:flex; justify-content:flex-end; gap:8px; margin-top:18px; }
         /* 卡片次要操作按鈕：與 delete-btn 同風格，僅顏色區分 */
-        .sub-config-btn { background-color:#333; border:1px solid #444; color:var(--accent-color); cursor:pointer; padding:6px 14px; border-radius:6px; font-size:12px; min-height:36px; display:inline-flex; align-items:center; }
-        .sub-config-btn:hover { background-color:#444; }
-        body.light-mode .sub-config-btn { background-color:#f8f9fa; border:1px solid #dcdde1; color:var(--accent-color); }
+
         /* 手機版工具面板：只在窄畫面（≤640px）切到「工具」分頁時顯示，寬畫面一律隱藏 */
         #mobileToolPanel { display: none; }
         .sub-config-summary { font-size:12px; color:#888; margin-top:6px; line-height:1.6; }
@@ -1483,8 +1435,6 @@ window.UI_ACTIONS = {
         .route-next.warn { color: #ffcb6b; font-size: 12px; }
         /* ── 自動導航 ── */
         .route-auto { font-size: 12px; color: color-mix(in srgb, var(--text-color) 80%, transparent); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .route-auto .an-tag { display: inline-block; padding: 0 6px; margin-right: 4px; border-radius: 9px; background: rgba(var(--accent-rgb), .2); color: var(--accent-color); font-weight: 700; font-size: 11px; }
-        .route-auto .an-v { font-weight: 700; }
         .route-auto.warn { color: #ffcb6b; }
         .route-line-auto .rl-k { color: var(--accent-color); font-weight: 700; }
         #timerList.list-mode .route-line-auto .rl-v::before { content: '🧭 '; }   /* 條列版沒有「下次航線：」字樣，用圖示標出是自動導航的航線 */
@@ -1623,7 +1573,6 @@ window.UI_ACTIONS = {
         }
         .rp-section-title { font-size: 15px; font-weight: 800; color: var(--accent-color); margin: 0; letter-spacing: 0.3px; }
         .rp-section-hint { font-size: 11.5px; color: #888; margin: 2px 0 12px 30px; line-height: 1.5; }
-        body.light-mode .rp-section-hint { color: #8a94a3; }
         .rp-section-hint-inline { font-size: 11px; color: #888; font-weight: 400; margin-left: 6px; align-self: center; }
         body.light-mode .rp-section-hint-inline { color: #8a94a3; }
 
@@ -1679,15 +1628,11 @@ window.UI_ACTIONS = {
         .rp-field .num-spinner input[type="text"] { padding: 9px 6px; font-size: 13.5px; }
         .rp-radio-group { display: flex; gap: 18px; align-items: center; font-size: 13.5px; font-weight: 600; flex-wrap: wrap; }
         .rp-radio-group label { display: flex; align-items: center; gap: 5px; cursor: pointer; }
-        .rp-chk-box { display: flex; flex-wrap: wrap; gap: 4px 12px; max-width: 620px; }
         /* 小字：勾選附註 */
         .rp-chk { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--text-color); opacity: 0.85; cursor: pointer; }
-        .rp-multiselect { min-width: 260px; height: 130px; background: var(--edit-bg); color: var(--text-color); border: 1px solid var(--edit-border); border-radius: 6px; font-size: 12.5px; }
         .rp-sector-wrap { display: flex; flex-direction: column; gap: 6px; min-width: 260px; }
         .rp-sector-map-sel { background: var(--edit-bg); color: var(--text-color); border: 1px solid var(--edit-border); padding: 7px 10px; border-radius: 7px; font-size: 13px; outline: none; }
-        .rp-sector-chk-list { background: var(--edit-bg); border: 1px solid var(--edit-border); border-radius: 6px; padding: 6px 8px; display: flex; flex-direction: column; gap: 4px; max-height: 160px; overflow-y: auto; }
         .rp-sector-chk-list label { display: flex; align-items: center; gap: 6px; font-size: 12.5px; cursor: pointer; white-space: nowrap; }
-        .rp-sector-chk-list label:hover { color: var(--accent-color); }
         .rp-item-search-wrap { position: relative; }
         .rp-suggest-box { display:none; position:absolute; top: 100%; left:0; z-index: 20; background: var(--card-color); border: 1px solid var(--edit-border); border-radius: 6px; max-height: 220px; overflow-y:auto; width: 260px; box-shadow: 0 6px 12px rgba(0,0,0,0.4); margin-top:4px; }
         .rp-suggest-item { padding: 6px 10px; font-size: 12.5px; cursor: pointer; }
@@ -1705,7 +1650,7 @@ window.UI_ACTIONS = {
         .rp-chip:hover .rp-chip-tooltip { display: block; }
         body.light-mode .rp-chip-tooltip { background: #ffffff; border-color: var(--accent-color); color: #2d3436; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
         /* 中字：船艇性能預覽 */
-        .rp-stat-preview { font-size: 13px; font-weight: 700; color: var(--accent-color); margin-left: 6px; }
+
         .rp-search-btn { background: var(--accent-color); color: #fff; border: none; padding: 11px 26px; border-radius: 8px; font-size: 15px; cursor: pointer; font-weight: 800; letter-spacing: 0.3px; box-shadow: 0 3px 8px rgba(var(--accent-rgb),0.25); transition: transform 0.15s, box-shadow 0.15s; }
         .rp-search-btn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 5px 12px rgba(var(--accent-rgb),0.35); }
         .rp-search-btn:disabled { opacity: 0.6; cursor: default; transform:none; box-shadow:none; }
@@ -1713,21 +1658,15 @@ window.UI_ACTIONS = {
         #rpStatusText { font-size: 12px; color: #888; }
 
         .rp-results { margin-top: 4px; display: flex; flex-direction: column; gap: 12px; }
-        .rp-result-card { background: var(--edit-bg); border: 1px solid var(--edit-border); border-radius: 10px; padding: 14px 16px; transition: border-color 0.15s; }
-        .rp-result-card:hover { border-color: var(--accent-color); }
         .rp-result-head { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; flex-wrap: wrap; }
         /* 大字：路線排名 */
-        .rp-result-rank {
-            font-weight: 800; color: #fff; background: var(--accent-color);
-            font-size: 13px; padding: 2px 10px; border-radius: 12px; letter-spacing: 0.5px;
-        }
+
         /* 中字：海域名稱 */
-        .rp-result-map { font-size: 15px; font-weight: 800; color: #82aaff; }
+
         /* 中字：效率指標 */
-        .rp-result-epm { margin-left: auto; font-size: 14px; font-weight: 800; color: #ffcb6b; }
+
         /* 大字：路線本體，最重要的資訊 */
-        .rp-result-route { font-size: 18px; font-weight: 800; margin-bottom: 10px; line-height: 1.5; color: #fff; letter-spacing: 0.3px; }
-        body.light-mode .rp-result-route { color: #1a1a2e; }
+
         /* 未開航點：上鎖樣式 */
         .rp-route-letter { display: inline-block; }
         .rp-route-letter.rp-node-locked {
@@ -1751,23 +1690,7 @@ window.UI_ACTIONS = {
             font-size: 10px;
         }
         /* 統計資訊列：改為 pill 卡片排列 */
-        .rp-result-stats {
-            display: flex; flex-wrap: wrap; gap: 6px;
-            margin-bottom: 10px;
-        }
-        .rp-stat-item {
-            display: flex; align-items: center; gap: 5px;
-            background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
-            border-radius: 7px; padding: 4px 10px;
-            white-space: nowrap;
-        }
-        body.light-mode .rp-stat-item { background: rgba(0,0,0,0.03); border-color: rgba(0,0,0,0.08); }
-        .rp-stat-label { color: #999; font-size: 11px; font-weight: 600; }
-        .rp-stat-value { color: #f0f0f0; font-weight: 800; font-size: 13px; }
-        .rp-stat-value.highlight { color: var(--accent-color); }
-        body.light-mode .rp-stat-label { color: #888; }
-        body.light-mode .rp-stat-value { color: #1a1a2e; }
-        body.light-mode .rp-stat-value.highlight { color: #7b5ea8; }
+
         .rp-loot-tag { display: inline-block; background: #2a2a2a; border: 1px solid #444; color: #aaa; font-size: 11.5px; padding: 3px 9px; border-radius: 10px; margin: 2px 4px 0 0; }
         .rp-loot-workshop { border-color: #5b9bd5; color: #82b8f0; font-weight: 600; }
         .rp-loot-rare { border-color: #c89fef; color: #c89fef; font-weight: 600; background: rgba(var(--accent-rgb),0.12); }
@@ -1784,8 +1707,6 @@ window.UI_ACTIONS = {
         body.light-mode .rp-loot-tag.rp-unmet { background: #f2f3f5 !important; border: 1px dashed #c8ccd2 !important; color: #999ea6 !important; font-weight: 400 !important; }
         body.light-mode .rp-loot-tag.rp-unmet::before { opacity: 0.6; }
         body.light-mode .rp-loot-legend { background: rgba(0,0,0,0.02); border-color: #dde3ec; }
-        body.light-mode .rp-result-card { background: #f8f9fb; border-color: #dde3ec; }
-        body.light-mode .rp-result-stats { color: #555; }
 
         /* ══════════════ 路線結果：對齊欄位列表 ══════════════ */
         .rp-results { gap: 0; }
@@ -1880,7 +1801,6 @@ window.UI_ACTIONS = {
         }
         .rp-hour-stepper input::-webkit-outer-spin-button,
         .rp-hour-stepper input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-        .rp-hour-stepper .rp-hs-unit { display:flex; align-items:center; padding-right:10px; font-size:12px; color:#888; }
 
         /* ══════════════ 自訂日期時間選擇器 ══════════════ */
         .dt-trigger {
@@ -1993,7 +1913,6 @@ window.UI_ACTIONS = {
             overflow-y: auto; flex: 1 1 auto; padding: 0 0 6px;
             scrollbar-width: thin; scrollbar-color: var(--accent-color) transparent;
         }
-
 
         .sector-group:first-child .sector-group-title { margin-top: 0; }
         /* 大標題：分組標題，加大、加粗、置底色塊、上下貼齊，捲動時黏頂 */
@@ -2200,16 +2119,10 @@ window.UI_ACTIONS = {
         }
         .rp-tier-row:last-child { border-bottom: none; }
         body.light-mode .rp-tier-row { border-bottom-color: rgba(0,0,0,0.04); }
-        .rp-tier-sec-label {
-            flex-shrink: 0; min-width: 20px;
-            font-size: 12px; font-weight: 800;
-            color: var(--accent-color); line-height: 22px;
-        }
         .rp-tier-tags { display: flex; flex-wrap: wrap; gap: 4px; flex: 1; }
 
         /* ── 道具標籤 Tooltip ── */
         .rp-has-tip { position: relative; cursor: default; }
-        body.light-mode .rp-tag-tip { background: #fff; box-shadow: 0 4px 14px rgba(0,0,0,0.15); }
 
         /* ── 全域固定 Tooltip ── */
         #rpGlobalTip {
@@ -2263,6 +2176,45 @@ window.UI_ACTIONS = {
         .gp-diff-header { background: rgba(var(--accent-rgb),0.12); border-bottom: 1px solid var(--edit-border); padding: 12px 18px; font-size: 15px; font-weight: 800; color: var(--accent-color); }
         body.light-mode .gp-diff-header { background: rgba(var(--accent-rgb),0.08); }
         .gp-no-change { padding: 16px 6px; font-size: 13px; color: #888; font-style: italic; }
+        /* ── 空狀態／輕量提示／欄位錯誤（以圖示與顏色取代說明文字）── */
+        .empty-state { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 36px 12px; font-size: 14px; color: color-mix(in srgb, var(--text-color) 55%, transparent); text-align: center; }
+        .empty-state .empty-ico { font-size: 30px; opacity: .8; }
+        .fleet-empty { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 56px 16px 64px; text-align: center; }
+        .fleet-empty[hidden] { display: none; }
+        .fleet-empty-ico { width: 72px; height: 72px; border-radius: 50%; display: grid; place-items: center; font-size: 34px; background: rgba(var(--accent-rgb), .12); color: var(--accent-color); }
+        .fleet-empty-title { font-size: 17px; font-weight: 700; }
+        .fleet-empty-acts { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+        .fleet-empty-btn { min-height: 40px; padding: 8px 18px; border-radius: 10px; border: 1px solid var(--edit-border); background: transparent; color: var(--text-color); font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; transition: background .15s, border-color .15s; }
+        .fleet-empty-btn:hover { border-color: var(--accent-color); background: rgba(var(--accent-rgb), .08); }
+        .fleet-empty-btn.primary { background: var(--accent-color); border-color: var(--accent-color); color: #fff; }
+        .fleet-empty-btn.primary:hover { filter: brightness(1.08); background: var(--accent-color); }
+        .fleet-empty-kbd { font-size: 12px; opacity: .6; }
+        .fleet-empty-kbd kbd { font: inherit; font-size: 11px; padding: 1px 6px; border: 1px solid var(--edit-border); border-bottom-width: 2px; border-radius: 4px; }
+        .fleet-empty.compact { padding: 28px 16px 36px; }
+        .fleet-empty.compact .fleet-empty-ico { width: 52px; height: 52px; font-size: 24px; }
+        .fleet-empty.compact .fleet-empty-title { font-size: 14px; font-weight: 600; opacity: .8; }
+        .fleet-empty.compact .fleet-empty-btn:not(.primary) { display: none; }
+        #panelFleet.room-readonly .fleet-empty-acts, #panelFleet.room-readonly .fleet-empty-kbd { display: none; }
+        #toastBox { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 100000; display: flex; flex-direction: column; align-items: center; gap: 8px; pointer-events: none; }
+        @media (max-width: 768px) { #toastBox { bottom: 84px; } }
+        .toast { pointer-events: auto; display: flex; align-items: center; gap: 10px; min-width: 200px; max-width: min(92vw, 460px); padding: 10px 14px; border-radius: 10px; background: var(--card-color); color: var(--text-color); border: 1px solid var(--edit-border); box-shadow: 0 8px 24px rgba(0,0,0,.35); font-size: 14px; animation: toastIn .18s ease-out; }
+        .toast.out { opacity: 0; transform: translateY(6px); transition: opacity .2s, transform .2s; }
+        .toast-ico { flex: none; width: 20px; height: 20px; border-radius: 50%; display: grid; place-items: center; font-size: 12px; font-weight: 800; color: #fff; background: #4caf7d; }
+        .toast-warning .toast-ico { background: #e0904a; }
+        .toast-info .toast-ico { background: var(--accent-color); }
+        .toast-txt { flex: 1; }
+        .toast-act { border: 0; background: transparent; color: var(--accent-color); font: inherit; font-weight: 800; cursor: pointer; padding: 4px 6px; border-radius: 6px; }
+        .toast-act:hover { background: rgba(var(--accent-rgb), .12); }
+        @keyframes toastIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+        .field-invalid, .field-invalid:focus { border-color: #ff6b6b !important; box-shadow: 0 0 0 3px rgba(255, 107, 107, .25) !important; animation: fieldShake .3s; }
+        @keyframes fieldShake { 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
+        /* 按下去的回饋 */
+        button:not(:disabled):active, [role=button]:active, .card-icon-btn:active { filter: brightness(.88); }
+        /* 船艇設定：取消／儲存固定在視窗底部，不用捲到最下面才看得到 */
+        .sub-modal-box > .sub-modal-actions { position: sticky; bottom: -20px; z-index: 5; margin: 18px -20px -20px; padding: 12px 20px; background: var(--card-color); border-top: 1px solid var(--edit-border); border-radius: 0 0 8px 8px; }
+        @media (max-width: 640px) { .sub-modal-box > .sub-modal-actions { bottom: -16px; margin: 14px -12px -16px; padding: 10px 12px; } }
+        /* 手機：船卡上的導航類型選單太小，加大點擊範圍 */
+        @media (max-width: 640px) { .an-mini-mode { min-height: 30px; padding: 4px 8px; } .an-mini-switch { min-height: 30px; } }
 
         /* ── 欄位說明問號圖示 ── */
         .gp-th-help { display: inline-flex; align-items: center; justify-content: center; width: 14px; height: 14px; border-radius: 50%; border: 1.5px solid #666; color: #666; font-size: 9px; font-weight: 700; font-style: normal; line-height: 1; cursor: default; margin-left: 4px; vertical-align: middle; flex-shrink: 0; user-select: none; transition: border-color 0.15s, color 0.15s; }
@@ -2274,54 +2226,6 @@ window.UI_ACTIONS = {
         body.light-mode #gpThTipFloat { background: #ffffff; color: #2d3436; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
 
         /* ── 配件性能懸浮提示 ── */
-        #partStatTip {
-            display: none;
-            position: fixed;
-            z-index: 10000;
-            pointer-events: none;
-            background: #18182a;
-            border: 1px solid rgba(var(--accent-rgb),0.5);
-            border-radius: 10px;
-            padding: 10px 14px;
-            box-shadow: 0 8px 28px rgba(0,0,0,0.7);
-            min-width: 180px;
-        }
-        body.light-mode #partStatTip {
-            background: #ffffff;
-            border-color: rgba(var(--accent-rgb),0.4);
-            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
-        }
-        #partStatTip .pst-title {
-            font-size: 11px;
-            font-weight: 700;
-            color: var(--accent-color);
-            letter-spacing: 0.5px;
-            margin-bottom: 7px;
-            padding-bottom: 5px;
-            border-bottom: 1px solid rgba(var(--accent-rgb),0.25);
-        }
-        #partStatTip .pst-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 18px;
-            padding: 2px 0;
-        }
-        #partStatTip .pst-label {
-            font-size: 11.5px;
-            color: #999;
-            font-weight: 500;
-        }
-        body.light-mode #partStatTip .pst-label { color: #888; }
-        #partStatTip .pst-val {
-            font-size: 13px;
-            font-weight: 800;
-            font-variant-numeric: tabular-nums;
-            font-family: monospace;
-        }
-        #partStatTip .pst-val.pos { color: #5dba8a; }
-        #partStatTip .pst-val.neg { color: #f78c6c; }
-        #partStatTip .pst-val.zero { color: #666; }
 
         /* 性能徽章 */
         .gp-stat-badge { display: inline-flex; align-items: center; gap: 5px; border: 1px solid var(--edit-border); border-radius: 8px; padding: 4px 10px; font-size: 12px; background: rgba(255,255,255,0.03); }
@@ -2417,7 +2321,6 @@ window.UI_ACTIONS = {
         body.light-mode .gp-sc-na    { color: #bbb; }
 
         /* 收集兩欄之間的斜線 */
-        .gp-tbl-slash { color: #555; font-size: 11px; padding: 0 2px; }
 
         /* ── 配件規劃：勾選海點 → 送路線規劃 ── */
         .gp-tbl-chk-th {
@@ -2448,7 +2351,6 @@ window.UI_ACTIONS = {
         body.light-mode .gp-send-count { color: #888; }
 
         /* 舊 pill 樣式保留供相容 */
-        .gp-sc-diff { font-size: 11px; font-weight: 700; opacity: 0.85; }
 
         /* ── 路線規劃按鈕（船艇小卡）── */
         .route-plan-btn {
@@ -2457,8 +2359,6 @@ window.UI_ACTIONS = {
             min-height: 36px; display: inline-flex; align-items: center;
             transition: background-color 0.15s;
         }
-        .route-plan-btn:hover { background-color: #3a4a6a; }
-        body.light-mode .route-plan-btn { background-color: #eaf0fb; border-color: #4a6fa5; color: #3a5a9f; }
 
         /* ── 使用此路線按鈕（路線結果小卡）── */
         .rp-use-route-btn {
@@ -2582,7 +2482,6 @@ window.UI_ACTIONS = {
         .craft-inv-row-done .craft-inv-name { text-decoration: line-through; }
 
         /* 計算隊列行（稍微不同底色） */
-        .craft-inv-queue-row td { background: rgba(var(--accent-rgb),0.03); }
 
         /* 欄位樣式 */
         .craft-inv-name {
@@ -2640,24 +2539,7 @@ window.UI_ACTIONS = {
         .craft-part-qty-input {
             width: 36px !important;
         }
-        .craft-qty-btn {
-            background: var(--edit-bg); border: 1px solid var(--edit-border);
-            color: var(--text-color); border-radius: 4px; padding: 0 5px;
-            font-size: 13px; font-weight: 700; cursor: pointer; line-height: 18px;
-            transition: background 0.1s, color 0.1s;
-        }
-        .craft-qty-btn:hover { background: var(--accent-color); color: #fff; border-color: var(--accent-color); }
-        .craft-qty-num {
-            display: inline-block; min-width: 22px; text-align: center;
-            font-size: 12.5px; font-weight: 700; color: var(--text-color);
-        }
         body.light-mode .craft-qty-btn { color: #444; }
-        .craft-inv-footnote {
-            padding: 6px 12px 8px;
-            font-size: 11px; color: #888; text-align: right; font-style: italic;
-            border-top: 1px solid var(--edit-border);
-        }
-        body.light-mode .craft-inv-footnote { color: #aaa; }
 
         @media (max-width: 760px) {
             .craft-mat-cols { grid-template-columns: repeat(4, minmax(180px, 1fr)); min-width: 720px; }
@@ -2665,9 +2547,7 @@ window.UI_ACTIONS = {
 
         /* ── 桌機版：隱藏手機用的下拉和 Tab，顯示全部欄 ── */
         @media (min-width: 641px) {
-            .craft-mob-selects { display: none !important; }
             .craft-mob-tabs { display: none !important; }
-            .craft-desktop-only { display: block !important; }
             .craft-mat-col { display: flex !important; }
             .craft-mat-cols { display: grid !important; min-width: 880px; grid-template-columns: minmax(200px,1fr) repeat(3, minmax(220px,1fr)); }
         }
@@ -2725,13 +2605,6 @@ window.UI_ACTIONS = {
         .craft-sel-actions { display: flex; align-items: center; gap: 10px; }
         .craft-total { font-size: 13px; font-weight: 700; color: var(--accent-color); font-variant-numeric: tabular-nums; }
         body.light-mode .craft-grid-cell:hover { background: rgba(var(--accent-rgb),0.12); color: var(--accent-color); }
-        .craft-add-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-        .craft-qty-input {
-            width: 50px; background: var(--edit-bg); border: 1px solid var(--edit-border);
-            color: var(--text-color); border-radius: 6px; padding: 5px 7px;
-            font-size: 13px; font-weight: 700; text-align: center; outline: none;
-        }
-        .craft-qty-input:focus { border-color: var(--accent-color); }
         /* ── Spinner 元件（數字 + 上下箭頭）── */
         .num-spinner {
             display: inline-flex; align-items: stretch;
@@ -2758,7 +2631,6 @@ window.UI_ACTIONS = {
         body.light-mode .num-spinner { border-color: #ccc; }
         body.light-mode .num-spinner-btns { border-left-color: #ccc; }
         body.light-mode .num-spinner-btns button { border-bottom-color: #ccc; color: #444; }
-        .craft-sel-hint { font-size: 12px; color: var(--accent-color); font-weight: 600; }
         .craft-clear-btn {
             display: inline-flex; align-items: center; gap: 4px;
             background: #3a2020; color: #ff7070;
@@ -2784,7 +2656,7 @@ window.UI_ACTIONS = {
            ══════════════════════════════════════════════════════ */
 
         /* ── 主題切換平滑過渡 ── */
-        body, .timer-card, .rp-result-card, .rp-section,
+        body, .timer-card, .rp-section,
         .collapsible-btn, .left-panel, .right-panel,
         .rp-panel-tabs, .rp-panel-tab {
             transition: background-color 0.22s ease, border-color 0.18s ease, color 0.18s ease;
@@ -2951,15 +2823,9 @@ window.UI_ACTIONS = {
                 font-size: 16px;
                 margin: 0 0 10px;
             }
-            #mobileToolPanel .top-btns {
-                display: flex;
-                flex-wrap: wrap;
-                gap: 6px;
-            }
 
             /* ── 右側分頁面板：手機版 ── */
             .rp-section { padding: 12px 14px 16px; }
-            .rp-result-card { padding: 12px 14px; }
 
             /* 標籤列：手機版維持橫向滑動 */
             .group-tabs { grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); overflow: visible; }
@@ -3014,12 +2880,6 @@ window.UI_ACTIONS = {
             .rp-li-route { font-size: 14px !important; }
 
             /* ── 製作分頁：手機版 ── */
-            .craft-desktop-only { display: none !important; }
-            .craft-mob-selects { display: flex !important; flex-direction: column; gap: 10px; }
-            .craft-mob-sel-row { display: flex; align-items: center; gap: 10px; }
-            .craft-mob-sel-row label { font-size: 13px; font-weight: 700; color: var(--accent-color); width: 36px; flex-shrink: 0; }
-            .craft-mob-sel-row select { flex: 1; background: var(--edit-bg); color: var(--text-color); border: 1px solid var(--edit-border); border-radius: 8px; padding: 9px 10px; font-size: 13.5px; outline: none; }
-            .craft-mob-sel-row select:focus { border-color: var(--accent-color); }
 
             /* 素材列表 Tab 切換 */
             .craft-mob-tabs { display: flex !important; background: var(--edit-bg); border-bottom: 1px solid var(--edit-border); }
@@ -3059,8 +2919,6 @@ window.UI_ACTIONS = {
             #mobileHeader h2 { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
             #mobileHeader .mob-header-right { flex-shrink: 0; gap: 6px; }
             #mobileHeader .mob-link-btn { text-decoration: none; }
-            #mobileHeader .mob-link-btn.report  { background: rgba(92,142,230,0.22); }
-            #mobileHeader .mob-link-btn.sponsor { background: rgba(249,115,22,0.22); }
 
             /* 艦隊工具列：分組標籤獨佔第一列，新增／排序放第二列，避免標籤被擠到只剩一小段 */
             .fleet-toolbar-left  { flex: 1 1 100%; }
@@ -3252,7 +3110,6 @@ window.UI_ACTIONS = {
         window._getMyNickname = getMyNickname;
         window._setMyNickname = setMyNickname;
 
-        let _userListenerRef = null;
         window.CloudSync = {
             myUUID,
             // 相容舊呼叫：有資料變動時交給 SubSync 處理
@@ -3322,6 +3179,13 @@ window.UI_ACTIONS = {
             },
             getSavedRooms() { return _getSavedRooms(); },
             async pushNickname() { await pushNickname(); },
+            // 改暱稱後，同步更新自己所在房間的成員名稱（房主與成員看到的名字才會跟著變）
+            async pushMemberNames() {
+                const ids = new Set(_getSavedRooms().map(r => r.id));
+                const owned = localStorage.getItem('sub_owned_room_id');
+                if (owned) ids.add(owned);
+                for (const id of ids) { try { await pushMemberName(id); } catch (e) { console.warn('更新房間暱稱失敗', id, e); } }
+            },
             enable() { _syncEnabled = true; },
             isEnabled() { return _syncEnabled; },
             // 房主解散房間：先標記已解散（成員立刻收到），再刪除整個房間
@@ -3373,13 +3237,6 @@ window.SubPalette = (function () {
         if (!get(id)) id = ls('sub_theme') === 'light' ? DEFAULTS.light : DEFAULTS.dark;
         apply(id, false);
     }
-    // 深色／淺色切換：切到另一個模式上次用的方案
-    function toggleMode() {
-        const cur = get(document.body.dataset.palette) || get(DEFAULTS.dark);
-        const other = cur.mode === 'dark' ? 'light' : 'dark';
-        const id = ls('sub_palette_' + other);
-        apply(get(id) && get(id).mode === other ? id : DEFAULTS[other], true);
-    }
     function swatchHtml(p) {
         return `<button type="button" class="pal-swatch" data-pal="${p.id}" data-on-click="a115" aria-pressed="false" title="${p.name}">`
             + `<span class="pal-prev" style="background:${p.bg}">`
@@ -3397,7 +3254,7 @@ window.SubPalette = (function () {
         document.querySelectorAll('.palette-panel').forEach(el => { el.innerHTML = html; });
         apply(document.body.dataset.palette || DEFAULTS.dark, false);
     }
-    return { LIST, apply, init, toggleMode, render };
+    return { LIST, apply, init, render };
 })();
 </script>
 </head>
@@ -3713,6 +3570,15 @@ window.SubPalette = (function () {
                         <li>挖寶的目標物品先選類別再挑選（同配件規劃），若海圖未開、等級或探索性能不足會直接提示原因</li>
                         <li>配件規劃、挖寶的物品清單改依海圖排序，並以海域分段</li>
                         <li>數據表新增各地點的「解鎖來源」，供開圖使用</li>
+                        <li>修正：改暱稱後，共同房間裡顯示的名字也會跟著更新</li>
+                        <li>路線規劃、配件規劃、挖寶的物品類別統一，並補上新海域物品的分類</li>
+                        <li>「熒光管吊燈」更正為「螢光管吊燈」，並可在路線規劃、配件規劃選取</li>
+                        <li>移除不再使用的舊程式與樣式，網頁檔案變小</li>
+                        <li>艦隊沒有船時，直接顯示「手動新增」「上傳截圖」</li>
+                        <li>刪除船艇後可在幾秒內按「復原」</li>
+                        <li>成功訊息改為畫面下方的小提示，不用再按確定；填寫錯誤會直接標出欄位</li>
+                        <li>船艇設定的「取消／儲存」固定在視窗底部</li>
+                        <li>右上角「回報」「贊助」改為較低調的樣式</li>
                     </ul>
                    <div class="u39" style="color: var(--accent-color);">📋 2026/11/12</div>
                     <ul class="u40">
@@ -3972,6 +3838,15 @@ window.SubPalette = (function () {
             <div id="listColTip" hidden>💡 按住欄位名稱前的 <b>⠿</b> 左右拖曳，可以調整欄位順序<button type="button" data-on-click="a131" aria-label="關閉提示" title="不再顯示">✕</button></div>
             <div id="timerListHead" role="toolbar" aria-label="欄位順序（拖曳欄位名稱，或用 Alt + ← → 調整）"><span data-col="name">船名</span><span data-col="count">剩餘</span><span data-col="dep">出航</span><span data-col="ret">回港</span><span data-col="route">上次航線／下次回港</span><span data-col="an">自動導航</span><span data-col="group">標籤</span><span data-col="act">操作</span></div>
             <div class="timer-list" id="timerList"></div>
+            <div class="fleet-empty" id="fleetEmpty" hidden>
+                <div class="fleet-empty-ico" aria-hidden="true">⚓</div>
+                <div class="fleet-empty-title" id="fleetEmptyTitle">還沒有潛水艇</div>
+                <div class="fleet-empty-acts">
+                    <button type="button" class="fleet-empty-btn primary" data-on-click="a147"><span aria-hidden="true">＋</span> 手動新增</button>
+                    <button type="button" class="fleet-empty-btn" data-on-click="a148"><span aria-hidden="true">📷</span> 上傳截圖</button>
+                </div>
+                <div class="fleet-empty-kbd" id="fleetEmptyKbd">也可以直接貼上截圖 <kbd>Ctrl</kbd>+<kbd>V</kbd></div>
+            </div>
         </div>
 
         <!-- 路線規劃分頁 -->
@@ -4146,7 +4021,7 @@ window.SubPalette = (function () {
 
                 <div class="rp-row u51">
                     <button type="button" class="rp-search-btn" id="rpSearchBtn" data-on-click="a58">🔍 搜尋前 100 條路線</button>
-                    <button type="button" class="rp-reset-btn" data-on-click="a59" title="清除所有篩選條件" aria-label="清除所有篩選條件">↺ 重製選擇</button>
+                    <button type="button" class="rp-reset-btn" data-on-click="a59" title="清除所有篩選條件" aria-label="清除所有篩選條件">↺ 重設</button>
                     <span id="rpStatusText" aria-live="polite"></span>
                     <div class="u52" style="display: flex;">
                         <div class="rp-view-toggle" id="rpViewToggle">
@@ -4284,7 +4159,7 @@ window.SubPalette = (function () {
                 <div class="rp-section u59">
                     <div class="craft-selector-wrap">
                         <div class="craft-sel-head">
-                            <div class="craft-sel-help">點格子 <b>+1</b>，按格子裡的 <b>−</b> 減少</div>
+
                             <div class="craft-sel-actions">
                                 <span class="craft-total" id="craftTotal" aria-live="polite"></span>
                                 <button type="button" class="craft-clear-btn" data-on-click="a75" title="清除所有配件與庫存數量（資料不可復原）" aria-label="清除所有配件與庫存數量（資料不可復原）">🗑 清除</button>
@@ -4846,7 +4721,45 @@ self.onmessage = (e) => {
 const ITEM_DB=SUB_DATA.ITEM_DB;
 </script>
 <script>
+// 輕量提示：出現在畫面下方、幾秒後自動消失，不擋住操作。opts.action = { label, fn } 會多一顆按鈕（例如「復原」）
+function showToast(msg, opts) {
+    opts = opts || {};
+    let box = document.getElementById('toastBox');
+    if (!box) { box = document.createElement('div'); box.id = 'toastBox'; box.setAttribute('role', 'status'); box.setAttribute('aria-live', 'polite'); document.body.appendChild(box); }
+    const el = document.createElement('div');
+    el.className = 'toast toast-' + (opts.type || 'success');
+    const ico = document.createElement('span'); ico.className = 'toast-ico'; ico.setAttribute('aria-hidden', 'true');
+    ico.textContent = opts.type === 'warning' ? '!' : opts.type === 'info' ? 'i' : '✓';
+    const txt = document.createElement('span'); txt.className = 'toast-txt'; txt.textContent = msg;
+    el.append(ico, txt);
+    let timer;
+    const close = () => { clearTimeout(timer); el.classList.add('out'); setTimeout(() => el.remove(), 200); };
+    if (opts.action) {
+        const b = document.createElement('button'); b.type = 'button'; b.className = 'toast-act'; b.textContent = opts.action.label;
+        b.addEventListener('click', () => { close(); opts.action.fn(); });
+        el.append(b);
+    }
+    box.append(el);
+    timer = setTimeout(close, opts.ms || (opts.action ? 6000 : 2600));
+    return close;
+}
+// 表單欄位錯誤：直接把欄位框成紅色並跳到該欄位，訊息用輕量提示
+function fieldError(id, msg) {
+    let el = typeof id === 'string' ? document.getElementById(id) : id;
+    if (el && el.type === 'hidden') el = el.previousElementSibling || el.parentElement;   // 日期欄位：標示旁邊的選擇器
+    if (el && !el.offsetParent) el = el.closest('.edit-group, .rp-field, label, div') || el;
+    const target = el && el.offsetParent ? el : null;
+    if (target) {
+        target.classList.remove('field-invalid'); void target.offsetWidth; target.classList.add('field-invalid');
+        const clear = () => { target.classList.remove('field-invalid'); target.removeEventListener('input', clear); target.removeEventListener('click', clear); };
+        target.addEventListener('input', clear); target.addEventListener('click', clear);
+        try { target.focus({ preventScroll: false }); } catch (e) {}
+    }
+    showToast(msg, { type: 'warning' });
+}
 function showAlert(msg) {
+    // 成功訊息不需要按確定：改用畫面下方的輕量提示
+    if (/^✅/.test(msg)) { showToast(msg.replace(/^✅\s*/, ''), { type: 'success' }); return; }
     // 清除訊息開頭的 emoji 符號，統一由視窗 icon 呈現
     const cleanMsg = msg.replace(/^[✅⚠️🔴🟡🟢❌⛔️ℹ️]+\s*/, '');
     // 判斷類型
@@ -4855,7 +4768,6 @@ function showAlert(msg) {
     else if (msg.startsWith('⚠️') || msg.includes('失敗') || msg.includes('錯誤')) type = 'warning';
 
     const iconEl = document.getElementById('customAlertIcon');
-    const boxEl  = document.getElementById('customAlertBox');
     const msgEl  = document.getElementById('customAlertMsg');
 
     // icon 和顏色
@@ -5063,7 +4975,7 @@ window.showConfirm = showConfirm;
     });
 
     window.onload = function() {
-        SubPalette.init(); SubPalette.render();
+        SubPalette.render();
         loadGroups(); loadTimersFromStorage(); loadCustomLinks(); initOCR(); initSubConfigModal(); initMapNodes(); initRoutePlanner(); initGearPlanner();
         // 讓滑鼠滾輪可以橫向捲動標籤列
         const groupTabsEl = document.getElementById('groupTabsContainer');
@@ -5384,7 +5296,7 @@ window.showConfirm = showConfirm;
     function submitGroupModal() {
         const input = document.getElementById('groupModalInput');
         const name = input.value.trim();
-        if (!name) { showAlert('請輸入群組名稱'); return; }
+        if (!name) { fieldError(input, '請輸入群組名稱'); return; }
         if (name === GROUP_ALL) { showAlert('這個名稱是保留字，請換一個'); return; }
 
         if (groupModalMode === 'add') {
@@ -5648,8 +5560,8 @@ window.showConfirm = showConfirm;
         const level = document.getElementById('addShipLevel').value.trim();
         const group = document.getElementById('addShipGroup').value || DEFAULT_GROUP;
         const endTimeStr = document.getElementById('addShipEndTime').value;
-        if (!name) { showAlert('請輸入船名'); return; }
-        if (!endTimeStr) { showAlert('請選擇回港時間'); return; }
+        if (!name) { fieldError('addShipName', '請輸入船名'); return; }
+        if (!endTimeStr) { fieldError('addShipEndTime', '請選擇回港時間'); return; }
         const endTime = new Date(endTimeStr).getTime();
         if (isNaN(endTime)) { showAlert('回港時間格式錯誤'); return; }
         const now = Date.now();
@@ -5815,15 +5727,13 @@ window.showConfirm = showConfirm;
         saveCustomLinks();
         renderCustomLinks();
     }
-    // 舊函式名稱保留給其他地方呼叫
-    function toggleEditLink(id) { linkStartEdit(document.querySelector(`.link-item[data-link-id="${id}"]`)); }
 
     function addCustomLink(form) {
         form = form || document.querySelector('.link-add');
         const nameInput = form.querySelector('.link-in-name');
         const urlInput = form.querySelector('.link-in-url');
         let url = urlInput.value.trim();
-        if (!url) { showAlert('請先貼上網址'); urlInput.focus(); return; }
+        if (!url) { fieldError(urlInput, '請先貼上網址'); return; }
         url = normalizeUrl(url);
         const name = nameInput.value.trim() || linkHost(url);
         const id = 'link_' + Date.now() + '_' + (++_linkIdCounter) + '_' + Math.random().toString(36).substr(2, 5);
@@ -5937,7 +5847,6 @@ window.showConfirm = showConfirm;
         input.dispatchEvent(new Event('input', { bubbles: true }));
         if (typeof callback === 'function') callback();
     }
-    function toggleTheme() { SubPalette.toggleMode(); }
     function testAlarm() { playSound(); showNotification("測試潛水艇"); }
     async function initOCR() { try { statusText.innerText = "⏳ 正在載入辨識引擎..."; workerInitPromise = Tesseract.createWorker('chi_tra'); worker = await workerInitPromise; statusText.innerText = "🟢 引擎初始化成功！請上傳截圖。"; } catch (e) { statusText.innerText = "❌ 初始化失敗，請重整。"; } }
     fileInput.addEventListener('change', (e) => { if (fileInput.files.length) handleFile(fileInput.files[0]); });
@@ -6147,24 +6056,6 @@ window.showConfirm = showConfirm;
                /^[A-Za-z]+$/.test(name) ||                       // 純英文字母：ABC
                /^[A-Za-z0-9]{1,4}$/.test(name);                  // 數字+英文混合短名：1A、2B、AB1（4字元以內）
     }
-    function findFuzzyMatch(name, pool) {
-        pool = pool || savedTimers;
-        // 純數字、純中文數字、純英文字母的名字，每個字元都是關鍵區分，不做模糊比對
-        if (isPureSimple(name)) return -1;
-        let bestIndex = -1, bestDist = Infinity;
-        const maxDist = Math.max(1, Math.floor(name.length * 0.3)); // 原本 30% 門檻
-        const srcSerial = getSerialSuffix(name);
-        pool.forEach((t, i) => {
-            // 存檔的船名若也是純簡單型，同樣跳過
-            if (isPureSimple(t.name)) return;
-            // 若兩艘船都有序號且序號不同，視為不同船，跳過模糊比對
-            const tgtSerial = getSerialSuffix(t.name);
-            if (srcSerial !== null && tgtSerial !== null && srcSerial !== tgtSerial) return;
-            const dist = levenshtein(name, t.name);
-            if (dist <= maxDist && dist < bestDist) { bestDist = dist; bestIndex = i; }
-        });
-        return bestIndex;
-    }
 
     // matched：截圖比對到的船（ocrAssign 決定）；null 代表新船
     function saveOrUpdateTimer(name, level, totalSeconds, matched) {
@@ -6314,42 +6205,9 @@ window.showConfirm = showConfirm;
     }
 
     // ── 配件性能懸浮提示（自定義，自動 2.5 秒後消失）──
-    const PART_STAT_NAMES = ['探索性能', '收集性能', '巡航速度', '航行距離', '恩惠'];
-    let _partTipTimer = null;
 
-    function showPartStatTip(sel) {
-        const opt = sel.options[sel.selectedIndex];
-        const raw = opt ? opt.dataset.stats : null;
-        const tip = document.getElementById('partStatTip');
-        if (!tip) return;
-        clearTimeout(_partTipTimer);
-        if (!raw) { tip.style.display = 'none'; return; }
-        const vals = raw.split(',').map(Number);
-        tip.innerHTML = `<div class="pst-title">${opt.text} 配件加成</div>` +
-            PART_STAT_NAMES.map((n, i) => {
-                const v = vals[i];
-                const cls = v > 0 ? 'pos' : v < 0 ? 'neg' : 'zero';
-                const sign = v > 0 ? '+' : '';
-                return `<div class="pst-row"><span class="pst-label">${n}</span><span class="pst-val ${cls}">${sign}${v}</span></div>`;
-            }).join('');
-        tip.style.display = 'block';
-        const rect = sel.getBoundingClientRect();
-        let left = rect.left;
-        let top = rect.bottom + 6;
-        const tipW = tip.offsetWidth || 200;
-        const tipH = tip.offsetHeight || 160;
-        if (left + tipW > window.innerWidth - 8) left = window.innerWidth - tipW - 8;
-        if (top + tipH > window.innerHeight - 8) top = rect.top - tipH - 6;
-        tip.style.left = left + 'px';
-        tip.style.top = top + 'px';
-    }
 
-    function hidePartStatTip() {
-        clearTimeout(_partTipTimer);
-        document.getElementById('partStatTip').style.display = 'none';
-    }
 
-    function attachPartHoverPreview(sel) {}
 
     // ══ 自訂配件下拉元件 ══════════════════════════════════════════
     const STAT_LABELS_ARR = ['探索性能','收集性能','巡航速度','航行距離','恩惠'];
@@ -6641,9 +6499,9 @@ window.showConfirm = showConfirm;
         if (!t) return;
         const newName = document.getElementById('cfg-name').value.trim();
         const newLevel = document.getElementById('cfg-level').value.trim();
-        if (!newName) { showAlert('船名不能是空的'); return; }
+        if (!newName) { fieldError('cfg-name', '船名不能是空的'); return; }
         const newEndTimeStr = document.getElementById('cfg-endtime').value;
-        if (!newEndTimeStr) { showAlert('回港時間不能是空的'); return; }
+        if (!newEndTimeStr) { fieldError('cfg-endtime', '回港時間不能是空的'); return; }
         const newEndTime = new Date(newEndTimeStr).getTime();
         if (isNaN(newEndTime)) { showAlert('回港時間格式錯誤'); return; }
         const expRaw = document.getElementById('cfg-exp').value.replace(/[^\d]/g, '');
@@ -6737,7 +6595,7 @@ window.showConfirm = showConfirm;
         const card = document.createElement('div'); 
         card.className = 'timer-card'; 
         card.id = `card-${timer.id}`; 
-        card.innerHTML = `<div class="timer-header" id="header-${timer.id}"><span class="timer-name"><span id="name-${timer.id}">${escapeHtml(String(timer.name||''))}</span> <span class="timer-level" id="level-${timer.id}">${timer.level ? `[${escapeHtml(String(timer.level))}]` : ''}</span></span><span class="timer-countdown" id="count-${timer.id}">計算中...</span></div><div class="progress-bar-bg" id="bg-${timer.id}"><div class="progress-bar" id="bar-${timer.id}" style="width: 100%"></div></div><div class="timer-footer"><span>出航：<span class="time-highlight">${formatDateTime(timer.startTime)}</span></span><span>回港：<span class="time-highlight target">${formatDateTime(timer.endTime)}</span></span></div><div class="sub-config-summary" id="config-summary-${timer.id}"></div><div class="sub-route-line" id="route-line-${timer.id}"></div><div class="sub-an-line" id="an-line-${timer.id}"></div><div class="delete-btn-wrapper"><select class="card-group-select" id="group-select-${timer.id}" onchange="changeCardGroup('${timer.id}', this.value)">${groupSelectOptionsHtml(timer.group || DEFAULT_GROUP)}</select><div class="card-action-btns"><button class="card-icon-btn btn-route" onclick="sendCardToRoutePlanner('${timer.id}')">路線規劃</button><button class="card-icon-btn btn-config" onclick="openSubConfigModal('${timer.id}')">船艇設定</button><button class="card-icon-btn btn-delete" onclick="deleteTimer('${timer.id}')">刪除</button></div></div>`; 
+        card.innerHTML = `<div class="timer-header" id="header-${timer.id}"><span class="timer-name"><span id="name-${timer.id}">${escapeHtml(String(timer.name||''))}</span> <span class="timer-level" id="level-${timer.id}">${timer.level ? `[${escapeHtml(String(timer.level))}]` : ''}</span></span><span class="timer-countdown" id="count-${timer.id}">計算中...</span></div><div class="progress-bar-bg" id="bg-${timer.id}"><div class="progress-bar" id="bar-${timer.id}" style="width: 100%"></div></div><div class="timer-footer"><span>出航：<span class="time-highlight">${formatDateTime(timer.startTime)}</span></span><span>回港：<span class="time-highlight target">${formatDateTime(timer.endTime)}</span></span></div><div class="sub-config-summary" id="config-summary-${timer.id}"></div><div class="sub-route-line" id="route-line-${timer.id}"></div><div class="sub-an-line" id="an-line-${timer.id}"></div><div class="delete-btn-wrapper"><select class="card-group-select" id="group-select-${timer.id}" onchange="changeCardGroup('${timer.id}', this.value)">${groupSelectOptionsHtml(timer.group || DEFAULT_GROUP)}</select><div class="card-action-btns"><button class="card-icon-btn btn-route" onclick="sendCardToRoutePlanner('${timer.id}')">路線規劃</button><button class="card-icon-btn btn-config" onclick="openSubConfigModal('${timer.id}')">船艇設定</button><button class="card-icon-btn btn-delete" onclick="deleteTimer('${timer.id}')" aria-label="刪除 ${escapeHtml(String(timer.name||''))}"><span aria-hidden="true">🗑</span> 刪除</button></div></div>`; 
         // 先停掉這艘船舊卡片的倒數，避免舊計時器把舊卡片又塞回清單（造成重複卡片）
         if (_timerIntervals.has(timer.id)) { clearInterval(_timerIntervals.get(timer.id)); _timerIntervals.delete(timer.id); }
         timerList.appendChild(card); 
@@ -7087,7 +6945,21 @@ window.showConfirm = showConfirm;
         card.classList.toggle('expanded');
     });
 
+    // 沒有船時顯示空狀態：整個艦隊空的＝新手引導；只有這個標籤空的＝簡短提示
+    function refreshFleetEmpty() {
+        const box = document.getElementById('fleetEmpty');
+        if (!box) return;
+        const list = getActiveTimers();
+        const visible = activeGroup === GROUP_ALL ? list.length : list.filter(t => (t.group || DEFAULT_GROUP) === activeGroup).length;
+        box.hidden = visible > 0;
+        if (visible > 0) return;
+        const none = list.length === 0;
+        box.classList.toggle('compact', !none);
+        document.getElementById('fleetEmptyTitle').textContent = none ? '還沒有潛水艇' : `「${activeGroup}」還沒有船`;
+        document.getElementById('fleetEmptyKbd').hidden = !none;
+    }
     function updateFleetCount() {
+        refreshFleetEmpty();
         const el = document.getElementById("fleetCount");
         if (!el) return;
         const list = getActiveTimers();
@@ -7099,13 +6971,30 @@ window.showConfirm = showConfirm;
         }
     }
     function deleteTimer(id) {
-        const arr = getActiveTimers().filter(t => t.id !== id);
+        const all = getActiveTimers();
+        const idx = all.findIndex(t => t.id === id), removed = all[idx];
+        const arr = all.filter(t => t.id !== id);
+        if (removed) showToast(`已刪除「${removed.name || '船艇'}」`, { type: 'info', action: { label: '復原', fn: () => restoreTimer(removed, idx) } });
         setActiveTimers(arr);
         saveActiveTimers();
         document.getElementById(`card-${id}`)?.remove();
         // 清除對應的 interval
         if (_timerIntervals.has(id)) { clearInterval(_timerIntervals.get(id)); _timerIntervals.delete(id); }
+        AUTO_NAV_CACHE.delete(id);   // 自動導航的暫存也一起清掉
         updateFleetCount();
+    }
+    // 復原剛刪除的船艇（放回原本的位置）
+    function restoreTimer(t, idx) {
+        const arr = getActiveTimers().slice();
+        if (arr.some(x => x.id === t.id)) return;
+        arr.splice(Math.min(Math.max(idx, 0), arr.length), 0, t);
+        setActiveTimers(arr);
+        saveActiveTimers();
+        createTimerCard(t);
+        const list = document.getElementById('timerList');
+        getSortedTimers().forEach(st => { const c = document.getElementById(`card-${st.id}`); if (c) list.appendChild(c); });
+        applyGroupFilter();
+        if (typeof refreshRpShipSelect === 'function') refreshRpShipSelect();
     }
     function saveTimersToStorage() { localStorage.setItem('ffxiv_submarine_timers', JSON.stringify(savedTimers)); window.SubSync?.changed(); }
 
@@ -7493,7 +7382,6 @@ window.showConfirm = showConfirm;
 
         gpRenderDiff(stats);
         // 更新預期獲得數量
-        if (typeof gpRenderLootPreview === 'function') gpRenderLootPreview();
     }
 
     function gpRenderDiff(stats) {
@@ -7501,7 +7389,7 @@ window.showConfirm = showConfirm;
         if (!resultBox) return;
 
         if (gpSelectedItems.length === 0) {
-            resultBox.innerHTML = '<div class="gp-no-change">請於上方「目標物品」選擇想撈取的物品，即可看到探索值差距分析。</div>';
+            resultBox.innerHTML = '<div class="empty-state"><span class="empty-ico" aria-hidden="true">🎯</span>選擇目標物品，顯示探索值差距</div>';
             return;
         }
 
@@ -7744,11 +7632,7 @@ window.showConfirm = showConfirm;
         const lootIdSet = (typeof RP_LOOT_ID_SET !== 'undefined') ? RP_LOOT_ID_SET : (() => {
             const s = new Set(); Object.values(SUB_LOOT).forEach(arr => arr.forEach(id => s.add(id))); return s;
         })();
-        let ids;
-        if (cat === 'all') ids = [...lootIdSet];
-        else if (cat === 'workshop') ids = [...WORKSHOP_IDS].filter(id => lootIdSet.has(id));
-        else if (cat === 'rare') ids = [...RARE_IDS].filter(id => lootIdSet.has(id));
-        else ids = [...lootIdSet].filter(id => !WORKSHOP_IDS.has(id) && !RARE_IDS.has(id));
+        const ids = [...lootIdSet].filter(id => cat === 'all' || itemCategoryOf(id) === cat);
         const exclude = /魔晶石|之(碎晶|水晶|晶簇)$|黑暗物質/;
         return sortItemsByMap(ids.map(id => ({ id, name: ITEM_DB[id] || '' })).filter(x => x.name && !exclude.test(x.name)));
     }
@@ -7826,17 +7710,6 @@ window.showConfirm = showConfirm;
         }
     }
 
-    function gpAddItemFromSelect(sel) {
-        const id = parseInt(sel.value);
-        if (!id) return;
-        const name = ITEM_DB[id] || `#${id}`;
-        if (!gpSelectedItems.find(x => x.id === id)) {
-            gpSelectedItems.push({ id, name });
-            gpRenderItemChips();
-            gpRecalc();
-        }
-        sel.value = '';
-    }
 
     function gpRemoveItem(id) {
         gpSelectedItems = gpSelectedItems.filter(x => x.id !== id);
@@ -7954,104 +7827,7 @@ const ITEM_DB_EN=SUB_DATA.ITEM_DB_EN;
 // ── 預期獲得數量資料 ──
 const SECTOR_LOOT=SUB_DATA.SECTOR_LOOT;
 
-// ── 初始化地點下拉 ──
-(function initGpLootSectorSel() {
-    const sel = document.getElementById('gpLootSectorSel');
-    if (!sel) return;
-    const mapNames = MAP_NAMES;
-    // Group by map
-    const groups = {};
-    Object.keys(SECTOR_LOOT).forEach(k => {
-        const [mapId, ...rest] = k.split('_');
-        const letter = rest.join('_');
-        if (!groups[mapId]) groups[mapId] = [];
-        groups[mapId].push({key:k, letter});
-    });
-    Object.keys(groups).sort((a,b)=>+a-+b).forEach(mapId => {
-        const og = document.createElement('optgroup');
-        og.label = `${mapId} ${mapNames[mapId]||''}`;
-        groups[mapId].sort((a,b)=>a.letter.localeCompare(b.letter)).forEach(item => {
-            const opt = document.createElement('option');
-            opt.value = item.key;
-            // Find name from SUB_SECTORS
-            const sec = SUB_SECTORS.find(s => s[1]==+mapId && s[2]===item.letter);
-            opt.textContent = sec ? `${item.letter} ${sec[4]}` : item.letter;
-            og.appendChild(opt);
-        });
-        sel.appendChild(og);
-    });
-})();
 
-// ── 渲染預期獲得數量 ──
-function gpRenderLootPreview() {
-    const sel = document.getElementById('gpLootSectorSel');
-    const box = document.getElementById('gpLootPreviewBox');
-    if (!sel || !box) return;
-    const key = sel.value;
-    if (!key) { box.style.display='none'; return; }
-    const loot = SECTOR_LOOT[key];
-    if (!loot) { box.style.display='none'; return; }
-
-    const stats = gpGetCurrentStats();
-    const gather = stats ? stats.gather : 0;
-    const nr = loot[0];  // normal retrieval threshold
-    const or_ = loot[1]; // optimal retrieval threshold
-
-    // Determine status
-    let status, statusCls, statusLabel;
-    if (or_ !== null && gather >= or_) {
-        status = 'opt'; statusLabel = 'Optimal';
-    } else if (nr !== null && gather >= nr) {
-        status = 'normal'; statusLabel = 'Normal';
-    } else {
-        status = 'poor'; statusLabel = 'Poor';
-    }
-
-    const tierData = loot[2];
-    const tierLabels = { t1:'T1 探索低', t2:'T2 探索中', t3:'T3 探索高' };
-
-    const thrBar = `<div class="gp-loot-thr-bar">
-        收集性能 <strong>${gather}</strong>　
-        Normal 門檻：<span class="gp-loot-thr-chip ${nr!==null&&gather>=nr?'met':'unmet'}">${nr??'—'}</span>
-        Optimal 門檻：<span class="gp-loot-thr-chip ${or_!==null&&gather>=or_?'met':'unmet'}">${or_??'—'}</span>
-        <span class="gp-loot-status ${status}">&nbsp;${statusLabel}&nbsp;</span>
-    </div>`;
-
-    const tierHtml = ['t1','t2','t3'].map(tier => {
-        const items = tierData[tier];
-        if (!items || items.length === 0) return '';
-        const rowsHtml = items.map(item => {
-            let qty, qtyCls;
-            if (status === 'opt') {
-                qty = item.o[0] !== null && item.o[1] !== null
-                    ? (item.o[0] === item.o[1] ? `${item.o[0]}` : `${item.o[0]}–${item.o[1]}`)
-                    : '?';
-                qtyCls = 'opt';
-            } else if (status === 'normal') {
-                qty = item.nm[0] !== null && item.nm[1] !== null
-                    ? (item.nm[0] === item.nm[1] ? `${item.nm[0]}` : `${item.nm[0]}–${item.nm[1]}`)
-                    : '?';
-                qtyCls = 'normal';
-            } else {
-                qty = item.p[0] !== null && item.p[1] !== null
-                    ? (item.p[0] === item.p[1] ? `${item.p[0]}` : `${item.p[0]}–${item.p[1]}`)
-                    : '?';
-                qtyCls = 'poor';
-            }
-            return `<div class="gp-loot-item-row">
-                <span class="gp-loot-item-name">${item.n}</span>
-                <span class="gp-loot-qty ${qtyCls}">${qty}</span>
-            </div>`;
-        }).join('');
-        return `<div class="gp-loot-tier-block">
-            <div class="gp-loot-tier-label gp-loot-tier-${status==='poor'?'poor':status==='normal'?'normal':'opt'}">${tierLabels[tier]}</div>
-            ${rowsHtml}
-        </div>`;
-    }).join('');
-
-    box.innerHTML = `<div class="gp-loot-preview-wrap">${thrBar}${tierHtml}</div>`;
-    box.style.display = 'block';
-}
 
     // ── 配件規劃備註提示 ──
     const GP_PRESET_HINTS = SUB_DATA.GP_PRESET_HINTS;
@@ -8100,7 +7876,6 @@ const CRAFT_BASE = SUB_DATA.CRAFT_BASE;
     // ══ 配件製作 (Gear Crafting) ══════════════════════════════════
 
     let craftSelectedParts = []; // [{name, qty}]
-    let craftSelectedCellName = null; // 目前於格狀選單中選取的部位名稱
 
     // ── localStorage 鍵名 ──
     const CRAFT_STORAGE_PARTS = 'sub_craft_selected_parts';
@@ -8203,16 +7978,9 @@ const CRAFT_BASE = SUB_DATA.CRAFT_BASE;
         </table>`;
 
         container.dataset.inited = '1';
-        craftUpdateHint();
         craftRefreshGridHighlight();
     }
 
-    function craftGetCurrentName() {
-        return Object.keys(CRAFT_PARTS).find(n => {
-            const p = CRAFT_PARTS[n];
-            return p.class === craftSelectedClass && p.sort === craftSelectedSort;
-        }) || null;
-    }
 
     function craftRefreshGridHighlight() {
         document.querySelectorAll('.craft-grid-cell').forEach(td => {
@@ -8264,53 +8032,17 @@ const CRAFT_BASE = SUB_DATA.CRAFT_BASE;
     function craftSelectCell2(cls, sort) {
         craftSelectedClass = cls;
         craftSelectedSort  = sort;
-        craftSelectedCellName = craftGetCurrentName();
         // 點擊格子直接加入清單（數量 +1）
         craftCellStep(cls, sort, 1);
     }
 
-    function craftUpdateHint() {
-        craftSelectedCellName = craftGetCurrentName();
-        const hint = document.getElementById('craftGridHint');
-        if (!hint) return;
-        const p = craftSelectedCellName ? CRAFT_PARTS[craftSelectedCellName] : null;
-        hint.textContent = p ? `${p.className} ${p.part}` : '—';
-    }
 
-    function craftSelectCell(name) {
-        const p = CRAFT_PARTS[name];
-        if (!p) return;
-        craftSelectedClass = p.class;
-        craftSelectedSort  = p.sort;
-        craftSelectedCellName = name;
-        craftRefreshGridHighlight();
-        craftUpdateHint();
-    }
 
     function initCraftPlanner() {
         craftLoadFromStorage();
         craftBuildGrid();
-        if (!craftSelectedCellName) {
-            craftSelectedCellName = craftGetCurrentName();
-        }
-        craftUpdateHint();
         craftRenderChips();
         craftRenderResult();
-        craftInitMobSelects();
-    }
-
-    function craftAddPart() {
-        const name = craftSelectedCellName;
-        const qtyInput = document.getElementById('craftQty');
-        if (!name) return;
-        let qty = qtyInput ? parseInt(qtyInput.value, 10) : 1;
-        if (!qty || qty < 1) qty = 1;
-        const existing = craftSelectedParts.find(x => x.name === name);
-        if (existing) existing.qty += qty;
-        else craftSelectedParts.push({ name, qty });
-        craftRenderChips();
-        craftRenderResult();
-        craftPersist();
     }
 
     function craftRemovePart(name) {
@@ -8320,17 +8052,6 @@ const CRAFT_BASE = SUB_DATA.CRAFT_BASE;
         craftPersist();
     }
 
-    function craftChangePartQty(name, delta) {
-        const existing = craftSelectedParts.find(x => x.name === name);
-        if (!existing) return;
-        existing.qty = existing.qty + delta;
-        if (existing.qty <= 0) {
-            craftSelectedParts = craftSelectedParts.filter(x => x.name !== name);
-        }
-        craftRenderChips();
-        craftRenderResult();
-        craftPersist();
-    }
 
     function craftSetPartQty(name, val) {
         const v = parseInt(val, 10);
@@ -8433,9 +8154,6 @@ const CRAFT_BASE = SUB_DATA.CRAFT_BASE;
     const craftOwnedMap = {}; // { [matName]: number }
 
     // 過渡品判定：在 midTotals 中出現的素材（CRAFT_MATS 中有配方的半成品）為過渡品
-    function craftIsTransition(name) {
-        return !!(CRAFT_MATS[name] && CRAFT_MATS[name].recipe) || !!(CRAFT_PARTS[name] && CRAFT_PARTS[name].recipe);
-    }
 
     function craftSaveOwned(name, val) {
         const n = parseInt(val, 10);
@@ -8651,7 +8369,7 @@ const CRAFT_BASE = SUB_DATA.CRAFT_BASE;
         if (!box) return;
 
         if (craftSelectedParts.length === 0) {
-            box.innerHTML = '<div class="gp-no-change">請於上方選擇船級與部位並「加入清單」，即可看到完整素材需求。</div>';
+            box.innerHTML = '<div class="empty-state"><span class="empty-ico" aria-hidden="true">👆</span>點上方格子，加入要製作的配件</div>';
             return;
         }
 
@@ -8825,33 +8543,7 @@ const CRAFT_BASE = SUB_DATA.CRAFT_BASE;
         wrap.querySelectorAll('.craft-mat-col').forEach((c,i) => c.classList.toggle('mob-col-active', i===idx));
     };
 
-    // ── 手機版下拉選了直接加入 ──
-    window.craftMobAdd = function(partName, sel) {
-        const val = sel.value;
-        if (!val) return;
-        craftSelectedCellName = val;
-        craftAddPart();
-        sel.value = '';
-    };
 
-    // ── 初始化手機版下拉選項 ──
-    function craftInitMobSelects() {
-        const SEL_IDS = { '船體':'craftMobHull', '船尾':'craftMobStern', '船首':'craftMobBow', '艦橋':'craftMobBridge' };
-        ['船體','船尾','船首','艦橋'].forEach(partName => {
-            const sel = document.getElementById(SEL_IDS[partName]);
-            if (!sel) return;
-            sel.innerHTML = '<option value="">— 不製作 —</option>';
-            const items = Object.entries(CRAFT_PARTS)
-                .filter(([,p]) => p.part === partName)
-                .sort(([,a],[,b]) => a.class - b.class);
-            items.forEach(([key, p]) => {
-                const opt = document.createElement('option');
-                opt.value = key;
-                opt.textContent = p.className;
-                sel.appendChild(opt);
-            });
-        });
-    }
 
     function craftUpdateColCounts(box) {
         if (!box) box = document.getElementById('craftResult');
@@ -9014,8 +8706,11 @@ const CRAFT_BASE = SUB_DATA.CRAFT_BASE;
         33871, 33872, 33873, 37485, 37487, 37489, 37490, 38580, 38607, 38608,
         38619, 38684, 38685, 39382, 39387, 39476, 39585, 39586, 39587, 39588,
         39618, 40381, 40638, 40659, 40696, 40697, 40698, 40699, 41103, 41143,
-        41427, 41651, 41652, 41664, 41665, 41806, 41818, 41820, 41821, 44326,
-        44327, 44486, 44488, 44895, 44900, 44911, 45037, 45073
+        41427, 41651, 41652, 41664, 41665, 41806, 41818, 41820, 41821, 44261,
+        44326, 44327, 44486, 44488, 44895, 44900, 44911, 45037, 45073, 46089,
+        46104, 46110, 46121, 46146, 46262, 46836, 46837, 46846, 48099, 48102,
+        48131, 48149, 48224, 48731, 49853, 50456, 50457, 50794, 50796, 51264,
+        51269, 52358, 52442, 52443, 52444, 52445, 52632
     ]);
 
     // ── 工坊材料（Workshop Materials）─────────────────────
@@ -9035,24 +8730,33 @@ const CRAFT_BASE = SUB_DATA.CRAFT_BASE;
     // ── 其他材料（Other Materials）────────────────────────
     // 食材、礦砂、石材、金屬錠、雜項（wiki 掉落表「其他材料」欄）
     const OTHER_IDS = new Set([
-        17, 18, 5066, 5067, 5069, 5113, 5116, 5118, 5120, 5121,
-        5187, 5188, 5189, 5192, 5226, 5230, 5231, 5232, 5365, 5384,
-        5391, 5392, 5395, 5512, 5563, 5564, 7008, 7009, 7010, 7040,
-        7047, 7588, 7589, 7590, 7621, 7671, 8028, 9360, 12221, 12520,
-        12531, 12532, 12533, 12534, 12537, 12538, 12539, 12544, 12545, 12551,
-        12578, 12579, 12585, 12586, 12606, 12610, 14151, 14955, 14957, 16725,
-        16906, 16908, 19930, 19932, 19933, 19934, 19938, 19957, 19962, 19964,
-        19967, 19980, 21800, 25008, 27683, 27684, 27685, 27686, 27687, 27696,
-        27697, 27698, 27699, 27700, 27701, 27702, 27703, 27736, 27753, 27759,
-        27773, 27774, 27801, 27803, 27817, 36083, 36086, 36087, 36089, 36094,
-        36096, 36097, 36164, 36165, 36174, 36175, 36176, 36177, 36178, 36180,
-        36181, 36190, 36193, 36194, 36205, 36206, 43974, 43976, 43977, 43978,
-        43979, 43981, 43982, 43985, 43986, 43987, 43988, 43992, 43993, 43994,
-        43995, 43996, 43997, 43998, 43999, 44000, 44001, 44002, 44003, 44004,
-        44005, 44006, 44007, 44009, 44010, 44012, 44014, 44015, 44016, 44017,
+        5066, 5067, 5069, 5113, 5116, 5118, 5120, 5121, 5187, 5188,
+        5189, 5192, 5226, 5230, 5231, 5232, 5365, 5384, 5391, 5392,
+        5395, 5512, 5563, 5564, 7008, 7009, 7010, 7040, 7047, 7588,
+        7589, 7590, 7621, 7671, 8028, 9360, 12221, 12520, 12531, 12532,
+        12533, 12534, 12537, 12538, 12539, 12544, 12545, 12551, 12578, 12579,
+        12585, 12586, 12606, 12610, 14151, 14955, 14957, 16706, 16725, 16906,
+        16908, 19930, 19932, 19933, 19934, 19938, 19952, 19953, 19956, 19957,
+        19962, 19964, 19967, 19980, 20014, 21800, 25008, 27683, 27684, 27685,
+        27686, 27687, 27696, 27697, 27698, 27699, 27700, 27701, 27702, 27703,
+        27708, 27709, 27736, 27753, 27759, 27773, 27774, 27801, 27803, 27817,
+        36083, 36086, 36087, 36089, 36094, 36096, 36097, 36164, 36165, 36174,
+        36175, 36176, 36177, 36178, 36180, 36181, 36190, 36193, 36194, 36205,
+        36206, 43974, 43976, 43977, 43978, 43979, 43981, 43982, 43985, 43986,
+        43987, 43988, 43992, 43993, 43994, 43995, 43996, 43997, 43998, 43999,
+        44000, 44001, 44002, 44003, 44004, 44005, 44006, 44007, 44009, 44010,
+        44011, 44012, 44014, 44015, 44016, 44017, 44018, 44021, 44022, 44023,
         44024, 44025, 44026, 44029, 44030, 44031, 44053, 44054, 44055, 44058,
         44059, 44060
     ]);
+
+    // 物品類別（路線規劃、配件規劃、自動導航挖寶共用同一套判斷）
+    function itemCategoryOf(id) {
+        if (RARE_IDS.has(id)) return 'rare';
+        if (WORKSHOP_IDS.has(id)) return 'workshop';
+        if (OTHER_IDS.has(id)) return 'other';
+        return 'other';   // 尚未分類的新物品先歸在其他材料
+    }
 
     let rpItemCategories = { all: [], workshop: [], other: [], rare: [] };
 
@@ -9066,16 +8770,7 @@ const CRAFT_BASE = SUB_DATA.CRAFT_BASE;
             if (!RP_LOOT_ID_SET.has(id)) continue;
             const name = ITEM_DB[idStr];
             if (RP_ITEM_EXCLUDE_PATTERN.test(name)) continue;
-            if (RARE_IDS.has(id)) {
-                rpItemCategories.rare.push({ id, name });
-            } else if (WORKSHOP_IDS.has(id)) {
-                rpItemCategories.workshop.push({ id, name });
-            } else if (OTHER_IDS.has(id)) {
-                rpItemCategories.other.push({ id, name });
-            } else {
-                // 未明確分類者，預設歸入工坊材料
-                rpItemCategories.workshop.push({ id, name });
-            }
+            rpItemCategories[itemCategoryOf(id)].push({ id, name });
         }
         // 各類依名稱排序
         const sort = arr => arr.sort((a, b) => a.name.localeCompare(b.name, 'zh-TW'));
@@ -9303,22 +8998,7 @@ const CRAFT_BASE = SUB_DATA.CRAFT_BASE;
         document.getElementById('rpEndTimeField').style.display = mode === 'endtime' ? 'flex' : 'none';
     }
 
-    function rpAddItemFromSelect(sel) {
-        const id = parseInt(sel.value, 10);
-        if (!id) return;
-        if (!rpSelectedItems.some(i => i.id === id)) {
-            rpSelectedItems.push({ id, name: ITEM_DB[id] || `#${id}` });
-            rpRenderChips();
-        }
-        sel.value = ''; // 重置回預設選項
-    }
 
-    function rpAddItem(id) {
-        if (!rpSelectedItems.some(i => i.id === id)) {
-            rpSelectedItems.push({ id, name: ITEM_DB[id] || `#${id}` });
-            rpRenderChips();
-        }
-    }
 
     function rpRemoveItem(id) {
         rpSelectedItems = rpSelectedItems.filter(i => i.id !== id);
@@ -9606,7 +9286,6 @@ const CRAFT_BASE = SUB_DATA.CRAFT_BASE;
         gold:  { label: '撈金', icon: '💰', desc: '固定走溺沒海的<b>撈金航線</b>。會檢查等級、航距、海圖能不能跑，不夠時列出差距；收集、恩惠、探索則列出建議值。' }
     };
     const SUB_UNLOCK = SUB_DATA.SUB_UNLOCK || {};
-    const SUB_UNLOCK_KIDS = (() => { const o = {}; Object.entries(SUB_UNLOCK).forEach(([c, ss]) => ss.forEach(s => (o[s] = o[s] || []).push(+c))); return o; })();
     // 物品 → 可掉落的地點與層級
     const AUTO_ITEM_SRC = (() => {
         const o = {};
@@ -9913,6 +9592,11 @@ const CRAFT_BASE = SUB_DATA.CRAFT_BASE;
         }).catch(e => { console.error(e); entry.res = { best: null, why: 'error' }; return entry.res; });
         AUTO_NAV_CACHE.set(t.id, entry);
         return entry.promise;
+    }
+    // 在其他裝置刪掉、或切換房間後已不存在的船，清掉它們的自動導航暫存
+    function autoNavPrune() {
+        const ids = new Set([...savedTimers, ...(_viewTimers || []), ...Object.values(_rooms || {}).flatMap(r => r.timers || [])].map(t => t.id));
+        for (const id of AUTO_NAV_CACHE.keys()) if (!ids.has(id)) AUTO_NAV_CACHE.delete(id);
     }
     let _autoNavRefreshTimer = null;
     function autoNavRefreshAll() {
@@ -10239,9 +9923,6 @@ const CRAFT_BASE = SUB_DATA.CRAFT_BASE;
         return r.secIds.map(id => { const s = SECTOR_MAP.get(id); return s ? s[2] : '?'; }).join('→');
     }
     // 確認視窗用：字母＋中文地點名，例如「L 碧眼島 → I 碧藍海心南」
-    function subRouteNamesTC(r) {
-        return r.secIds.map(id => { const s = SECTOR_MAP.get(id); return s ? `${s[2]} ${s[4]}` : '?'; }).join(' → ');
-    }
     function subFmtMins(m) {
         m = Math.round(m); const d = Math.floor(m / 1440), h = Math.floor(m % 1440 / 60), mm = m % 60;
         return (d ? d + '天' : '') + (d || h ? h + '小時' : '') + mm + '分';
@@ -10284,6 +9965,7 @@ const CRAFT_BASE = SUB_DATA.CRAFT_BASE;
     }
     setInterval(() => {
         try { getActiveTimers().forEach(t => { if ((t.lastRoute || autoNavOf(t)) && Date.now() >= t.endTime) updateRouteLine(t.id); }); } catch (e) {}
+        try { autoNavPrune(); } catch (e) {}
     }, 60000);
     // 計算再出發的結果（不寫入）；失敗時回傳 { err }
     function subPlanRedepart(t) {
@@ -10376,7 +10058,7 @@ const CRAFT_BASE = SUB_DATA.CRAFT_BASE;
     async function subGroupRedepart() {
         const list = subGroupCandidates();
         await Promise.all(list.filter(autoNavOf).map(t => autoNavEnsure(t).catch(() => null)));
-        if (!list.length) { showAlert('目前沒有可以一起再出發的船。\n\n船要先在「路線規劃」按「使用」出發過一次（才會記住航線），等它回港後，就會算進這個按鈕，可以一次全部再出發。'); return; }
+        if (!list.length) { showToast('目前沒有已回港、可再出發的船', { type: 'info' }); return; }
         const ok = [], bad = [];
         list.forEach(t => { const plan = subPlanRedepart(t); (plan.err ? bad : ok).push({ t, plan }); });
         const now = Date.now();
@@ -10528,16 +10210,6 @@ const CRAFT_BASE = SUB_DATA.CRAFT_BASE;
 
     const RP_LOOT_DISPLAY_EXCLUDE = /魔晶石|之(碎晶|水晶|晶簇)$|黑暗物質/;
 
-    function rpLootTagHtml(id, targetIds) {
-        const name = ITEM_DB[id] || `#${id}`;
-        if (RP_LOOT_DISPLAY_EXCLUDE.test(name)) return '';
-        const isTarget = targetIds.includes(id);
-        let cls = 'rp-loot-tag';
-        if (isTarget) cls += ' rp-loot-target';
-        else if (RARE_IDS.has(id)) cls += ' rp-loot-rare';
-        else if (WORKSHOP_IDS.has(id)) cls += ' rp-loot-workshop';
-        return `<span class="${cls}">${name}</span>`;
-    }
 
     function rpRenderResults(list, targetIds, playerExplore) {
         playerExplore = playerExplore || 0;
@@ -10858,7 +10530,7 @@ const CRAFT_BASE = SUB_DATA.CRAFT_BASE;
 <a id="reportBtn" href="https://forum.gamer.com.tw/C.php?bsn=17608&snA=30749&page=1&gothis=146463#146463" target="_blank" rel="noopener">📢 回報</a>
 <a id="sponsorBtn" href="https://ganknow.com/cxz089675/tip" target="_blank" rel="noopener">🐟 贊助貓罐頭</a>
 <div id="rpGlobalTip"></div>
-<div id="partStatTip"></div>
+
 <div id="gpThTipFloat"></div>
 <script>
 // ── 使用說明抽屜 ──
@@ -10882,33 +10554,6 @@ window.manualGo = function(i) {
     const c = document.querySelector('#manualDrawer .manual-content');
     if (c) c.scrollTop = 0;
 };
-window.manualFilter = function(el, g) {
-    el.closest('.manual-tags').querySelectorAll('.manual-tag').forEach(t => t.classList.remove('active'));
-    el.classList.add('active');
-    ['mdc1','mdc2'].forEach(id => {
-        const card = document.getElementById(id);
-        if (!card) return;
-        card.style.display = (g === 'all' || card.dataset.group === g) ? '' : 'none';
-    });
-};
-window.manualToggleCk = function(n) {
-    document.getElementById('mck'+n).classList.toggle('done');
-    document.getElementById('mcn'+n).classList.toggle('done');
-};
-// 使用說明示意計時器
-(function() {
-    let secs = [37952, 41790];
-    setInterval(() => {
-        secs = secs.map(v => Math.max(0, v - 1));
-        const fmt = v => {
-            const h = Math.floor(v/3600), m = Math.floor((v%3600)/60), s = v%60;
-            return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
-        };
-        const t1 = document.getElementById('mt1'), t2 = document.getElementById('mt2');
-        if (t1) t1.textContent = fmt(secs[0]);
-        if (t2) t2.textContent = fmt(secs[1]);
-    }, 1000);
-})();
 // ESC 關閉
 document.addEventListener('keydown', e => { if (e.key === 'Escape') window.closeManual?.(); });
 
@@ -10937,7 +10582,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') window.close
         tip.style.display = 'none';
     });
 
-    // ── CloudSync UI ──
+    // ── 配件規劃表頭說明 tooltip ──
     const floatTip = document.getElementById('gpThTipFloat');
     document.addEventListener('mouseover', e => {
         const el = e.target.closest('.gp-th-help[data-tip]');
@@ -11129,10 +10774,6 @@ window.toggleUploadZone = function(btn) {
         if (_currentFleetView === roomId) switchFleetView('mine');
     }
 
-    function _hideFleetSwitcher() {
-        document.getElementById('fleetViewSwitcher').style.display = 'none';
-        switchFleetView('mine');
-    }
 
     function _listenOwnerRoom(roomId) {
         // 防呆：確保不會和 _listenRoomTimers 同時監聽同一個房間
@@ -11244,7 +10885,7 @@ window.toggleUploadZone = function(btn) {
         const myNick = window._getMyNickname?.() || '';
         if (!myNick) return showAlert('請先設定暱稱才能加入房間');
         const roomId = document.getElementById('joinRoomInput')?.value.trim().toUpperCase();
-        if (!roomId || roomId.length !== 6) return showAlert('請輸入 6 碼房間代碼');
+        if (!roomId || roomId.length !== 6) return fieldError('joinRoomInput', '請輸入 6 碼房間代碼');
         if (roomId === window._ownedRoomId) return showAlert('這是你自己建立的房間，無法加入');
         if (_rooms[roomId]) return showAlert('已加入此房間');
         try {
@@ -11390,10 +11031,11 @@ window.toggleUploadZone = function(btn) {
     window.saveMyNickname = async function() {
         const input = document.getElementById('myNicknameInput');
         const name = input?.value.trim();
-        if (!name) return showAlert('請輸入暱稱');
+        if (!name) return fieldError('myNicknameInput', '請輸入暱稱');
         window._setMyNickname?.(name);
         if (window.CloudSync?.isEnabled()) await window.CloudSync.pushNickname();
-        showAlert('✅ 暱稱已儲存：' + name);
+        try { await window.CloudSync?.pushMemberNames?.(); } catch (e) {}
+        showToast('暱稱已儲存');
     };
 
     // 渲染房間列表
@@ -11465,26 +11107,7 @@ window.toggleUploadZone = function(btn) {
         if (typeof loadMapNodeState === 'function') { loadMapNodeState(); renderMapNodes(); }
     });
 
-    function _setStatus(msg, ok) {
-        const dot = document.getElementById('cloudSyncDot');
-        const txt = document.getElementById('cloudSyncMsg');
-        const badge = document.getElementById('cloudStatusBadge');
-        if (dot) dot.style.background = ok === true ? '#4caf50' : ok === false ? '#ff5370' : '#ffcb6b';
-        if (txt) txt.textContent = msg;
-        if (badge) {
-            badge.textContent = ok === true ? '已連線' : ok === false ? '連線失敗' : '連線中...';
-            badge.className = 'cloud-status-badge' + (ok === true ? ' connected' : ok === false ? ' error' : '');
-        }
-    }
 
-    function _showRoomUI(roomId) {
-        const wrap = document.getElementById('currentRoomWrap');
-        const code = document.getElementById('currentRoomCode');
-        const actions = document.getElementById('roomActionWrap');
-        if (wrap) wrap.style.display = 'block';
-        if (code) code.textContent = roomId;
-        if (actions) { actions.style.display = 'flex'; actions.classList.add('owns-room'); }
-    }
 
     window.cloudEnableSync = () => window.SubSync?.enable();
 
@@ -11496,7 +11119,7 @@ window.toggleUploadZone = function(btn) {
 
     window.cloudImportUUID = async function() {
         const newUUID = document.getElementById('importUUIDInput')?.value.trim();
-        if (!newUUID) return showAlert('請輸入 ID');
+        if (!newUUID) return fieldError('importUUIDInput', '請輸入 ID');
         if (newUUID === window.CloudSync?.myUUID) return showAlert('這就是目前使用的 ID');
         // 換 ID 後重新整理頁面，同步模組才會改用新的 ID；重新整理後若兩邊都有資料會先詢問
         localStorage.setItem('sub_user_uuid', newUUID);
