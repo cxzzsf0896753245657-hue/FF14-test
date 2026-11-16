@@ -112,6 +112,18 @@ window.UI_ACTIONS = {
     a153: function (event) { gpMySubmit() },
     a154: function (event) { gpMyCloseForm() },
     a155: function (event) { if (event.key === 'Enter') { event.preventDefault(); gpMySubmit(); } else if (event.key === 'Escape') gpMyCloseForm(); },
+    a156: function (event) { Air.setMode(this.dataset.mode) },
+    a157: function (event) { Air.open() },
+    a158: function (event) { Air.open(this.dataset.id) },
+    a159: function (event) { Air.redepart(this.dataset.id) },
+    a160: function (event) { Air.remove(this.dataset.id) },
+    a161: function (event) { Air.submit() },
+    a162: function (event) { Air.close() },
+    a163: function (event) { Air.formChange() },
+    a164: function (event) { Air.toggleSec(+this.dataset.n) },
+    a165: function (event) { Air.timeSrc(this.dataset.src) },
+    a166: function (event) { Air.setFilter(this.value) },
+    a167: function (event) { Air.clearRoute() },
     a128: function (event) { setRoomPerm(this.dataset.perm) },
     a129: function (event) { setFleetLayout(this.dataset.layout) },
     a130: function (event) { resetListColumns() },
@@ -289,7 +301,7 @@ window.UI_ACTIONS = {
     </script>
     <script>
         window.SUB_DATA_VERSION = window.SUB_DATA_VERSION || '0';
-        ['sectors', 'loot', 'items', 'presets', 'craft'].forEach(f =>
+        ['sectors', 'loot', 'items', 'presets', 'craft', 'airship'].forEach(f =>
             document.write('<script src="data/' + f + '.js?v=' + encodeURIComponent(window.SUB_DATA_VERSION) + '"><\/script>'));
     </script>
     <script>
@@ -2649,6 +2661,73 @@ window.UI_ACTIONS = {
             #panelRoute .rp-parts-grid .part-sel-trigger, #panelGear .rp-parts-grid .part-sel-trigger { min-width: 0; width: 100%; box-sizing: border-box; }
         }
 
+        /* ── 船種切換與飛艇艦隊 ── */
+        .vessel-switch { display: inline-flex; gap: 4px; padding: 4px; margin-bottom: 12px; border-radius: 12px; border: 1px solid var(--edit-border); background: var(--edit-bg); }
+        .vessel-switch button { display: inline-flex; align-items: center; gap: 6px; min-height: 38px; padding: 0 16px; border: 0; border-radius: 9px; background: transparent; color: var(--text-color); font-size: 14.5px; font-weight: 700; cursor: pointer; opacity: .7; }
+        .vessel-switch button:hover { opacity: 1; }
+        .vessel-switch button.active { background: var(--accent-color); color: #fff; opacity: 1; }
+        .vessel-switch button.active svg.ic { color: #fff; }
+        .vs-count { font-size: 12px; font-weight: 700; padding: 0 7px; border-radius: 999px; background: rgba(var(--accent-rgb), .2); }
+        .vessel-switch button.active .vs-count { background: rgba(255,255,255,.25); }
+        #panelAir { display: none; }
+        body.mode-air #panelAir { display: block; }
+        body.mode-air #rpPanelTabs, body.mode-air #panelFleet, body.mode-air #panelRoute, body.mode-air #panelGear, body.mode-air #panelCraft,
+        body.mode-air #mobNavRoute, body.mode-air #mobNavGear, body.mode-air #mobNavCraft { display: none !important; }
+        .air-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 14px; }
+        .air-toolbar select { height: 36px; padding: 0 10px; border-radius: 8px; border: 1px solid var(--edit-border); background: var(--edit-bg); color: var(--text-color); font-size: 14px; }
+        .air-note { flex: 1; min-width: 160px; font-size: 12.5px; opacity: .65; }
+        .air-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 14px; }
+        .air-card { display: flex; flex-direction: column; gap: 8px; padding: 14px 16px; border-radius: 14px; border: 1px solid var(--edit-border); background: var(--card-color); min-width: 0; }
+        .air-card.done { border-color: #4caf7d; box-shadow: 0 0 0 1px rgba(76,175,125,.35); }
+        .air-top { display: flex; align-items: center; gap: 8px; min-width: 0; }
+        .air-name { font-size: 17px; font-weight: 800; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .air-lv { font-size: 12.5px; font-weight: 700; padding: 1px 8px; border-radius: 999px; background: rgba(var(--accent-rgb), .18); color: var(--accent-color); white-space: nowrap; }
+        .air-grp { margin-left: auto; font-size: 12.5px; opacity: .7; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 40%; }
+        .air-count { font-size: 26px; font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: .5px; }
+        .air-card.done .air-count { color: #4caf7d; font-size: 20px; }
+        .air-eta { font-size: 13px; opacity: .75; }
+        .air-bar { height: 5px; border-radius: 99px; background: color-mix(in srgb, var(--text-color) 12%, transparent); overflow: hidden; }
+        .air-bar i { display: block; height: 100%; background: var(--accent-color); border-radius: 99px; }
+        .air-card.done .air-bar i { background: #4caf7d; }
+        .air-line { font-size: 13.5px; line-height: 1.5; }
+        .air-line b { color: var(--accent-color); }
+        .air-line .dim { opacity: .65; }
+        .air-st { display: flex; flex-wrap: wrap; gap: 4px 6px; font-size: 12.5px; }
+        .air-st span { padding: 1px 8px; border-radius: 999px; background: color-mix(in srgb, var(--text-color) 8%, transparent); white-space: nowrap; }
+        .air-st span.warn { background: rgba(224,160,64,.16); color: #f0b45a; }
+        body.light-mode .air-st span.warn { color: #9a5800; }
+        .air-acts { display: flex; gap: 8px; margin-top: 4px; }
+        .air-acts button { flex: 1; min-height: 38px; border-radius: 9px; border: 1px solid var(--edit-border); background: transparent; color: var(--text-color); font-size: 13.5px; font-weight: 700; cursor: pointer; }
+        .air-acts button:hover { border-color: var(--accent-color); color: var(--accent-color); }
+        .air-acts button.primary { background: var(--accent-color); border-color: var(--accent-color); color: #fff; }
+        .air-acts button.primary:hover { filter: brightness(1.08); color: #fff; }
+        .air-acts button.del { flex: 0 0 44px; }
+        .air-acts button.del:hover { border-color: #e06a6a; color: #e06a6a; }
+        .air-form { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+        .air-form label { display: flex; flex-direction: column; gap: 4px; font-size: 12.5px; min-width: 0; }
+        .air-form label.w2 { grid-column: span 2; }
+        .air-form input, .air-form select, .air-time input { height: 38px; box-sizing: border-box; padding: 0 10px; border-radius: 8px; border: 1px solid var(--edit-border); background: var(--edit-bg); color: var(--text-color); font-size: 14px; min-width: 0; width: 100%; }
+        .air-sum { margin-top: 10px; display: flex; flex-direction: column; gap: 6px; }
+        .air-secs { display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 6px; }
+        .air-sec { position: relative; display: flex; align-items: center; justify-content: space-between; gap: 4px; min-height: 40px; padding: 4px 9px; border-radius: 8px; border: 1px solid var(--edit-border); background: var(--edit-bg); color: var(--text-color); font-size: 14px; font-weight: 700; cursor: pointer; }
+        .air-sec small { font-weight: 400; font-size: 11px; opacity: .65; }
+        .air-sec.on { border-color: var(--accent-color); background: rgba(var(--accent-rgb), .18); }
+        .air-sec.on small { opacity: 1; color: var(--accent-color); font-weight: 700; }
+        .air-sec:disabled { opacity: .4; cursor: not-allowed; }
+        .air-time { display: grid; grid-template-columns: repeat(3, minmax(0, 76px)) minmax(0, 1fr); gap: 8px; align-items: end; }
+        .air-time label { display: flex; flex-direction: column; gap: 4px; font-size: 12.5px; }
+        .air-hint { font-size: 12.5px; opacity: .65; margin-top: 6px; line-height: 1.5; }
+        @media (max-width: 640px) {
+            .vessel-switch { display: flex; margin: 0 0 10px; }
+            .vessel-switch button { flex: 1; justify-content: center; }
+            .air-list { grid-template-columns: 1fr; }
+            .air-note { display: none; }
+            .air-toolbar select { flex: 1; }
+            .air-form { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .air-time { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+            .air-time label.dt { grid-column: 1 / -1; }
+        }
+
         /* ── 我的配置 ── */
         .gp-my-acts { display: flex; flex-wrap: wrap; gap: 6px; align-self: flex-end; }
         .gp-my-btn { height: 34px; padding: 0 12px; border-radius: 8px; border: 1px solid var(--edit-border); background: transparent; color: var(--text-color); font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; }
@@ -3395,7 +3474,7 @@ window.SubPalette = (function () {
 </script>
 </head>
 <body>
-<svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true"><!-- 圖示：Lucide (ISC License) --><symbol id="i-alarm-clock" viewBox="0 0 24 24"><circle cx="12" cy="13" r="8" /><path d="M12 9v4l2 2" /><path d="M5 3 2 6" /><path d="m22 6-3-3" /><path d="M6.38 18.7 4 21" /><path d="M17.64 18.67 20 21" /></symbol><symbol id="i-bell" viewBox="0 0 24 24"><path d="M10.268 21a2 2 0 0 0 3.464 0" /><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326" /></symbol><symbol id="i-book-open" viewBox="0 0 24 24"><path d="M12 5v16" /><path d="M20.001 19A2 2 0 0022 17V5a2 2 0 00-1.999-2L16 3.002A5 5 0 0012 5a5 5 0 00-4-2H4a2 2 0 00-2 2v12a2 2 0 001.999 2H8a5 5 0 014 2 5 5 0 014-2z" /></symbol><symbol id="i-calendar" viewBox="0 0 24 24"><path d="M8 2v3" /><path d="M16 2v3" /><rect x="3" y="3" width="18" height="18" rx="2" /><path d="M3 9h18" /></symbol><symbol id="i-calendar-days" viewBox="0 0 24 24"><path d="M8 2v3" /><path d="M16 2v3" /><rect x="3" y="3" width="18" height="18" rx="2" /><path d="M3 9h18" /><path d="M8 13h.01" /><path d="M12 13h.01" /><path d="M16 13h.01" /><path d="M8 17h.01" /><path d="M12 17h.01" /><path d="M16 17h.01" /></symbol><symbol id="i-camera" viewBox="0 0 24 24"><path d="M13.997 4a2 2 0 0 1 1.76 1.05l.486.9A2 2 0 0 0 18.003 7H20a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h1.997a2 2 0 0 0 1.759-1.048l.489-.904A2 2 0 0 1 10.004 4z" /><circle cx="12" cy="13" r="3" /></symbol><symbol id="i-circle-alert" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /><line x1="12" x2="12" y1="8" y2="12" /><line x1="12" x2="12.01" y1="16" y2="16" /></symbol><symbol id="i-circle-check" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /><path d="m16 9-5.5 5.5L8 12" /></symbol><symbol id="i-circle-x" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /><path d="m15 9-6 6" /><path d="m9 9 6 6" /></symbol><symbol id="i-cloud" viewBox="0 0 24 24"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z" /></symbol><symbol id="i-coins" viewBox="0 0 24 24"><path d="M13.744 17.736a6 6 0 1 1-7.48-7.48" /><path d="M15 6h1v4" /><path d="m6.134 14.768.866-.5 2 3.464" /><circle cx="16" cy="8" r="6" /></symbol><symbol id="i-compass" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /><path d="m16.24 7.76-1.804 5.411a2 2 0 0 1-1.265 1.265L7.76 16.24l1.804-5.411a2 2 0 0 1 1.265-1.265z" /></symbol><symbol id="i-fish" viewBox="0 0 24 24"><path d="M6.5 12c.94-3.46 4.94-6 8.5-6 3.56 0 6.06 2.54 7 6-.94 3.47-3.44 6-7 6s-7.56-2.53-8.5-6Z" /><path d="M18 12v.5" /><path d="M16 17.93a9.77 9.77 0 0 1 0-11.86" /><path d="M7 10.67C7 8 5.58 5.97 2.73 5.5c-1 1.5-1 5 .23 6.5-1.24 1.5-1.24 5-.23 6.5C5.58 18.03 7 16 7 13.33" /><path d="M10.46 7.26C10.2 5.88 9.17 4.24 8 3h5.8a2 2 0 0 1 1.98 1.67l.23 1.4" /><path d="m16.01 17.93-.23 1.4A2 2 0 0 1 13.8 21H9.5a5.96 5.96 0 0 0 1.49-3.98" /></symbol><symbol id="i-folder-open" viewBox="0 0 24 24"><path d="m6 14 1.5-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.54 6a2 2 0 0 1-1.95 1.5H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H18a2 2 0 0 1 2 2v2" /></symbol><symbol id="i-gem" viewBox="0 0 24 24"><path d="M10.5 3 8 9l4 13 4-13-2.5-6" /><path d="M17 3a2 2 0 0 1 1.6.8l3 4a2 2 0 0 1 .013 2.382l-7.99 10.986a2 2 0 0 1-3.247 0l-7.99-10.986A2 2 0 0 1 2.4 7.8l2.998-3.997A2 2 0 0 1 7 3z" /><path d="M2 9h20" /></symbol><symbol id="i-hammer" viewBox="0 0 24 24"><path d="m15 12-9.373 9.373a1 1 0 0 1-3.001-3L12 9" /><path d="m18 15 4-4" /><path d="m21.5 11.5-1.914-1.914A2 2 0 0 1 19 8.172v-.344a2 2 0 0 0-.586-1.414l-1.657-1.657A6 6 0 0 0 12.516 3H9l1.243 1.243A6 6 0 0 1 12 8.485V10l2 2h1.172a2 2 0 0 1 1.414.586L18.5 14.5" /></symbol><symbol id="i-hourglass" viewBox="0 0 24 24"><path d="M5 22h14" /><path d="M5 2h14" /><path d="M17 22v-4.172a2 2 0 0 0-.586-1.414L12 12l-4.414 4.414A2 2 0 0 0 7 17.828V22" /><path d="M7 2v4.172a2 2 0 0 0 .586 1.414L12 12l4.414-4.414A2 2 0 0 0 17 6.172V2" /></symbol><symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /><path d="M12 16v-4" /><path d="M12 8h.01" /></symbol><symbol id="i-lightbulb" viewBox="0 0 24 24"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5" /><path d="M9 18h6" /><path d="M10 22h4" /></symbol><symbol id="i-link" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" /><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" /></symbol><symbol id="i-list" viewBox="0 0 24 24"><path d="M3 5h.01" /><path d="M3 12h.01" /><path d="M3 19h.01" /><path d="M8 5h13" /><path d="M8 12h13" /><path d="M8 19h13" /></symbol><symbol id="i-lock" viewBox="0 0 24 24"><rect width="18" height="11" x="3" y="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></symbol><symbol id="i-map" viewBox="0 0 24 24"><path d="M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 0 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 0 1 1.788 0z" /><path d="M15 5.764v15" /><path d="M9 3.236v15" /></symbol><symbol id="i-map-pin" viewBox="0 0 24 24"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0" /><circle cx="12" cy="10" r="3" /></symbol><symbol id="i-megaphone" viewBox="0 0 24 24"><path d="M11 6a13 13 0 0 0 8.4-2.8A1 1 0 0 1 21 4v12a1 1 0 0 1-1.6.8A13 13 0 0 0 11 14H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z" /><path d="M6 14a12 12 0 0 0 2.4 7.2 2 2 0 0 0 3.2-2.4A8 8 0 0 1 10 14" /><path d="M8 6v8" /></symbol><symbol id="i-moon" viewBox="0 0 24 24"><path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401" /></symbol><symbol id="i-notebook-pen" viewBox="0 0 24 24"><path d="M13.4 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7.4" /><path d="M2 6h4" /><path d="M2 10h4" /><path d="M2 14h4" /><path d="M2 18h4" /><path d="M21.378 5.626a1 1 0 1 0-3.004-3.004l-5.01 5.012a2 2 0 0 0-.506.854l-.837 2.87a.5.5 0 0 0 .62.62l2.87-.837a2 2 0 0 0 .854-.506z" /></symbol><symbol id="i-palette" viewBox="0 0 24 24"><path d="M12 22a1 1 0 0 1 0-20 10 9 0 0 1 10 9 5 5 0 0 1-5 5h-2.25a1.75 1.75 0 0 0-1.4 2.8l.3.4a1.75 1.75 0 0 1-1.4 2.8z" /><circle cx="13.5" cy="6.5" r=".5" fill="currentColor" /><circle cx="17.5" cy="10.5" r=".5" fill="currentColor" /><circle cx="6.5" cy="12.5" r=".5" fill="currentColor" /><circle cx="8.5" cy="7.5" r=".5" fill="currentColor" /></symbol><symbol id="i-party-popper" viewBox="0 0 24 24"><path d="M5.8 11.3 2 22l10.7-3.79" /><path d="M4 3h.01" /><path d="M22 8h.01" /><path d="M15 2h.01" /><path d="M22 20h.01" /><path d="m22 2-2.24.75a2.9 2.9 0 0 0-1.96 3.12c.1.86-.57 1.63-1.45 1.63h-.38c-.86 0-1.6.6-1.76 1.44L14 10" /><path d="m22 13-.82-.33c-.86-.34-1.82.2-1.98 1.11c-.11.7-.72 1.22-1.43 1.22H17" /><path d="m11 2 .33.82c.34.86-.2 1.82-1.11 1.98C9.52 4.9 9 5.52 9 6.23V7" /><path d="M11 13c1.93 1.93 2.83 4.17 2 5-.83.83-3.07-.07-5-2-1.93-1.93-2.83-4.17-2-5 .83-.83 3.07.07 5 2Z" /></symbol><symbol id="i-pencil" viewBox="0 0 24 24"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z" /><path d="m15 5 4 4" /></symbol><symbol id="i-pointer" viewBox="0 0 24 24"><path d="M22 14a8 8 0 0 1-8 8" /><path d="M18 11v-1a2 2 0 0 0-2-2a2 2 0 0 0-2 2" /><path d="M14 10V9a2 2 0 0 0-2-2a2 2 0 0 0-2 2v1" /><path d="M10 9.5V4a2 2 0 0 0-2-2a2 2 0 0 0-2 2v10" /><path d="M18 11a2 2 0 1 1 4 0v3a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15" /></symbol><symbol id="i-refresh-cw" viewBox="0 0 24 24"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" /><path d="M21 3v5h-5" /><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" /><path d="M8 16H3v5" /></symbol><symbol id="i-rocket" viewBox="0 0 24 24"><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5" /><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09" /><path d="M9 12a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.4 22.4 0 0 1-4 2z" /><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 .05 5 .05" /></symbol><symbol id="i-search" viewBox="0 0 24 24"><path d="m21 21-4.34-4.34" /><circle cx="11" cy="11" r="8" /></symbol><symbol id="i-settings" viewBox="0 0 24 24"><path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915" /><circle cx="12" cy="12" r="3" /></symbol><symbol id="i-ship-wheel" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" /><path d="M12 2v7.5" /><path d="m19 5-5.23 5.23" /><path d="M22 12h-7.5" /><path d="m19 19-5.23-5.23" /><path d="M12 14.5V22" /><path d="M10.23 13.77 5 19" /><path d="M9.5 12H2" /><path d="M10.23 10.23 5 5" /><circle cx="12" cy="12" r="2.5" /></symbol><symbol id="i-sparkles" viewBox="0 0 24 24"><path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z" /><path d="M20 2v4" /><path d="M22 4h-4" /><circle cx="4" cy="20" r="2" /></symbol><symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4" /><path d="M12 2v2" /><path d="M12 20v2" /><path d="m4.93 4.93 1.41 1.41" /><path d="m17.66 17.66 1.41 1.41" /><path d="M2 12h2" /><path d="M20 12h2" /><path d="m6.34 17.66-1.41 1.41" /><path d="m19.07 4.93-1.41 1.41" /></symbol><symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /><circle cx="12" cy="12" r="6" /><circle cx="12" cy="12" r="2" /></symbol><symbol id="i-trash-2" viewBox="0 0 24 24"><path d="M10 11v6" /><path d="M14 11v6" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" /><path d="M3 6h18" /><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /></symbol><symbol id="i-trending-up" viewBox="0 0 24 24"><path d="M16 7h6v6" /><path d="m22 7-8.5 8.5-5-5L2 17" /></symbol><symbol id="i-triangle-alert" viewBox="0 0 24 24"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3" /><path d="M12 9v4" /><path d="M12 17h.01" /></symbol><symbol id="i-users" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><path d="M16 3.128a4 4 0 0 1 0 7.744" /><path d="M22 21v-2a4 4 0 0 0-3-3.87" /><circle cx="9" cy="7" r="4" /></symbol><symbol id="i-volume-2" viewBox="0 0 24 24"><path d="M11 4.702a.705.705 0 0 0-1.203-.498L6.413 7.587A1.4 1.4 0 0 1 5.416 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.416a1.4 1.4 0 0 1 .997.413l3.383 3.384A.705.705 0 0 0 11 19.298z" /><path d="M16 9a5 5 0 0 1 0 6" /><path d="M19.364 18.364a9 9 0 0 0 0-12.728" /></symbol><symbol id="i-wrench" viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.106-3.105c.32-.322.863-.22.983.218a6 6 0 0 1-8.259 7.057l-7.91 7.91a1 1 0 0 1-2.999-3l7.91-7.91a6 6 0 0 1 7.057-8.259c.438.12.54.662.219.984z" /></symbol><symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></symbol><symbol id="i-zap" viewBox="0 0 24 24"><path d="M15.914 4a1.5 1.5 0 00-2.474-1.561l-9 9A1.5 1.5 0 005.5 14h4.002a.5.5 0 01.471.666L8.086 20a1.5 1.5 0 002.475 1.56l9-9A1.5 1.5 0 0018.5 10h-3.997a.5.5 0 01-.472-.667z" /></symbol><symbol id="i-layout-grid" viewBox="0 0 24 24"><rect width="7" height="7" x="3" y="3" rx="1" /><rect width="7" height="7" x="14" y="3" rx="1" /><rect width="7" height="7" x="14" y="14" rx="1" /><rect width="7" height="7" x="3" y="14" rx="1" /></symbol><symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5" /></symbol><symbol id="i-sub" viewBox="0 0 24 24"><path d="M9.5 4h3v4"/><path d="M7.5 11V9a1 1 0 0 1 1-1h5a1 1 0 0 1 1 1v2"/><path d="M5.5 11h11a3.5 3.5 0 0 1 0 7h-11a3.5 3.5 0 0 1 0-7z"/><circle cx="7.5" cy="14.5" r=".6"/><circle cx="11.5" cy="14.5" r=".6"/><path d="M20 14.5h1.5"/><path d="M22 12.5v4"/><path d="M3 21.5c1.5 0 1.5-1 3-1s1.5 1 3 1 1.5-1 3-1 1.5 1 3 1"/></symbol></svg>
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true"><!-- 圖示：Lucide (ISC License) --><symbol id="i-alarm-clock" viewBox="0 0 24 24"><circle cx="12" cy="13" r="8" /><path d="M12 9v4l2 2" /><path d="M5 3 2 6" /><path d="m22 6-3-3" /><path d="M6.38 18.7 4 21" /><path d="M17.64 18.67 20 21" /></symbol><symbol id="i-bell" viewBox="0 0 24 24"><path d="M10.268 21a2 2 0 0 0 3.464 0" /><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326" /></symbol><symbol id="i-book-open" viewBox="0 0 24 24"><path d="M12 5v16" /><path d="M20.001 19A2 2 0 0022 17V5a2 2 0 00-1.999-2L16 3.002A5 5 0 0012 5a5 5 0 00-4-2H4a2 2 0 00-2 2v12a2 2 0 001.999 2H8a5 5 0 014 2 5 5 0 014-2z" /></symbol><symbol id="i-calendar" viewBox="0 0 24 24"><path d="M8 2v3" /><path d="M16 2v3" /><rect x="3" y="3" width="18" height="18" rx="2" /><path d="M3 9h18" /></symbol><symbol id="i-calendar-days" viewBox="0 0 24 24"><path d="M8 2v3" /><path d="M16 2v3" /><rect x="3" y="3" width="18" height="18" rx="2" /><path d="M3 9h18" /><path d="M8 13h.01" /><path d="M12 13h.01" /><path d="M16 13h.01" /><path d="M8 17h.01" /><path d="M12 17h.01" /><path d="M16 17h.01" /></symbol><symbol id="i-camera" viewBox="0 0 24 24"><path d="M13.997 4a2 2 0 0 1 1.76 1.05l.486.9A2 2 0 0 0 18.003 7H20a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h1.997a2 2 0 0 0 1.759-1.048l.489-.904A2 2 0 0 1 10.004 4z" /><circle cx="12" cy="13" r="3" /></symbol><symbol id="i-circle-alert" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /><line x1="12" x2="12" y1="8" y2="12" /><line x1="12" x2="12.01" y1="16" y2="16" /></symbol><symbol id="i-circle-check" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /><path d="m16 9-5.5 5.5L8 12" /></symbol><symbol id="i-circle-x" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /><path d="m15 9-6 6" /><path d="m9 9 6 6" /></symbol><symbol id="i-cloud" viewBox="0 0 24 24"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z" /></symbol><symbol id="i-coins" viewBox="0 0 24 24"><path d="M13.744 17.736a6 6 0 1 1-7.48-7.48" /><path d="M15 6h1v4" /><path d="m6.134 14.768.866-.5 2 3.464" /><circle cx="16" cy="8" r="6" /></symbol><symbol id="i-compass" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /><path d="m16.24 7.76-1.804 5.411a2 2 0 0 1-1.265 1.265L7.76 16.24l1.804-5.411a2 2 0 0 1 1.265-1.265z" /></symbol><symbol id="i-fish" viewBox="0 0 24 24"><path d="M6.5 12c.94-3.46 4.94-6 8.5-6 3.56 0 6.06 2.54 7 6-.94 3.47-3.44 6-7 6s-7.56-2.53-8.5-6Z" /><path d="M18 12v.5" /><path d="M16 17.93a9.77 9.77 0 0 1 0-11.86" /><path d="M7 10.67C7 8 5.58 5.97 2.73 5.5c-1 1.5-1 5 .23 6.5-1.24 1.5-1.24 5-.23 6.5C5.58 18.03 7 16 7 13.33" /><path d="M10.46 7.26C10.2 5.88 9.17 4.24 8 3h5.8a2 2 0 0 1 1.98 1.67l.23 1.4" /><path d="m16.01 17.93-.23 1.4A2 2 0 0 1 13.8 21H9.5a5.96 5.96 0 0 0 1.49-3.98" /></symbol><symbol id="i-folder-open" viewBox="0 0 24 24"><path d="m6 14 1.5-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.54 6a2 2 0 0 1-1.95 1.5H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H18a2 2 0 0 1 2 2v2" /></symbol><symbol id="i-gem" viewBox="0 0 24 24"><path d="M10.5 3 8 9l4 13 4-13-2.5-6" /><path d="M17 3a2 2 0 0 1 1.6.8l3 4a2 2 0 0 1 .013 2.382l-7.99 10.986a2 2 0 0 1-3.247 0l-7.99-10.986A2 2 0 0 1 2.4 7.8l2.998-3.997A2 2 0 0 1 7 3z" /><path d="M2 9h20" /></symbol><symbol id="i-hammer" viewBox="0 0 24 24"><path d="m15 12-9.373 9.373a1 1 0 0 1-3.001-3L12 9" /><path d="m18 15 4-4" /><path d="m21.5 11.5-1.914-1.914A2 2 0 0 1 19 8.172v-.344a2 2 0 0 0-.586-1.414l-1.657-1.657A6 6 0 0 0 12.516 3H9l1.243 1.243A6 6 0 0 1 12 8.485V10l2 2h1.172a2 2 0 0 1 1.414.586L18.5 14.5" /></symbol><symbol id="i-hourglass" viewBox="0 0 24 24"><path d="M5 22h14" /><path d="M5 2h14" /><path d="M17 22v-4.172a2 2 0 0 0-.586-1.414L12 12l-4.414 4.414A2 2 0 0 0 7 17.828V22" /><path d="M7 2v4.172a2 2 0 0 0 .586 1.414L12 12l4.414-4.414A2 2 0 0 0 17 6.172V2" /></symbol><symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /><path d="M12 16v-4" /><path d="M12 8h.01" /></symbol><symbol id="i-lightbulb" viewBox="0 0 24 24"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5" /><path d="M9 18h6" /><path d="M10 22h4" /></symbol><symbol id="i-link" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" /><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" /></symbol><symbol id="i-list" viewBox="0 0 24 24"><path d="M3 5h.01" /><path d="M3 12h.01" /><path d="M3 19h.01" /><path d="M8 5h13" /><path d="M8 12h13" /><path d="M8 19h13" /></symbol><symbol id="i-lock" viewBox="0 0 24 24"><rect width="18" height="11" x="3" y="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></symbol><symbol id="i-map" viewBox="0 0 24 24"><path d="M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 0 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 0 1 1.788 0z" /><path d="M15 5.764v15" /><path d="M9 3.236v15" /></symbol><symbol id="i-map-pin" viewBox="0 0 24 24"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0" /><circle cx="12" cy="10" r="3" /></symbol><symbol id="i-megaphone" viewBox="0 0 24 24"><path d="M11 6a13 13 0 0 0 8.4-2.8A1 1 0 0 1 21 4v12a1 1 0 0 1-1.6.8A13 13 0 0 0 11 14H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z" /><path d="M6 14a12 12 0 0 0 2.4 7.2 2 2 0 0 0 3.2-2.4A8 8 0 0 1 10 14" /><path d="M8 6v8" /></symbol><symbol id="i-moon" viewBox="0 0 24 24"><path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401" /></symbol><symbol id="i-notebook-pen" viewBox="0 0 24 24"><path d="M13.4 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7.4" /><path d="M2 6h4" /><path d="M2 10h4" /><path d="M2 14h4" /><path d="M2 18h4" /><path d="M21.378 5.626a1 1 0 1 0-3.004-3.004l-5.01 5.012a2 2 0 0 0-.506.854l-.837 2.87a.5.5 0 0 0 .62.62l2.87-.837a2 2 0 0 0 .854-.506z" /></symbol><symbol id="i-palette" viewBox="0 0 24 24"><path d="M12 22a1 1 0 0 1 0-20 10 9 0 0 1 10 9 5 5 0 0 1-5 5h-2.25a1.75 1.75 0 0 0-1.4 2.8l.3.4a1.75 1.75 0 0 1-1.4 2.8z" /><circle cx="13.5" cy="6.5" r=".5" fill="currentColor" /><circle cx="17.5" cy="10.5" r=".5" fill="currentColor" /><circle cx="6.5" cy="12.5" r=".5" fill="currentColor" /><circle cx="8.5" cy="7.5" r=".5" fill="currentColor" /></symbol><symbol id="i-party-popper" viewBox="0 0 24 24"><path d="M5.8 11.3 2 22l10.7-3.79" /><path d="M4 3h.01" /><path d="M22 8h.01" /><path d="M15 2h.01" /><path d="M22 20h.01" /><path d="m22 2-2.24.75a2.9 2.9 0 0 0-1.96 3.12c.1.86-.57 1.63-1.45 1.63h-.38c-.86 0-1.6.6-1.76 1.44L14 10" /><path d="m22 13-.82-.33c-.86-.34-1.82.2-1.98 1.11c-.11.7-.72 1.22-1.43 1.22H17" /><path d="m11 2 .33.82c.34.86-.2 1.82-1.11 1.98C9.52 4.9 9 5.52 9 6.23V7" /><path d="M11 13c1.93 1.93 2.83 4.17 2 5-.83.83-3.07-.07-5-2-1.93-1.93-2.83-4.17-2-5 .83-.83 3.07.07 5 2Z" /></symbol><symbol id="i-pencil" viewBox="0 0 24 24"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z" /><path d="m15 5 4 4" /></symbol><symbol id="i-pointer" viewBox="0 0 24 24"><path d="M22 14a8 8 0 0 1-8 8" /><path d="M18 11v-1a2 2 0 0 0-2-2a2 2 0 0 0-2 2" /><path d="M14 10V9a2 2 0 0 0-2-2a2 2 0 0 0-2 2v1" /><path d="M10 9.5V4a2 2 0 0 0-2-2a2 2 0 0 0-2 2v10" /><path d="M18 11a2 2 0 1 1 4 0v3a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15" /></symbol><symbol id="i-refresh-cw" viewBox="0 0 24 24"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" /><path d="M21 3v5h-5" /><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" /><path d="M8 16H3v5" /></symbol><symbol id="i-rocket" viewBox="0 0 24 24"><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5" /><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09" /><path d="M9 12a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.4 22.4 0 0 1-4 2z" /><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 .05 5 .05" /></symbol><symbol id="i-search" viewBox="0 0 24 24"><path d="m21 21-4.34-4.34" /><circle cx="11" cy="11" r="8" /></symbol><symbol id="i-settings" viewBox="0 0 24 24"><path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915" /><circle cx="12" cy="12" r="3" /></symbol><symbol id="i-ship-wheel" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" /><path d="M12 2v7.5" /><path d="m19 5-5.23 5.23" /><path d="M22 12h-7.5" /><path d="m19 19-5.23-5.23" /><path d="M12 14.5V22" /><path d="M10.23 13.77 5 19" /><path d="M9.5 12H2" /><path d="M10.23 10.23 5 5" /><circle cx="12" cy="12" r="2.5" /></symbol><symbol id="i-sparkles" viewBox="0 0 24 24"><path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z" /><path d="M20 2v4" /><path d="M22 4h-4" /><circle cx="4" cy="20" r="2" /></symbol><symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4" /><path d="M12 2v2" /><path d="M12 20v2" /><path d="m4.93 4.93 1.41 1.41" /><path d="m17.66 17.66 1.41 1.41" /><path d="M2 12h2" /><path d="M20 12h2" /><path d="m6.34 17.66-1.41 1.41" /><path d="m19.07 4.93-1.41 1.41" /></symbol><symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /><circle cx="12" cy="12" r="6" /><circle cx="12" cy="12" r="2" /></symbol><symbol id="i-trash-2" viewBox="0 0 24 24"><path d="M10 11v6" /><path d="M14 11v6" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" /><path d="M3 6h18" /><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /></symbol><symbol id="i-trending-up" viewBox="0 0 24 24"><path d="M16 7h6v6" /><path d="m22 7-8.5 8.5-5-5L2 17" /></symbol><symbol id="i-triangle-alert" viewBox="0 0 24 24"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3" /><path d="M12 9v4" /><path d="M12 17h.01" /></symbol><symbol id="i-users" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><path d="M16 3.128a4 4 0 0 1 0 7.744" /><path d="M22 21v-2a4 4 0 0 0-3-3.87" /><circle cx="9" cy="7" r="4" /></symbol><symbol id="i-volume-2" viewBox="0 0 24 24"><path d="M11 4.702a.705.705 0 0 0-1.203-.498L6.413 7.587A1.4 1.4 0 0 1 5.416 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.416a1.4 1.4 0 0 1 .997.413l3.383 3.384A.705.705 0 0 0 11 19.298z" /><path d="M16 9a5 5 0 0 1 0 6" /><path d="M19.364 18.364a9 9 0 0 0 0-12.728" /></symbol><symbol id="i-wrench" viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.106-3.105c.32-.322.863-.22.983.218a6 6 0 0 1-8.259 7.057l-7.91 7.91a1 1 0 0 1-2.999-3l7.91-7.91a6 6 0 0 1 7.057-8.259c.438.12.54.662.219.984z" /></symbol><symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></symbol><symbol id="i-zap" viewBox="0 0 24 24"><path d="M15.914 4a1.5 1.5 0 00-2.474-1.561l-9 9A1.5 1.5 0 005.5 14h4.002a.5.5 0 01.471.666L8.086 20a1.5 1.5 0 002.475 1.56l9-9A1.5 1.5 0 0018.5 10h-3.997a.5.5 0 01-.472-.667z" /></symbol><symbol id="i-layout-grid" viewBox="0 0 24 24"><rect width="7" height="7" x="3" y="3" rx="1" /><rect width="7" height="7" x="14" y="3" rx="1" /><rect width="7" height="7" x="14" y="14" rx="1" /><rect width="7" height="7" x="3" y="14" rx="1" /></symbol><symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5" /></symbol><symbol id="i-airship" viewBox="0 0 24 24"><ellipse cx="11" cy="9.5" rx="9" ry="5"/><path d="M19 7.5 22 5v9l-3-2.5"/><path d="M8 14.3V16a1.5 1.5 0 0 0 1.5 1.5h3A1.5 1.5 0 0 0 14 16v-1.7"/><path d="M2 9.5h18"/><path d="M4 21h14"/></symbol><symbol id="i-sub" viewBox="0 0 24 24"><path d="M9.5 4h3v4"/><path d="M7.5 11V9a1 1 0 0 1 1-1h5a1 1 0 0 1 1 1v2"/><path d="M5.5 11h11a3.5 3.5 0 0 1 0 7h-11a3.5 3.5 0 0 1 0-7z"/><circle cx="7.5" cy="14.5" r=".6"/><circle cx="11.5" cy="14.5" r=".6"/><path d="M20 14.5h1.5"/><path d="M22 12.5v4"/><path d="M3 21.5c1.5 0 1.5-1 3-1s1.5 1 3 1 1.5-1 3-1 1.5 1 3 1"/></symbol></svg>
 <script>
 // 圖示：IC('名稱') 產生線條圖示；icHtml(文字) 會跳脫 HTML，並把文字裡的 emoji 換成對應圖示
 window.IC = function (n) { return '<svg class="ic ic-' + n + '" aria-hidden="true"><use href="#i-' + n + '"/></svg>'; };
@@ -3716,6 +3795,7 @@ window.icHtml = function (t) {
                         <li>物品選單的海圖分段標題更明顯，並顯示該海圖的物品數</li>
                         <li>修正：船艇設定裡自動導航預覽的航線和船卡不同（設定裡沒算到回港後升級）</li>
                         <li>開圖：守回港時段會撞不到要開的點時，改走撞得到的路線，並提醒回港時間</li>
+                        <li>新增飛艇艦隊（測試中）：上方可切換潛水艇／飛艇，飛艇可記錄配件、航線與回港計時</li>
                         <li>物品清單依海圖排序，三個分頁的分類統一</li>
                         <li>介面：全新圖示、寬螢幕的規劃頁改兩欄、配件製作文字放大</li>
                         <li>操作：刪除船可以復原、成功訊息不用再按確定、填錯會直接標出欄位</li>
@@ -3930,6 +4010,25 @@ window.icHtml = function (t) {
     <!-- ══ RIGHT PANEL ══ -->
     <div class="right-panel">
         <div class="desk-brand" aria-hidden="true"><svg class="ic ic-sub" aria-hidden="true"><use href="#i-sub"/></svg> FF14 潛水艇計時器 <span>2.4.3・阿緋@鳳凰</span></div>
+        <!-- 船種切換：潛水艇與飛艇各自一套介面 -->
+        <div class="vessel-switch" id="vesselSwitch" role="group" aria-label="船種">
+            <button type="button" class="active" data-mode="sub" data-on-click="a156" aria-pressed="true"><svg class="ic ic-sub" aria-hidden="true"><use href="#i-sub"/></svg> 潛水艇</button>
+            <button type="button" data-mode="air" data-on-click="a156" aria-pressed="false"><svg class="ic ic-airship" aria-hidden="true"><use href="#i-airship"/></svg> 飛艇 <span class="vs-count" id="airCount" hidden></span></button>
+        </div>
+        <!-- 飛艇艦隊 -->
+        <div id="panelAir">
+            <div class="air-toolbar">
+                <select id="airFilter" data-on-change="a166" aria-label="群組"></select>
+                <span class="air-note">飛艇目前提供計時與艦隊管理，路線搜尋之後加入</span>
+                <button type="button" class="fleet-add-btn" data-on-click="a157"><span class="fleet-add-icon">＋</span> 新增飛艇</button>
+            </div>
+            <div class="air-list" id="airList"></div>
+            <div class="fleet-empty" id="airEmpty" hidden>
+                <div class="fleet-empty-ico" aria-hidden="true"><svg class="ic ic-airship" aria-hidden="true"><use href="#i-airship"/></svg></div>
+                <div class="fleet-empty-title" id="airEmptyTitle">還沒有飛艇</div>
+                <div class="fleet-empty-acts"><button type="button" class="fleet-empty-btn primary" data-on-click="a157"><span aria-hidden="true">＋</span> 新增飛艇</button></div>
+            </div>
+        </div>
         <!-- 分頁切換列 -->
         <div class="rp-panel-tabs" id="rpPanelTabs" role="tablist" aria-label="主要功能">
             <button type="button" class="rp-panel-tab active" id="tabFleet" role="tab" aria-controls="panelFleet" aria-selected="true" data-on-click="a37"><svg class="ic ic-sub" aria-hidden="true"><use href="#i-sub"/></svg> 潛水艇艦隊 <span class="u43" id="fleetCount" style="background: rgba(var(--accent-rgb),0.2); color: var(--accent-color); border: 1px solid #555; border-radius: 6px; display: inline-block; min-width: 36px;">0 艘</span></button>
@@ -5016,7 +5115,7 @@ window.showConfirm = showConfirm;
     document.getElementById('volumeSlider').value = volume;
 
     function requestNotificationPermission() { if ("Notification" in window) { Notification.requestPermission().then(permission => { if (permission === 'granted') showAlert('通知已啟用！'); }); } }
-    function showNotification(name) { if ("Notification" in window && Notification.permission === "granted") { new Notification("潛水艇回港通知", { body: `${name} 已經回到港口了！` }); } }
+    function showNotification(name) { if ("Notification" in window && Notification.permission === "granted") { new Notification("回港通知", { body: `${name} 已經回到港口了！` }); } }
     function changeAlarm(val) { alarmMode = val; localStorage.setItem('sub_alarm_mode', val); if (val !== 'off') playSound(); }
     function testVolume(val) { volume = parseFloat(val); localStorage.setItem('sub_volume', val); playSound(); }
     function playSound() {
@@ -11388,6 +11487,7 @@ window.toggleUploadZone = function(btn) {
         } else if (typeof loadTimersFromStorage === 'function') loadTimersFromStorage();
         if (typeof loadCustomLinks === 'function') loadCustomLinks();
         if (typeof gpLoadMyPresets === 'function') gpLoadMyPresets();
+        if (window.Air) Air.load();
         // 重載配件製作資料（Firebase 同步後更新記憶體與 UI）
         if (typeof craftLoadFromStorage === 'function') {
             // 比對 craftSelectedParts 是否有實質變化，有才整頁重建（避免打勾/改庫存時畫面跳回頂部）
@@ -11464,7 +11564,7 @@ window.toggleUploadZone = function(btn) {
    ════════════════════════════════════════════════════════════ */
 (function () {
     const KEY = 'sub_sync_state';
-    const META = { groups: 'sub_groups', mapNodes: 'sub_map_nodes', craftParts: 'sub_craft_selected_parts', craftOwned: 'sub_craft_owned_map', links: 'sub_custom_links', presets: 'sub_gp_presets' };
+    const META = { groups: 'sub_groups', mapNodes: 'sub_map_nodes', craftParts: 'sub_craft_selected_parts', craftOwned: 'sub_craft_owned_map', links: 'sub_custom_links', presets: 'sub_gp_presets', airships: 'ffxiv_airship_timers' };
     const LEGACY_KEYS = ['timers', 'groups', 'mapNodes', 'craftParts', 'craftOwned', 'links'];
     const TOMB_KEEP = 60 * 864e5;
     const hash = str => { let h = 5381; for (let i = 0; i < str.length; i++) h = ((h << 5) + h + str.charCodeAt(i)) | 0; return (h >>> 0).toString(36) + ':' + str.length; };
@@ -11864,6 +11964,253 @@ window.toggleUploadZone = function(btn) {
         new MutationObserver(upd).observe(badge, { childList: true, characterData: true, subtree: true }); upd();
     }
     window.DeskDrawer = { open: view => open(rail.querySelector(`[data-view="${view}"]`)), close };
+})();
+</script>
+<!-- ══ 飛艇設定視窗 ══ -->
+<div id="airModal" role="dialog" aria-modal="true" class="sub-modal-overlay">
+    <div class="sub-modal-box" data-stop-click>
+        <div class="sub-modal-title"><span id="airModalTitle">新增飛艇</span><button type="button" class="sub-modal-close" data-on-click="a162" aria-label="關閉"><svg class="ic ic-x" aria-hidden="true"><use href="#i-x"/></svg></button></div>
+        <div class="sub-modal-section-title">飛艇資訊</div>
+        <div class="air-form">
+            <label class="w2">名稱<input type="text" id="air-name" maxlength="20" autocomplete="off"></label>
+            <label>群組<select id="air-group"></select></label>
+            <label>等級<input type="number" id="air-level" min="1" max="50" inputmode="numeric" data-on-input="a163"></label>
+            <label>船體<select id="air-part-hull" data-on-change="a163"></select></label>
+            <label>帆具<select id="air-part-rigging" data-on-change="a163"></select></label>
+            <label>船首<select id="air-part-forecastle" data-on-change="a163"></select></label>
+            <label>船尾<select id="air-part-aftcastle" data-on-change="a163"></select></label>
+        </div>
+        <div class="air-sum"><div class="air-st" id="air-stats"></div></div>
+        <div class="sub-modal-section-title">航線 <span style="font-weight:400;opacity:.7;font-size:12.5px">選填，依點選順序，最多 5 個</span> <button type="button" class="gp-my-btn" style="height:28px;margin-left:8px" data-on-click="a167">清除</button></div>
+        <div class="air-secs" id="air-secs"></div>
+        <div class="air-line" id="air-route-info" style="margin-top:8px"></div>
+        <div class="sub-modal-section-title">回港時間</div>
+        <div class="air-time">
+            <label>天<input type="number" id="air-d" min="0" max="30" inputmode="numeric" data-src="dur" data-on-input="a165"></label>
+            <label>時<input type="number" id="air-h" min="0" max="23" inputmode="numeric" data-src="dur" data-on-input="a165"></label>
+            <label>分<input type="number" id="air-m" min="0" max="59" inputmode="numeric" data-src="dur" data-on-input="a165"></label>
+            <label class="dt">或直接填回港時刻<input type="datetime-local" id="air-end" data-src="end" data-on-input="a165"></label>
+        </div>
+        <div class="air-hint">照遊戲出航畫面顯示的航行時間填寫。之後按「再出發」會用同樣的航行時間重新計時。</div>
+        <div class="sub-modal-actions">
+            <button type="button" class="btn-top" data-on-click="a162">取消</button>
+            <button type="button" class="btn-top" style="background:var(--accent-color); color:#fff; border-color:var(--accent-color);" data-on-click="a161">儲存</button>
+        </div>
+    </div>
+</div>
+<script>
+/* ══ 飛艇艦隊：與潛水艇分開的介面與資料（ffxiv_airship_timers）══ */
+(function () {
+    const A = window.AIR_DATA;
+    if (!A) return;
+    const KEY = 'ffxiv_airship_timers', MODE_KEY = 'sub_vessel_mode', ALL = '全部';
+    const SLOTS = ['hull', 'rigging', 'forecastle', 'aftcastle'];
+    const STAT = ['探索', '回收', '航速', '航距', '恩惠'];
+    const SEC = new Map(A.SECTORS.map(s => [s.n, s]));
+    const $ = id => document.getElementById(id);
+    const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    const partOf = (slot, g) => A.PARTS.find(p => p.slot === slot && p.g === +g);
+    const defGroup = () => (typeof DEFAULT_GROUP !== 'undefined' ? DEFAULT_GROUP : '未分類');
+    let ships = [], filter = ALL, editId = null, route = [], timeSrc = null;
+    const doneSeen = new Map();
+
+    function load() {
+        try { ships = JSON.parse(localStorage.getItem(KEY) || '[]'); } catch (e) { ships = []; }
+        if (!Array.isArray(ships)) ships = [];
+        ships = ships.filter(t => t && t.id);
+        render();
+    }
+    function save() {
+        if (ships.length) localStorage.setItem(KEY, JSON.stringify(ships)); else localStorage.removeItem(KEY);
+        if (window.SubSync && window.SubSync.changed) window.SubSync.changed();
+    }
+    function statsOf(parts) {
+        const st = [0, 0, 0, 0, 0]; let cost = 0, n = 0;
+        SLOTS.forEach(k => { const p = partOf(k, parts && parts[k]); if (p) { n++; cost += p.cost; p.st.forEach((v, i) => st[i] += v); } });
+        return { st, cost, full: n === 4 };
+    }
+    const capOf = lv => (A.LEVELS[lv] || [0, 0])[1];
+    // 航線資訊：經驗、青磷水、航距（推定：直線距離 × 係數，加上各地點的偵查消耗）
+    function routeInfo(r) {
+        let exp = 0, tank = 0, rng = 0, x = A.HOME[0], y = A.HOME[1];
+        r.forEach(n => { const s = SEC.get(n); if (!s) return; exp += s.exp; tank += s.tank; rng += s.sd + Math.floor(Math.hypot(s.x - x, s.y - y) * A.RANGE_K); x = s.x; y = s.y; });
+        return { exp, tank, rng, surv: Math.max(0, ...r.map(n => (SEC.get(n) || {}).surv || 0)) };
+    }
+    const pad = n => String(n).padStart(2, '0');
+    function fmtLeft(ms) {
+        const s = Math.max(0, Math.ceil(ms / 1000)), d = Math.floor(s / 86400), h = Math.floor(s % 86400 / 3600), m = Math.floor(s % 3600 / 60);
+        return (d ? d + '天 ' : '') + pad(h) + ':' + pad(m) + ':' + pad(s % 60);
+    }
+    function fmtEta(ts) { const d = new Date(ts); return `${d.getMonth() + 1}/${d.getDate()} ${pad(d.getHours())}:${pad(d.getMinutes())}`; }
+    function fmtDur(ms) { const m = Math.round(ms / 60000), d = Math.floor(m / 1440), h = Math.floor(m % 1440 / 60); return (d ? d + '天' : '') + (h ? h + '小時' : '') + (m % 60) + '分'; }
+    const partsText = parts => SLOTS.map(k => { const p = partOf(k, parts && parts[k]); return p ? p.cls.replace(/級$/, '') : '—'; }).join('／');
+
+    function sorted() {
+        const now = Date.now();
+        return ships.filter(t => filter === ALL || (t.group || defGroup()) === filter)
+            .sort((a, b) => ((a.endTime || 0) <= now ? 0 : 1) - ((b.endTime || 0) <= now ? 0 : 1) || (a.endTime || 0) - (b.endTime || 0) || String(a.name).localeCompare(String(b.name), 'zh-TW'));
+    }
+    function cardHtml(t) {
+        const { st, cost, full } = statsOf(t.parts), lv = parseInt(t.level, 10) || 0, cap = capOf(lv);
+        const r = (t.route || []).filter(n => SEC.has(n)), ri = routeInfo(r);
+        const chips = full ? STAT.map((k, i) => `<span${i === 3 && r.length && ri.rng > st[3] ? ' class="warn" title="推定航距 ' + ri.rng + ' 超過船的航距"' : (i === 0 && ri.surv > st[0] ? ' class="warn" title="這條航線需要探索 ' + ri.surv + '"' : '')}>${k} ${st[i]}</span>`).join('') : '';
+        const capWarn = full && cap && cost > cap ? `<span class="warn" title="等級 ${lv} 的部件容量上限是 ${cap}">容量 ${cost}/${cap}</span>` : '';
+        return `<div class="air-card" id="air-${esc(t.id)}" data-id="${esc(t.id)}">
+            <div class="air-top"><span class="air-name">${esc(t.name || '飛艇')}</span>${lv ? `<span class="air-lv">Lv ${lv}</span>` : ''}<span class="air-grp">${esc(t.group || defGroup())}</span></div>
+            <div><span class="air-count"></span> <span class="air-eta"></span></div>
+            <div class="air-bar"><i></i></div>
+            <div class="air-line">${r.length ? `航線 <b>${r.map(n => pad(n)).join(' → ')}</b>${ri.exp ? ` <span class="dim">・經驗 ${ri.exp.toLocaleString()}</span>` : ''}` : '<span class="dim">還沒設定航線</span>'}${t.duration ? ` <span class="dim">・航行 ${fmtDur(t.duration)}</span>` : ''}</div>
+            ${full ? `<div class="air-line dim">${esc(partsText(t.parts))}</div>` : ''}
+            ${chips || capWarn ? `<div class="air-st">${chips}${capWarn}</div>` : ''}
+            <div class="air-acts"><button type="button" class="primary" data-id="${esc(t.id)}" data-on-click="a159">${IC('refresh-cw')} 再出發</button><button type="button" data-id="${esc(t.id)}" data-on-click="a158">設定</button><button type="button" class="del" data-id="${esc(t.id)}" data-on-click="a160" aria-label="刪除" title="刪除">${IC('trash-2')}</button></div>
+        </div>`;
+    }
+    function render() {
+        const groups = [...new Set(ships.map(t => t.group || defGroup()))];
+        if (filter !== ALL && !groups.includes(filter)) filter = ALL;
+        const sel = $('airFilter');
+        if (sel) { sel.innerHTML = [ALL, ...groups].map(g => `<option value="${esc(g)}">${esc(g)}${g === ALL ? `（${ships.length} 艘）` : ''}</option>`).join(''); sel.value = filter; sel.hidden = groups.length < 2; }
+        const list = sorted();
+        $('airList').innerHTML = list.map(cardHtml).join('');
+        $('airEmpty').hidden = list.length > 0;
+        const c = $('airCount'); if (c) { c.hidden = !ships.length; c.textContent = ships.length; }
+        tick(true);
+    }
+    function tick(silent) {
+        const now = Date.now(); let flip = false;
+        ships.forEach(t => {
+            const done = !t.endTime || t.endTime <= now, was = doneSeen.get(t.id);
+            if (t.endTime && done && was === false && !silent) { flip = true; try { playSound(); showNotification(t.name || '飛艇'); } catch (e) {} }
+            doneSeen.set(t.id, done);
+            const el = $('air-' + t.id); if (!el) return;
+            el.classList.toggle('done', !!t.endTime && done);
+            el.querySelector('.air-count').textContent = !t.endTime ? '尚未出航' : done ? '已回港' : fmtLeft(t.endTime - now);
+            el.querySelector('.air-eta').textContent = !t.endTime ? '' : done ? fmtEta(t.endTime) + ' 回港' : '→ ' + fmtEta(t.endTime) + ' 回港';
+            const tot = (t.endTime || 0) - (t.startTime || 0);
+            el.querySelector('.air-bar i').style.width = (!t.endTime ? 0 : done || tot <= 0 ? 100 : Math.min(100, Math.max(0, (now - t.startTime) / tot * 100))) + '%';
+        });
+        if (flip) render();
+    }
+    function setMode(m) {
+        m = m === 'air' ? 'air' : 'sub';
+        document.body.classList.toggle('mode-air', m === 'air');
+        document.querySelectorAll('#vesselSwitch button').forEach(b => { const on = b.dataset.mode === m; b.classList.toggle('active', on); b.setAttribute('aria-pressed', String(on)); });
+        try { localStorage.setItem(MODE_KEY, m); } catch (e) {}
+        if (m === 'air') { if (typeof switchRpTab === 'function') switchRpTab('fleet'); render(); }
+    }
+    function setFilter(v) { filter = v; render(); }
+
+    // ── 設定視窗 ──
+    function fillSelects(lv) {
+        SLOTS.forEach(k => {
+            const sel = $('air-part-' + k), cur = sel.value;
+            sel.innerHTML = '<option value="">（未設定）</option>' + A.PARTS.filter(p => p.slot === k).map(p => `<option value="${p.g}">${esc(p.cls)}${lv && p.rank > lv ? `（${p.rank} 級）` : ''}</option>`).join('');
+            sel.value = cur;
+        });
+    }
+    function readParts() { const o = {}; SLOTS.forEach(k => { o[k] = $('air-part-' + k).value || ''; }); return o; }
+    function formChange() {
+        const lv = Math.min(50, parseInt($('air-level').value, 10) || 0), parts = readParts(), { st, cost, full } = statsOf(parts), cap = capOf(lv);
+        fillSelects(lv);
+        const low = SLOTS.map(k => partOf(k, parts[k])).filter(p => p && lv && p.rank > lv);
+        let h = full ? STAT.map((k, i) => `<span>${k} ${st[i]}</span>`).join('') : '<span>選好四個部件後顯示性能</span>';
+        if (cost) h += `<span${cap && cost > cap ? ' class="warn"' : ''}>容量 ${cost}${cap ? ' / ' + cap : ''}${cap && cost > cap ? '（超過上限）' : ''}</span>`;
+        if (low.length) h += `<span class="warn">等級不夠：${low.map(p => esc(p.name)).join('、')}</span>`;
+        $('air-stats').innerHTML = h;
+        renderSecs();
+    }
+    function renderSecs() {
+        const lv = Math.min(50, parseInt($('air-level').value, 10) || 0), { st, full } = statsOf(readParts());
+        $('air-secs').innerHTML = A.SECTORS.map(s => {
+            const i = route.indexOf(s.n), lock = lv && s.rank > lv && i < 0;
+            return `<button type="button" class="air-sec${i >= 0 ? ' on' : ''}" data-n="${s.n}" data-on-click="a164"${lock ? ' disabled' : ''} title="${esc(s.zh)}・${s.rank} 級${(A.LOOT[s.n] || []).length ? '\n' + esc(A.LOOT[s.n].join('、')) : ''}">${pad(s.n)}<small>${i >= 0 ? '第 ' + (i + 1) : 'Lv' + s.rank}</small></button>`;
+        }).join('');
+        const ri = routeInfo(route), el = $('air-route-info');
+        if (!route.length) { el.innerHTML = '<span class="dim">點上方的地點加入航線</span>'; return; }
+        const over = full && ri.rng > st[3], lowSurv = full && ri.surv > st[0];
+        el.innerHTML = `航線 <b>${route.map(n => pad(n)).join(' → ')}</b>・經驗 ${ri.exp.toLocaleString()}・青磷水 ${ri.tank} 桶<br>`
+            + `<span class="${over ? '' : 'dim'}" style="${over ? 'color:#f0b45a' : ''}">推定航距 ${ri.rng}${full ? ' / ' + st[3] : ''}${over ? '，可能超過（推定值，以遊戲顯示為準）' : '（推定值）'}</span>`
+            + (lowSurv ? `<br><span style="color:#f0b45a">這條航線需要探索 ${ri.surv}，目前 ${st[0]}</span>` : '');
+    }
+    function toggleSec(n) {
+        const i = route.indexOf(n);
+        if (i >= 0) route.splice(i, 1);
+        else { if (route.length >= A.MAX_STOPS) { showToast(`一趟最多 ${A.MAX_STOPS} 個地點`, { type: 'warning' }); return; } route.push(n); }
+        renderSecs();
+    }
+    function clearRoute() { route = []; renderSecs(); }
+    function toLocal(ts) { const d = new Date(ts); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`; }
+    function setDur(ms) { const m = Math.max(0, Math.round(ms / 60000)); $('air-d').value = Math.floor(m / 1440) || ''; $('air-h').value = Math.floor(m % 1440 / 60) || ''; $('air-m').value = (m % 60) || ''; }
+    const readDur = () => ((parseInt($('air-d').value, 10) || 0) * 1440 + (parseInt($('air-h').value, 10) || 0) * 60 + (parseInt($('air-m').value, 10) || 0)) * 60000;
+    function timeSrcSet(src) {
+        timeSrc = src;
+        if (src === 'dur') { const d = readDur(); $('air-end').value = d > 0 ? toLocal(Date.now() + d) : ''; }
+        else { const v = $('air-end').value, ts = v ? new Date(v).getTime() : 0; if (ts > Date.now()) setDur(ts - Date.now()); }
+    }
+    function open(id) {
+        const t = id ? ships.find(x => x.id === id) : null;
+        editId = t ? t.id : null; timeSrc = null;
+        $('airModalTitle').textContent = t ? '飛艇設定' : '新增飛艇';
+        $('air-name').value = t ? (t.name || '') : '';
+        const groups = [defGroup(), ...((typeof customGroups !== 'undefined' && customGroups) || [])];
+        const cur = t ? (t.group || defGroup()) : (filter !== ALL ? filter : defGroup());
+        if (!groups.includes(cur)) groups.push(cur);
+        $('air-group').innerHTML = [...new Set(groups)].map(g => `<option value="${esc(g)}">${esc(g)}</option>`).join('');
+        $('air-group').value = cur;
+        $('air-level').value = t ? (t.level || '') : '';
+        fillSelects(parseInt($('air-level').value, 10) || 0);
+        SLOTS.forEach(k => { $('air-part-' + k).value = t && t.parts ? (t.parts[k] || '') : ''; });
+        route = t ? (t.route || []).filter(n => SEC.has(n)) : [];
+        setDur(t && t.duration ? t.duration : 0);
+        $('air-end').value = t && t.endTime ? toLocal(t.endTime) : '';
+        formChange();
+        $('airModal').style.display = 'flex';
+        if (!t) setTimeout(() => $('air-name').focus(), 50);
+    }
+    function close() { $('airModal').style.display = 'none'; }
+    function submit() {
+        const name = $('air-name').value.trim();
+        if (!name) { fieldError('air-name', '請輸入名稱'); return; }
+        const lvRaw = $('air-level').value.trim(), lv = parseInt(lvRaw, 10);
+        if (lvRaw && !(lv >= 1 && lv <= 50)) { fieldError('air-level', '等級請填 1–50'); return; }
+        const t = editId ? ships.find(x => x.id === editId) : { id: 'air_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6) };
+        if (!t) { close(); return; }
+        t.name = name; t.group = $('air-group').value || defGroup(); t.level = lvRaw ? String(lv) : ''; t.parts = readParts(); t.route = route.slice();
+        const now = Date.now();
+        if (timeSrc === 'dur') { const d = readDur(); if (d > 0) { t.duration = d; t.startTime = now; t.endTime = now + d; } }
+        else if (timeSrc === 'end') {
+            const v = $('air-end').value, ts = v ? new Date(v).getTime() : 0;
+            if (ts) { t.endTime = ts; if (ts > now) { t.startTime = now; t.duration = ts - now; } else if (!t.startTime || t.startTime > ts) t.startTime = ts; }
+        }
+        if (!editId) ships.push(t);
+        doneSeen.set(t.id, !t.endTime || t.endTime <= now);
+        save(); close(); render();
+        showToast(editId ? `已儲存「${name}」` : `已新增「${name}」`);
+    }
+    async function redepart(id) {
+        const t = ships.find(x => x.id === id); if (!t) return;
+        if (!t.duration) { open(id); showToast('請先填這條航線的航行時間', { type: 'info' }); return; }
+        if (t.endTime && t.endTime > Date.now()) {
+            const ok = await showConfirm(`「${t.name}」計時還沒結束，確定要重新出發嗎？`, '再出發', 'primary');
+            if (!ok) return;
+        }
+        const prev = { s: t.startTime, e: t.endTime }, now = Date.now();
+        t.startTime = now; t.endTime = now + t.duration; doneSeen.set(t.id, false);
+        save(); render();
+        showToast(`「${t.name}」已出發，${fmtEta(t.endTime)} 回港`, { action: { label: '復原', fn: () => { t.startTime = prev.s; t.endTime = prev.e; doneSeen.set(t.id, !t.endTime || t.endTime <= Date.now()); save(); render(); } } });
+    }
+    function remove(id) {
+        const i = ships.findIndex(x => x.id === id); if (i < 0) return;
+        const t = ships.splice(i, 1)[0];
+        save(); render();
+        showToast(`已刪除「${t.name}」`, { action: { label: '復原', fn: () => { ships.splice(Math.min(i, ships.length), 0, t); save(); render(); } } });
+    }
+    window.Air = { load, setMode, open, close, submit, redepart, remove, formChange, toggleSec, clearRoute, timeSrc: timeSrcSet, setFilter, _ships: () => ships };
+    $('airModal').addEventListener('click', close);
+    load();
+    let mode = 'sub'; try { mode = localStorage.getItem(MODE_KEY) || 'sub'; } catch (e) {}
+    if (mode === 'air') setMode('air');
+    setInterval(() => tick(false), 1000);
 })();
 </script>
 </body>
