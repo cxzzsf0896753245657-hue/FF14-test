@@ -3730,6 +3730,7 @@ window.icHtml = function (t) {
                         <li>開圖：預設只走撞得出新地點的點，可勾選「順路撞點」「順路衝經驗」</li>
                         <li>開圖：守回港時段撞不到要開的點時，改走撞得到的路線並提醒</li>
                         <li>修正：船艇設定裡自動導航預覽的航線和船卡不同</li>
+                        <li>修正：很久沒開的裝置打開後，已刪除的船跑回來、別台的修改被蓋回舊資料</li>
                     </ul>
                    <div class="u39" style="color: var(--accent-color);"><svg class="ic ic-calendar-days" aria-hidden="true"><use href="#i-calendar-days"/></svg> 2026/11/15　v2.4.3</div>
                     <ul class="u40">
@@ -11572,6 +11573,11 @@ window.toggleUploadZone = function(btn) {
     const hash = str => { let h = 5381; for (let i = 0; i < str.length; i++) h = ((h << 5) + h + str.charCodeAt(i)) | 0; return (h >>> 0).toString(36) + ':' + str.length; };
     const toArr = v => Array.isArray(v) ? v.filter(Boolean) : (v && typeof v === 'object' ? Object.values(v) : []);
     let st = null;
+    // 這次開啟（或從背景回來）後還沒跟雲端對過資料＝資料可能是舊的。
+    // 這段期間偵測到的修改（多半是開啟時程式自動更新，例如回港加經驗）不蓋上「現在」的時間，
+    // 避免舊資料贏過別台裝置較新的修改或刪除。
+    let pulled = false, hiddenAt = 0;
+    const isStale = () => !pulled || (document.hidden && hiddenAt && Date.now() - hiddenAt > 60000);
     function load() {
         if (st) return st;
         try { st = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (e) { st = null; }
@@ -11591,11 +11597,12 @@ window.toggleUploadZone = function(btn) {
             Object.keys(META).forEach(k => { const v = metaRaw(k); st.msnap[k] = v == null ? null : hash(v); st.metaT[k] = 0; });
             st.init = true; save(); return;
         }
-        Object.keys(cur).forEach(id => { if (st.snap[id] !== cur[id]) { st.snap[id] = cur[id]; st.shipT[id] = now; delete st.tomb[id]; st.dirty[id] = 1; } });
+        const stale = isStale();
+        Object.keys(cur).forEach(id => { if (st.snap[id] !== cur[id]) { const known = id in st.snap; st.snap[id] = cur[id]; st.shipT[id] = (stale && known) ? (st.shipT[id] || 0) : now; delete st.tomb[id]; st.dirty[id] = 1; } });
         Object.keys(st.snap).forEach(id => { if (!(id in cur)) { delete st.snap[id]; delete st.shipT[id]; st.tomb[id] = now; st.dirty[id] = 1; } });
         Object.keys(META).forEach(k => { const v = metaRaw(k), h = v == null ? null : hash(v);
             if (!(k in st.msnap)) { st.msnap[k] = h; st.metaT[k] = 0; if (h != null) st.mdirty[k] = 1; return; }   // 新加入的同步項目：只建立基準
-            if (h !== st.msnap[k]) { st.msnap[k] = h; st.metaT[k] = now; st.mdirty[k] = 1; } });
+            if (h !== st.msnap[k]) { st.msnap[k] = h; st.metaT[k] = stale ? (st.metaT[k] || 0) : now; st.mdirty[k] = 1; } });
         Object.keys(st.tomb).forEach(id => { if (now - st.tomb[id] > TOMB_KEEP) delete st.tomb[id]; });
         save();
     }
@@ -11662,8 +11669,10 @@ window.toggleUploadZone = function(btn) {
                 return;
             }
             if (!L) { if (prefer === 'local') { if (!R.x) { st.tomb[id] = Date.now(); st.dirty[id] = 1; } } else if (applyEntry(arr, id, R) && !R.x) changed = true; return; }
-            const useR = prefer === 'remote' ? true : prefer === 'local' ? false : R.t >= L.t;
-            if (useR) { if (applyEntry(arr, id, R)) changed = true; } else st.dirty[id] = 1;
+            // 時間相同：雲端從上次同步後沒變過 → 本機有改就以本機為準（並蓋上現在的時間再上傳）
+            const useR = prefer === 'remote' ? true : prefer === 'local' ? false : (R.t > L.t || (R.t === L.t && !st.dirty[id]));
+            if (useR) { if (applyEntry(arr, id, R)) changed = true; }
+            else { if (!L.x && L.t <= R.t) st.shipT[id] = Date.now(); st.dirty[id] = 1; }
         });
         if (changed) { savedTimers = arr; localStorage.setItem('ffxiv_submarine_timers', JSON.stringify(arr)); }
         let mchanged = false;
@@ -11671,11 +11680,11 @@ window.toggleUploadZone = function(btn) {
             const L = localMeta(k), R = rmeta[k];
             if (!R) { if (prefer !== 'remote' && L.d !== 'null') st.mdirty[k] = 1; return; }
             if (L.d === R.d) { st.metaT[k] = Math.max(L.t, R.t); delete st.mdirty[k]; return; }
-            const useR = prefer === 'remote' ? true : prefer === 'local' ? false : R.t >= L.t;
+            const useR = prefer === 'remote' ? true : prefer === 'local' ? false : (R.t > L.t || (R.t === L.t && !st.mdirty[k]));
             if (useR) {
                 if (R.d === 'null') localStorage.removeItem(META[k]); else localStorage.setItem(META[k], R.d);
                 st.msnap[k] = R.d === 'null' ? null : hash(R.d); st.metaT[k] = R.t; delete st.mdirty[k]; mchanged = true;
-            } else st.mdirty[k] = 1;
+            } else { if (L.t <= R.t) st.metaT[k] = Date.now(); st.mdirty[k] = 1; }
         });
         save();
         if (changed || mchanged) refreshUI();
@@ -11716,7 +11725,7 @@ window.toggleUploadZone = function(btn) {
     let pushing = false, again = false, retryT = null, online = false;
     async function push() {
         const CS = window.CloudSync;
-        if (!CS || !CS.isEnabled() || !online) return;
+        if (!CS || !CS.isEnabled() || !online || isStale()) return;   // 還沒跟雲端對過資料前不上傳
         if (pushing) { again = true; return; }
         pushing = true;
         const ids = Object.keys(st.dirty), mk = Object.keys(st.mdirty), patch = {};
@@ -11740,7 +11749,21 @@ window.toggleUploadZone = function(btn) {
         pushing = false;
         if (again) { again = false; push(); }
     }
-    window.addEventListener('online', () => { if (online) push(); else if (localStorage.getItem('sub_cloud_enabled') === '1') enable(); });
+    // 連線恢復、或從背景回來超過 1 分鐘：先抓雲端最新資料合併，再上傳
+    async function resync() {
+        const CS = window.CloudSync;
+        if (!CS || !CS.isEnabled() || !online || enabling) return;
+        pulled = false;
+        try { const raw = await CS.getUser(); load(); scan(); if (raw) merge(decodeShips(raw), decodeMeta(raw), 'newer'); }
+        catch (e) { clearTimeout(retryT); retryT = setTimeout(resync, 15000); return; }
+        pulled = true; push();
+    }
+    window.addEventListener('online', () => { if (online) resync(); else if (localStorage.getItem('sub_cloud_enabled') === '1') enable(); });
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden) { hiddenAt = Date.now(); return; }
+        const away = hiddenAt && Date.now() - hiddenAt > 60000; hiddenAt = 0;
+        if (away) resync();
+    });
 
     // ── 啟用同步 ──
     function askChoice(lCount, rCount) {
@@ -11796,17 +11819,17 @@ window.toggleUploadZone = function(btn) {
                 localStorage.setItem('sub_cloud_enabled', '1');
                 localStorage.removeItem('sub_sync_import');
                 CS.enable(); online = true;
-                merge(remote, rmeta, prefer);
+                merge(remote, rmeta, prefer); pulled = true;
                 if (choice === 'merge') dedupe(localOnly, remoteOnly);
             } else {
                 localStorage.setItem('sub_cloud_enabled', '1');
                 CS.enable(); online = true;
-                merge(remote, rmeta, 'newer');
+                merge(remote, rmeta, 'newer'); pulled = true;
             }
             st.base = uuid; save();
             if (st.legacy) markAll();
             await push();
-            CS.listenUser(r => { if (!r) return; const lg = isLegacy(r); if (lg) st.legacy = true; merge(decodeShips(r), decodeMeta(r), 'newer'); if (lg) markAll(); push(); });
+            CS.listenUser(r => { if (!r) return; const lg = isLegacy(r); if (lg) st.legacy = true; merge(decodeShips(r), decodeMeta(r), 'newer'); if (!document.hidden) pulled = true; if (lg) markAll(); push(); });
             // 房主：重新連線後把房間和自己的船隊對齊一次
             const own = window._ownedRoomId;
             if (own && window._fbGet) window._fbGet(own).then(r => { if (r) ownerRoomSync(own, r); }).catch(() => {});
