@@ -3729,6 +3729,7 @@ window.icHtml = function (t) {
                         <li>修正：船艇設定裡自動導航預覽的航線和船卡不同（設定裡沒算到回港後升級）</li>
                         <li>開圖：守回港時段會撞不到要開的點時，改走撞得到的路線，並提醒回港時間</li>
                         <li>船艇設定新增「再出發方式」：可選上一次航線，或固定的剩餘時間（天、小時、分鐘）</li>
+                        <li>開圖：只走撞得出新地點的點，不再為了經驗加入開不了圖的點，航程更短、能多撞幾次</li>
                         <li>物品清單依海圖排序，三個分頁的分類統一</li>
                         <li>介面：全新圖示、寬螢幕的規劃頁改兩欄、配件製作文字放大</li>
                         <li>操作：刪除船可以復原、成功訊息不用再按確定、填錯會直接標出欄位</li>
@@ -4773,7 +4774,8 @@ function subAutoRoute(rank,stats,allowed,o){
     let prio=[];
     if(o.mode!=='exp'){prio=avail.filter(s=>prioVal(s)>0).sort((a,b)=>prioVal(b)-prioVal(a)||b[6]-a[6]);if(!prio.length)return;}
     prio=prio.slice(0,25);
-    const rest=avail.filter(s=>!prio.includes(s)).sort((a,b)=>b[6]-a[6]).slice(0,Math.max(0,25-prio.length));
+    /* 開圖只走「撞得出新地點」的點；其他模式用經驗高的點補滿 */
+    const rest=o.mode==='chart'?[]:avail.filter(s=>!prio.includes(s)).sort((a,b)=>b[6]-a[6]).slice(0,Math.max(0,25-prio.length));
     const cand=[...prio,...rest],N=cand.length+1,ids=[homeId,...cand.map(s=>s[0])];
     const DIST=new Float64Array(N*N),RNG=new Float64Array(N*N);
     for(let i=0;i<N;i++)for(let j=0;j<N;j++){const e=(SUB_DIST[ids[i]]||{})[ids[j]];DIST[i*N+j]=e?e[0]:Infinity;RNG[i*N+j]=e?e[1]:0;}
