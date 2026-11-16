@@ -30,7 +30,3 @@ tools/
 
 介面圖示使用 [Lucide](https://lucide.dev)（ISC License），以 SVG sprite 內嵌在 index.html；潛水艇標誌為自繪。程式裡用 `IC('名稱')` 產生圖示，`icHtml(文字)` 會把文字中的 emoji 轉成對應圖示。
 
-
-## 飛艇
-
-飛艇的介面與資料和潛水艇分開：資料檔是 `data/airship.js`（由「FF14飛艇數據表」產生，目前為草稿），船的紀錄存在 `ffxiv_airship_timers`。其中航距係數與一趟最多地點數是推定值，尚未驗證。
