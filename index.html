@@ -10463,7 +10463,7 @@ const CRAFT_BASE = SUB_DATA.CRAFT_BASE;
         btn.classList.toggle('is-empty', n === 0);
         const lbl = activeGroup === GROUP_ALL ? '全部再出發' : '群組再出發';
         btn.innerHTML = `<span class="fleet-add-icon"><svg class="ic ic-refresh-cw" aria-hidden="true"><use href="#i-refresh-cw"/></svg></span> ${lbl}<span class="grp-rd-count">${n}</span>`;
-        btn.title = activeGroup === GROUP_ALL ? '所有已回港、有上次航線的船一起再出發' : `「${activeGroup}」裡已回港、有上次航線的船一起再出發`;
+        btn.title = activeGroup === GROUP_ALL ? '所有已回港、可以再出發的船一起出發' : `「${activeGroup}」裡已回港、可以再出發的船一起出發`;
     }
     async function subGroupRedepart() {
         const list = subGroupCandidates();
@@ -10473,8 +10473,8 @@ const CRAFT_BASE = SUB_DATA.CRAFT_BASE;
         list.forEach(t => { const plan = subPlanRedepart(t); (plan.err ? bad : ok).push({ t, plan }); });
         const now = Date.now();
         const lines = [];
-        const anyAuto = ok.some(({ plan }) => plan.auto && !plan.auto.fallback);
-        const how = anyAuto ? '依自動導航或上次航線' : '照上次航線';
+        const anyAuto = ok.some(({ plan }) => plan.auto && !plan.auto.fallback), anyTimed = ok.some(({ plan }) => plan.timed);
+        const how = (anyAuto && anyTimed) || (anyTimed && ok.some(({ plan }) => !plan.timed)) ? '依各自的設定' : anyTimed ? '照設定的剩餘時間' : anyAuto ? '依自動導航或上次航線' : '照上次航線';
         lines.push(activeGroup === GROUP_ALL ? `以下 ${ok.length} 艘船會${how}再出發：` : `「${activeGroup}」以下 ${ok.length} 艘船會${how}再出發：`);
         ok.forEach(({ t, plan }) => {
             const { r, oldLv, p, calc } = plan;
