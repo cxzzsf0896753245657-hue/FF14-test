@@ -11576,8 +11576,9 @@ window.toggleUploadZone = function(btn) {
     // 這次開啟（或從背景回來）後還沒跟雲端對過資料＝資料可能是舊的。
     // 這段期間偵測到的修改（多半是開啟時程式自動更新，例如回港加經驗）不蓋上「現在」的時間，
     // 避免舊資料贏過別台裝置較新的修改或刪除。
-    let pulled = false, hiddenAt = 0;
-    const isStale = () => !pulled || (document.hidden && hiddenAt && Date.now() - hiddenAt > 60000);
+    // 電腦睡眠、分頁被瀏覽器凍結後醒來：計時器會停住，用心跳間隔偵測，醒來後也要先對資料
+    let pulled = false, hiddenAt = 0, beat = Date.now();
+    const isStale = () => !pulled || Date.now() - beat > 30000 || (document.hidden && hiddenAt && Date.now() - hiddenAt > 60000);
     function load() {
         if (st) return st;
         try { st = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (e) { st = null; }
@@ -11759,8 +11760,8 @@ window.toggleUploadZone = function(btn) {
         pulled = true; push();
     }
     window.addEventListener('online', () => { if (online) resync(); else if (localStorage.getItem('sub_cloud_enabled') === '1') enable(); });
+    setInterval(() => { const gap = Date.now() - beat; beat = Date.now(); if (gap > 30000 && !document.hidden) resync(); }, 5000);
     document.addEventListener('visibilitychange', () => {
-        if (document.hidden) { hiddenAt = Date.now(); return; }
         const away = hiddenAt && Date.now() - hiddenAt > 60000; hiddenAt = 0;
         if (away) resync();
     });
