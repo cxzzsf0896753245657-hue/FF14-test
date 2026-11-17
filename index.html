@@ -151,7 +151,7 @@
 })();
     </script>
     <style>
-        #testEnvBadge { position: fixed; left: 50%; bottom: 10px; transform: translateX(-50%); z-index: 99990; display: flex; align-items: center; gap: 10px; padding: 6px 8px 6px 14px; border-radius: 999px; background: #c2410c; color: #fff; font-size: 13px; box-shadow: 0 4px 14px rgba(0,0,0,.35); }
+        #testEnvBadge { position: fixed; left: 50%; bottom: 10px; transform: translateX(-50%); z-index: 9000; display: flex; align-items: center; gap: 10px; padding: 6px 8px 6px 14px; border-radius: 999px; background: #c2410c; color: #fff; font-size: 13px; box-shadow: 0 4px 14px rgba(0,0,0,.35); }
         #testEnvBadge span { opacity: .85; }
         #testEnvBadge button { border: 0; border-radius: 999px; padding: 5px 12px; background: rgba(255,255,255,.2); color: #fff; font-size: 12.5px; font-weight: 700; cursor: pointer; }
         #testEnvBadge button:hover { background: rgba(255,255,255,.32); }
@@ -563,6 +563,12 @@ window.UI_ACTIONS = {
         #sponsorPop[hidden] { display: none; }
         #sponsorPop .sp-link { display: flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 12px; border-radius: 10px; border: 1px solid var(--edit-border); color: var(--text-color); text-decoration: none; font-size: 14px; font-weight: 700; }
         #sponsorPop .sp-link span { margin-left: auto; opacity: .6; }
+        #sponsorPop button.sp-link { width: 100%; background: transparent; font-family: inherit; cursor: pointer; text-align: left; }
+        #sponsorPop .sp-link .sp-jko-ico { margin-left: 0; opacity: 1; display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; border-radius: 4px; background: #c8102e; color: #fff; font-size: 11px; font-weight: 800; }
+        #sponsorPop .sp-jko[aria-expanded="true"] { border-color: #c8102e; }
+        #sponsorPop .sp-jko[aria-expanded="true"] .sp-caret { transform: rotate(180deg); }
+        #sponsorPop .sp-jko:hover { border-color: #c8102e; color: inherit; }
+        #sponsorPop .sp-qr[hidden] { display: none; }
         #sponsorPop .sp-link:hover { border-color: rgba(249,115,22,.6); color: #f97316; }
         #sponsorPop .sp-qr { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 10px 10px 12px; border-radius: 10px; background: #fff; }
         #sponsorPop .sp-qr-t { font-size: 15px; font-weight: 800; color: #c8102e; letter-spacing: 1px; }
@@ -2309,6 +2315,31 @@ window.UI_ACTIONS = {
         .custom-confirm-actions {
             display: flex; justify-content: flex-end; gap: 8px;
         }
+        /* 排版好的確認內容（群組再出發） */
+        .custom-confirm-overlay.rich .custom-confirm-box { max-width: 440px; padding: 20px 20px 18px; }
+        .custom-confirm-overlay.rich .custom-confirm-icon { display: none; }
+        .custom-confirm-overlay.rich #customConfirmMsg { white-space: normal; }
+        .custom-confirm-overlay.rich .custom-confirm-actions button { min-height: 38px; padding: 0 18px; font-size: 14px; }
+        .rd-head { margin-bottom: 12px; }
+        .rd-title { font-size: 17px; font-weight: 800; line-height: 1.35; }
+        .rd-sub { margin-top: 3px; font-size: 13px; opacity: .8; }
+        .rd-sub b { color: var(--accent-color); font-size: 14px; }
+        .rd-dot { opacity: .5; margin: 0 2px; }
+        .rd-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; max-height: min(52vh, 420px); overflow-y: auto; }
+        .rd-row { display: flex; align-items: center; gap: 12px; padding: 9px 12px; border-radius: 10px; background: var(--edit-bg); border: 1px solid var(--edit-border); }
+        .rd-l { flex: 1; min-width: 0; }
+        .rd-name { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 6px; font-size: 15px; font-weight: 800; line-height: 1.3; }
+        .rd-tag { display: inline-flex; align-items: center; gap: 3px; white-space: nowrap; flex-shrink: 0; padding: 0 7px; border-radius: 999px; font-size: 11.5px; font-weight: 700; background: rgba(var(--accent-rgb), .16); color: var(--accent-color); }
+        .rd-tag svg.ic { width: 1em; height: 1em; }
+        .rd-meta { margin-top: 2px; font-size: 12.5px; opacity: .75; font-variant-numeric: tabular-nums; }
+        .rd-up { color: #4caf7d; font-weight: 800; opacity: 1; }
+        .rd-eta { text-align: right; font-size: 15px; font-weight: 800; color: var(--accent-color); white-space: nowrap; font-variant-numeric: tabular-nums; }
+        .rd-eta small { display: block; font-size: 11px; font-weight: 600; opacity: .7; color: var(--text-color); }
+        .rd-skip { margin-top: 12px; padding: 9px 12px; border-radius: 10px; background: rgba(224,160,64,.1); border: 1px solid rgba(224,160,64,.35); font-size: 13px; }
+        .rd-skip-t { font-weight: 800; color: #e0a040; margin-bottom: 4px; display: flex; align-items: center; gap: 5px; }
+        body.light-mode .rd-skip-t { color: #a35f00; }
+        .rd-skip ul { margin: 0; padding-left: 18px; line-height: 1.6; }
+        .rd-note { margin-top: 10px; font-size: 12px; opacity: .65; }
         .custom-confirm-cancel {
             background: var(--edit-bg); color: var(--text-color);
             border: 1px solid var(--edit-border); padding: 6px 16px;
@@ -5159,15 +5190,16 @@ window.showAlert = showAlert;
 let _confirmResolve = null;
 let _confirmReject  = null;
 
-function showConfirm(msg, okLabel, tone) {
+function showConfirm(msg, okLabel, tone, opts) {
     const ov = document.getElementById('customConfirmOverlay');
     ov.classList.toggle('tone-primary', tone === 'primary');
+    ov.classList.toggle('rich', !!(opts && opts.html));
     const ic = ov.querySelector('.custom-confirm-icon');
     if (ic) ic.innerHTML = IC(tone === 'primary' ? 'sub' : 'triangle-alert');
     return new Promise((resolve, reject) => {
         _confirmResolve = resolve;
         _confirmReject  = reject;
-        document.getElementById('customConfirmMsg').innerHTML = icHtml(msg);
+        document.getElementById('customConfirmMsg').innerHTML = (opts && opts.html) ? opts.html : icHtml(msg);
         document.getElementById('customConfirmOk').textContent = okLabel || '確定';
         document.getElementById('customConfirmOverlay').classList.add('visible');
     });
@@ -10627,6 +10659,26 @@ const CRAFT_BASE = SUB_DATA.CRAFT_BASE;
         btn.innerHTML = `<span class="fleet-add-icon"><svg class="ic ic-refresh-cw" aria-hidden="true"><use href="#i-refresh-cw"/></svg></span> ${lbl}<span class="grp-rd-count">${n}</span>`;
         btn.title = activeGroup === GROUP_ALL ? '所有已回港、可以再出發的船一起出發' : `「${activeGroup}」裡已回港、可以再出發的船一起出發`;
     }
+    // 群組再出發的確認內容：每艘船一列，名稱與回港時間最醒目
+    function subRedepListHtml(ok, bad, how, now) {
+        const etaOf = ({ plan }) => subFmtEta(now + Math.round(plan.calc.timeMins * 60) * 1000);
+        const etas = ok.map(etaOf), same = etas.length > 1 && etas.every(e => e === etas[0]);
+        const who = activeGroup === GROUP_ALL ? '' : `「${escapeHtml(activeGroup)}」`;
+        let h = `<div class="rd-head"><div class="rd-title">${who}${ok.length} 艘船再出發</div>`
+            + `<div class="rd-sub">${escapeHtml(how)}${same ? `<span class="rd-dot">・</span>全部約 <b>${etas[0]}</b> 回港` : ''}</div></div>`;
+        h += '<ul class="rd-list">' + ok.map((x, i) => {
+            const { t, plan } = x, { r, oldLv, p, calc } = plan;
+            const auto = plan.auto && !plan.auto.fallback ? `<span class="rd-tag">${AUTO_NAV_MODES[plan.auto.mode].icon || ''}${escapeHtml(AUTO_NAV_MODES[plan.auto.mode].label)}</span>` : '';
+            const where = plan.timed ? `固定 ${subFmtMins(calc.timeMins)}` : `${escapeHtml(MAP_NAMES[r.mapId] || '')} ${escapeHtml(subRouteLetters(r))}`;
+            const lv = !p.level ? '' : p.level > oldLv ? `Lv ${oldLv} <span class="rd-up">→ ${p.level}${p.known ? '' : '*'}</span>` : `Lv ${p.level}`;
+            return `<li class="rd-row"><div class="rd-l"><div class="rd-name">${escapeHtml(t.name)}${auto}</div><div class="rd-meta">${where}${lv ? `<span class="rd-dot">・</span>${lv}` : ''}</div></div>`
+                + (same ? '' : `<div class="rd-eta"><small>回港</small>${etas[i]}</div>`) + '</li>';
+        }).join('') + '</ul>';
+        if (bad.length) h += `<div class="rd-skip"><div class="rd-skip-t">${IC('triangle-alert')} 跳過 ${bad.length} 艘</div><ul>`
+            + bad.map(({ t, plan }) => `<li><b>${escapeHtml(t.name)}</b>：${escapeHtml(plan.err)}</li>`).join('') + '</ul></div>';
+        if (ok.some(({ plan }) => !plan.p.known && plan.p.level > plan.oldLv)) h += '<div class="rd-note">* 等級是依經驗推算，和遊戲不同時可在「船艇設定」修正。</div>';
+        return h;
+    }
     async function subGroupRedepart() {
         const list = subGroupCandidates();
         await Promise.all(list.filter(autoNavOf).map(t => autoNavEnsure(t).catch(() => null)));
@@ -10637,6 +10689,7 @@ const CRAFT_BASE = SUB_DATA.CRAFT_BASE;
         const lines = [];
         const anyAuto = ok.some(({ plan }) => plan.auto && !plan.auto.fallback), anyTimed = ok.some(({ plan }) => plan.timed);
         const how = (anyAuto && anyTimed) || (anyTimed && ok.some(({ plan }) => !plan.timed)) ? '依各自的設定' : anyTimed ? '照設定的剩餘時間' : anyAuto ? '依自動導航或上次航線' : '照上次航線';
+        const html = subRedepListHtml(ok, bad, how, now);
         lines.push(activeGroup === GROUP_ALL ? `以下 ${ok.length} 艘船會${how}再出發：` : `「${activeGroup}」以下 ${ok.length} 艘船會${how}再出發：`);
         ok.forEach(({ t, plan }) => {
             const { r, oldLv, p, calc } = plan;
@@ -10651,7 +10704,7 @@ const CRAFT_BASE = SUB_DATA.CRAFT_BASE;
         }
         if (ok.some(({ plan }) => !plan.p.known && plan.p.level > plan.oldLv)) lines.push('', '* 等級是依經驗推算，和遊戲不同時可在「船艇設定」修正。');
         if (!ok.length) { showAlert('⚠️ ' + lines.slice(1).filter(Boolean).join('\n')); return; }
-        showConfirm(lines.join('\n'), `再出發 ${ok.length} 艘`, 'primary').then(() => {
+        showConfirm(lines.join('\n'), `再出發 ${ok.length} 艘`, 'primary', { html }).then(() => {
             const start = Date.now();
             ok.forEach(({ t, plan }) => subCommitRedepart(t, plan, start));
             subRebuildCards(ok.map(x => x.t));
@@ -11104,7 +11157,8 @@ const CRAFT_BASE = SUB_DATA.CRAFT_BASE;
 <button type="button" id="sponsorBtn" data-on-click="a159" aria-haspopup="dialog" aria-expanded="false" aria-controls="sponsorPop"><svg class="ic ic-fish" aria-hidden="true"><use href="#i-fish"/></svg> 贊助貓罐頭</button>
 <div id="sponsorPop" role="dialog" aria-label="贊助貓罐頭" hidden>
     <a class="sp-link" href="https://ganknow.com/cxz089675/tip" target="_blank" rel="noopener"><svg class="ic ic-fish" aria-hidden="true"><use href="#i-fish"/></svg> 用 Ganknow 贊助 <span aria-hidden="true">↗</span></a>
-    <div class="sp-qr">
+    <button type="button" class="sp-link sp-jko" id="spJkoBtn" aria-expanded="false" aria-controls="spJkoQr"><span class="sp-jko-ico" aria-hidden="true">街</span> 街口支付 <span class="sp-caret" aria-hidden="true">▾</span></button>
+    <div class="sp-qr" id="spJkoQr" hidden>
         <div class="sp-qr-t">街口支付</div>
         <img src="data/jkopay-qr.png" width="220" height="220" alt="街口支付 QR Code">
     </div>
@@ -11116,11 +11170,16 @@ const CRAFT_BASE = SUB_DATA.CRAFT_BASE;
         const pop = document.getElementById('sponsorPop'); if (!pop) return;
         const open = force != null ? force : pop.hidden;
         pop.hidden = !open;
+        if (!open) { const q = document.getElementById('spJkoQr'), b = document.getElementById('spJkoBtn'); if (q) q.hidden = true; if (b) b.setAttribute('aria-expanded', 'false'); }
         document.querySelectorAll('[aria-controls="sponsorPop"]').forEach(b => b.setAttribute('aria-expanded', String(open)));
         if (open && btn && window.innerWidth <= 640) { const r = btn.getBoundingClientRect(); pop.style.top = (r.bottom + 8) + 'px'; } else if (open) pop.style.top = '';
     }
     document.addEventListener('click', e => { const pop = document.getElementById('sponsorPop'); if (pop && !pop.hidden && !pop.contains(e.target) && !e.target.closest('[aria-controls="sponsorPop"]')) toggleSponsorPop(null, false); });
     document.addEventListener('keydown', e => { if (e.key === 'Escape') toggleSponsorPop(null, false); });
+    document.addEventListener('click', e => {
+        const b = e.target.closest('#spJkoBtn'); if (!b) return;
+        const q = document.getElementById('spJkoQr'); q.hidden = !q.hidden; b.setAttribute('aria-expanded', String(!q.hidden));
+    });
 </script>
 
 <div id="gpThTipFloat"></div>
