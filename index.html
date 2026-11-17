@@ -269,6 +269,7 @@ window.UI_ACTIONS = {
     a155: function (event) { if (event.key === 'Enter') { event.preventDefault(); gpMySubmit(); } else if (event.key === 'Escape') gpMyCloseForm(); },
     a156: function (event) { cfgRdSetMode(this.dataset.rd) },
     a157: function (event) { cfgRdRender() },
+    a159: function (event) { event.stopPropagation(); toggleSponsorPop(this); },
     a158: function (event) { cfgAn[this.dataset.opt] = this.checked; cfgAnRender(); },
     a128: function (event) { setRoomPerm(this.dataset.perm) },
     a129: function (event) { setFleetLayout(this.dataset.layout) },
@@ -556,6 +557,17 @@ window.UI_ACTIONS = {
             border-color: rgba(249,115,22,0.6);
             background: rgba(249,115,22,0.08);
         }
+
+        /* ── 贊助選單 ── */
+        #sponsorPop { position: fixed; top: 48px; right: 18px; z-index: 10001; width: 252px; box-sizing: border-box; padding: 12px; border-radius: 14px; background: var(--card-color); border: 1px solid var(--edit-border); box-shadow: 0 12px 32px rgba(0,0,0,.4); display: flex; flex-direction: column; gap: 10px; }
+        #sponsorPop[hidden] { display: none; }
+        #sponsorPop .sp-link { display: flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 12px; border-radius: 10px; border: 1px solid var(--edit-border); color: var(--text-color); text-decoration: none; font-size: 14px; font-weight: 700; }
+        #sponsorPop .sp-link span { margin-left: auto; opacity: .6; }
+        #sponsorPop .sp-link:hover { border-color: rgba(249,115,22,.6); color: #f97316; }
+        #sponsorPop .sp-qr { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 10px 10px 12px; border-radius: 10px; background: #fff; }
+        #sponsorPop .sp-qr-t { font-size: 15px; font-weight: 800; color: #c8102e; letter-spacing: 1px; }
+        #sponsorPop .sp-qr img { display: block; width: 208px; height: 208px; image-rendering: pixelated; }
+        @media (max-width: 640px) { #sponsorPop { top: 56px; right: 10px; } }
 
         /* ── 使用說明抽屜（步驟優先、重點突出）── */
         #manualDrawer {
@@ -3638,7 +3650,7 @@ window.icHtml = function (t) {
     <h2><svg class="ic ic-sub" aria-hidden="true"><use href="#i-sub"/></svg> FF14 潛水艇計時器</h2>
     <div class="mob-header-right">
         <a class="mob-icon-btn mob-link-btn report" href="https://forum.gamer.com.tw/C.php?bsn=17608&snA=30749&page=1&gothis=146463#146463" target="_blank" rel="noopener" title="回報問題" aria-label="回報問題"><svg class="ic ic-megaphone" aria-hidden="true"><use href="#i-megaphone"/></svg></a>
-        <a class="mob-icon-btn mob-link-btn sponsor" href="https://ganknow.com/cxz089675/tip" target="_blank" rel="noopener" title="贊助貓罐頭" aria-label="贊助貓罐頭"><svg class="ic ic-fish" aria-hidden="true"><use href="#i-fish"/></svg></a>
+        <button type="button" class="mob-icon-btn mob-link-btn sponsor" data-on-click="a159" title="贊助貓罐頭" aria-label="贊助貓罐頭" aria-haspopup="dialog" aria-controls="sponsorPop"><svg class="ic ic-fish" aria-hidden="true"><use href="#i-fish"/></svg></button>
         <button type="button" class="mob-icon-btn" data-on-click="a4" title="啟用通知" aria-label="啟用通知"><svg class="ic ic-bell" aria-hidden="true"><use href="#i-bell"/></svg></button>
     </div>
 </div>
@@ -11089,8 +11101,27 @@ const CRAFT_BASE = SUB_DATA.CRAFT_BASE;
   </div>
 </div>
 <a id="reportBtn" href="https://forum.gamer.com.tw/C.php?bsn=17608&snA=30749&page=1&gothis=146463#146463" target="_blank" rel="noopener"><svg class="ic ic-megaphone" aria-hidden="true"><use href="#i-megaphone"/></svg> 回報</a>
-<a id="sponsorBtn" href="https://ganknow.com/cxz089675/tip" target="_blank" rel="noopener"><svg class="ic ic-fish" aria-hidden="true"><use href="#i-fish"/></svg> 贊助貓罐頭</a>
+<button type="button" id="sponsorBtn" data-on-click="a159" aria-haspopup="dialog" aria-expanded="false" aria-controls="sponsorPop"><svg class="ic ic-fish" aria-hidden="true"><use href="#i-fish"/></svg> 贊助貓罐頭</button>
+<div id="sponsorPop" role="dialog" aria-label="贊助貓罐頭" hidden>
+    <a class="sp-link" href="https://ganknow.com/cxz089675/tip" target="_blank" rel="noopener"><svg class="ic ic-fish" aria-hidden="true"><use href="#i-fish"/></svg> 用 Ganknow 贊助 <span aria-hidden="true">↗</span></a>
+    <div class="sp-qr">
+        <div class="sp-qr-t">街口支付</div>
+        <img src="data/jkopay-qr.png" width="220" height="220" alt="街口支付 QR Code">
+    </div>
+</div>
 <div id="rpGlobalTip"></div>
+<script>
+    // 贊助選單：點按鈕開關，點外面或按 Esc 關閉
+    function toggleSponsorPop(btn, force) {
+        const pop = document.getElementById('sponsorPop'); if (!pop) return;
+        const open = force != null ? force : pop.hidden;
+        pop.hidden = !open;
+        document.querySelectorAll('[aria-controls="sponsorPop"]').forEach(b => b.setAttribute('aria-expanded', String(open)));
+        if (open && btn && window.innerWidth <= 640) { const r = btn.getBoundingClientRect(); pop.style.top = (r.bottom + 8) + 'px'; } else if (open) pop.style.top = '';
+    }
+    document.addEventListener('click', e => { const pop = document.getElementById('sponsorPop'); if (pop && !pop.hidden && !pop.contains(e.target) && !e.target.closest('[aria-controls="sponsorPop"]')) toggleSponsorPop(null, false); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') toggleSponsorPop(null, false); });
+</script>
 
 <div id="gpThTipFloat"></div>
 <script>
