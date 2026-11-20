@@ -8188,8 +8188,8 @@ window.showConfirm = showConfirm;
         secs.forEach(s => {
             const tiers = SUB_LOOT_TIER[s[0]] || {};
             Object.keys(tiers).forEach(tr => (tiers[tr] || []).forEach(id => {
-                const p = (((probs[s[0]] || {})[tr] || {})[id] || {}).t;
-                (items[id] = items[id] || []).push({ l: s[2], tr: +tr, p: p == null ? null : p, on: onOf(s) });
+                const pr = (((probs[s[0]] || {})[tr] || {})[id] || {});
+                (items[id] = items[id] || []).push({ l: s[2], tr: +tr, p: pr.t == null ? null : pr.t, d: pr.d == null ? null : pr.d, on: onOf(s) });
             }));
         });
         // 不顯示魔晶石、元素碎晶／水晶／晶簇、黑暗物質，以及無屬性水晶、深色／深紅／深綠／深藍的水晶與晶簇
@@ -8213,8 +8213,8 @@ window.showConfirm = showConfirm;
         document.getElementById('smLootSub').innerHTML = `目前撈得到 <b>${ca}</b> / ${ct} 項`;
         const rowHtml = x => {
             const ok = avail(x);
-            const best = x.where.filter(w => w.p != null).reduce((m, w) => Math.max(m, w.p), 0);
-            return `<div class="sm-row ${ok ? 'ok' : 'no'} cat-${x.cat}" title="${escapeHtml(x.name)}${best ? `・最高約 ${best}%` : ''}${ok ? '' : '・要先開海點'}"><span class="sm-st" aria-label="${ok ? '撈得到' : '還沒開'}">${ok ? '✓' : ''}</span><span class="sm-nm">${escapeHtml(x.name)}</span><button type="button" class="sm-copy" data-copy="${escapeHtml(x.name)}" title="複製名稱" aria-label="複製「${escapeHtml(x.name)}」"><svg class="ic" aria-hidden="true"><use href="#i-copy"/></svg></button>${(tr => `<span class="sm-tr ${tr}" title="${tr === 'market' ? '可交易，可以上市場板' : tr === 'trade' ? '可以交易，但不能上市場板' : '不可交易'}">${tr === 'market' ? '可交易' : tr === 'trade' ? '可交易・無市場' : '不可交易'}</span>`)(smTrade(x.id))}<span class="sm-pts">${x.where.map(w => `<i class="${w.on ? 'on' : ''}" title="${w.l} 點・T${w.tr}${w.p != null ? '・約 ' + w.p + '%' : ''}${w.on ? '' : '（未開）'}">${w.l}</i>`).join('')}</span>${smPriceHtml(x.id)}</div>`;
+            const bestW = x.where.filter(w => w.d != null).sort((a, b) => b.d - a.d)[0];   // 獲得機率（撈一次拿到的機率）最高的點
+            return `<div class="sm-row ${ok ? 'ok' : 'no'} cat-${x.cat}" title="${escapeHtml(x.name)}${bestW ? `・獲得機率最高 ${bestW.l} 點約 ${bestW.d}%` : ''}${ok ? '' : '・要先開海點'}"><span class="sm-st" aria-label="${ok ? '撈得到' : '還沒開'}">${ok ? '✓' : ''}</span><span class="sm-nm">${escapeHtml(x.name)}</span><button type="button" class="sm-copy" data-copy="${escapeHtml(x.name)}" title="複製名稱" aria-label="複製「${escapeHtml(x.name)}」"><svg class="ic" aria-hidden="true"><use href="#i-copy"/></svg></button>${(tr => `<span class="sm-tr ${tr}" title="${tr === 'market' ? '可交易，可以上市場板' : tr === 'trade' ? '可以交易，但不能上市場板' : '不可交易'}">${tr === 'market' ? '可交易' : tr === 'trade' ? '可交易・無市場' : '不可交易'}</span>`)(smTrade(x.id))}<span class="sm-pts">${x.where.map(w => `<i class="${w.on ? 'on' : ''}" title="${w.l} 點・T${w.tr}${w.d != null ? '・獲得機率約 ' + w.d + '%' : w.p != null ? '・T' + w.tr + ' 內機率 ' + w.p + '%（無獲得機率資料）' : ''}${w.on ? '' : '（未開）'}">${w.l}</i>`).join('')}</span>${smPriceHtml(x.id)}</div>`;
         };
         const pick = xs => smOnlyAvail ? xs.filter(avail) : xs;
         // 依類型分段（沉船裝備、樂譜、家具…），每段標出撈得到／總數
