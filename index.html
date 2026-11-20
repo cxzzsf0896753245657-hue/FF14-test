@@ -1375,6 +1375,29 @@ window.UI_ACTIONS = {
         body.light-mode .sm-node { border-color: rgba(0,0,0,0.12); background: rgba(0,0,0,0.02); color: #777; }
         .sm-node.on { border-color: var(--accent-color); background: var(--accent-color); color: #fff; }
         .sm-node:hover, .sm-node.hl { border-color: #ffd36b; }
+        /* 可撈到的物品：一列一項，✓＝已開的海點撈得到 */
+        .sm-only { margin-left: auto; font-size: 12px; color: #999; display: inline-flex; align-items: center; gap: 5px; cursor: pointer; user-select: none; }
+        .sm-only input { accent-color: var(--accent-color); margin: 0; }
+        #smLootSub b { color: var(--success-color, #4caf50); font-size: 13px; }
+        .sm-loot { gap: 0 !important; }
+        .sm-row { display: flex; align-items: center; gap: 8px; padding: 6px 4px; border-bottom: 1px solid rgba(255,255,255,0.06); font-size: 13.5px; }
+        body.light-mode .sm-row { border-bottom-color: rgba(0,0,0,0.06); }
+        .sm-st { flex: none; width: 18px; height: 18px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 900; }
+        .sm-row.ok .sm-st { background: var(--success-color, #4caf50); color: #fff; }
+        .sm-row.no .sm-st { border: 1.5px solid rgba(160,160,170,.45); }
+        .sm-nm { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600; }
+        .sm-row.no .sm-nm { color: #8a8f99; font-weight: 500; }
+        .sm-cat-rare .sm-row.ok .sm-nm, .sm-grp.rare ~ .sm-row.ok .sm-nm { color: #d7b8f5; }
+        body.light-mode .sm-cat-rare .sm-row.ok .sm-nm { color: #7a3fb5; }
+        .sm-pts { flex: none; display: inline-flex; gap: 3px; flex-wrap: wrap; justify-content: flex-end; max-width: 46%; }
+        .sm-pts i { font-style: normal; font-size: 11px; font-weight: 800; min-width: 18px; padding: 1px 4px; text-align: center; border-radius: 5px; color: #7d828c; background: rgba(255,255,255,0.05); }
+        body.light-mode .sm-pts i { background: rgba(0,0,0,0.05); color: #999; }
+        .sm-pts i.on { background: rgba(var(--accent-rgb), .9); color: #fff; }
+        .sm-grp { font-size: 12px; font-weight: 800; letter-spacing: 1px; padding: 12px 4px 4px; color: #aaa; border-bottom: 1px solid rgba(255,255,255,0.12); }
+        .sm-grp:first-child { padding-top: 2px; }
+        .sm-grp small { font-weight: 600; margin-left: 6px; opacity: .7; letter-spacing: 0; }
+        .sm-grp.rare { color: #c89fef; } .sm-grp.workshop { color: #5fb3e8; }
+        .sm-grp.rare ~ .sm-grp ~ .sm-row.ok .sm-nm { color: inherit; }
         .sm-maps { display: flex; flex-wrap: wrap; gap: 6px; }
         .sm-maps .map-group-tab small { font-size: 11px; opacity: .75; margin-left: 4px; }
         .sm-cat-tabs { display: flex; gap: 5px; flex-wrap: wrap; }
@@ -4655,8 +4678,8 @@ window.icHtml = function (t) {
                         <div class="sm-maps" id="smMaps"></div>
                     </div>
                     <div class="sm-card sm-o4">
-                        <div class="sm-card-head"><h3>可撈到的物品<span class="sm-sub" id="smLootSub"></span></h3></div>
-                        <div class="sm-cat-tabs" id="smCats" style="margin-bottom:10px"></div>
+                        <div class="sm-card-head"><h3>可撈到的物品<span class="sm-sub" id="smLootSub"></span></h3><span class="sm-sub" style="font-size:11.5px">✓ 已開的海點撈得到・編號亮起＝已開</span></div>
+                        <div class="sm-cat-tabs" id="smCats" style="margin-bottom:8px;align-items:center"></div>
                         <div class="sm-loot" id="smLoot"></div>
                     </div>
                 </div>
@@ -7921,7 +7944,7 @@ window.showConfirm = showConfirm;
 
     // ══ 海圖設定分頁：群組標籤＋大地圖＋海點＋掉落物 ══════════════════════
     const SUB_XY = {"0":[483,927],"1":[640,880],"2":[570,750],"3":[740,700],"4":[400,850],"5":[650,610],"6":[850,850],"7":[260,760],"8":[120,840],"9":[380,660],"10":[900,600],"11":[520,550],"12":[260,570],"13":[90,630],"14":[800,550],"15":[630,490],"16":[290,365],"17":[115,350],"18":[150,540],"19":[320,230],"20":[130,180],"21":[465,330],"22":[555,225],"23":[710,370],"24":[900,355],"25":[210,90],"26":[430,100],"27":[830,210],"28":[750,90],"29":[895,100],"30":[595,100],"31":[483,927],"32":[290,750],"33":[150,840],"34":[280,570],"35":[430,660],"36":[590,750],"37":[180,440],"38":[350,480],"39":[340,330],"40":[500,580],"41":[460,420],"42":[140,310],"43":[440,200],"44":[820,550],"45":[870,400],"46":[760,660],"47":[584,195],"48":[761,885],"49":[818,145],"50":[680,285],"51":[168,140],"52":[64,591],"53":[199,455],"54":[246,703],"55":[261,289],"56":[101,203],"57":[474,89],"58":[214,98],"59":[689,253],"60":[676,76],"61":[842,186],"62":[723,387],"63":[855,96],"64":[889,305],"65":[659,637],"66":[626,805],"67":[938,188],"68":[481,918],"69":[889,445],"70":[736,764],"71":[852,617],"72":[832,888],"73":[177,927],"74":[201,748],"75":[427,704],"76":[340,532],"77":[447,253],"78":[583,593],"79":[687,644],"80":[66,383],"81":[352,118],"82":[557,183],"83":[738,555],"84":[802,436],"85":[620,806],"86":[136,138],"87":[533,68],"88":[885,400],"89":[502,899],"90":[873,106],"91":[678,289],"92":[937,651],"93":[747,901],"94":[49,928],"95":[177,858],"96":[189,713],"97":[494,744],"98":[90,514],"99":[545,898],"100":[366,534],"101":[741,797],"102":[901,898],"103":[174,394],"104":[533,457],"105":[646,677],"106":[562,320],"107":[806,570],"108":[690,212],"109":[737,433],"110":[62,88],"111":[374,296],"112":[922,340],"113":[804,64],"114":[485,62],"115":[934,60],"116":[822,159],"117":[661,378],"118":[624,168],"119":[907,517],"120":[431,86],"121":[480,438],"122":[393,257],"123":[286,364],"124":[508,600],"125":[85,93],"126":[76,316],"127":[728,764],"128":[331,660],"129":[206,650],"130":[895,919],"131":[86,494],"132":[461,816],"133":[196,810],"134":[520,926],"135":[88,927],"136":[933,940],"137":[883,870],"138":[907,579],"139":[803,779],"140":[727,634],"141":[850,360],"142":[551,645],"143":[472,432],"144":[354,580],"145":[641,313],"146":[495,156],"147":[400,821],"148":[659,149],"149":[326,383],"150":[0,0],"151":[0,0],"152":[0,0],"153":[0,0],"154":[0,0],"155":[0,0],"156":[0,0],"157":[0,0],"158":[0,0],"159":[0,0]}; // 遊戲內各地點座標（SubmarineExploration X/Y）
-    let smMapId = 1, smCat = 'all';
+    let smMapId = 1, smCat = 'rare', smOnlyAvail = false;
     const SM_CAT_LABEL = { rare: '稀有', workshop: '工坊', other: '其他' };
     const SM_CAT_RANK = { rare: 0, workshop: 1, other: 2 };
     function smSectors(mapId) { return SUB_SECTORS.filter(s => s[1] === mapId); }
@@ -8069,13 +8092,29 @@ window.showConfirm = showConfirm;
             const ps = where.map(w => w.p).filter(v => v != null);
             return { id, name: ITEM_DB[id], cat: itemCategoryOf(id), where, best: ps.length ? Math.max(...ps) : 999, maxTier: Math.max(...where.map(w => w.tr)) };
         }).sort((a, b) => SM_CAT_RANK[a.cat] - SM_CAT_RANK[b.cat] || b.maxTier - a.maxTier || a.best - b.best || a.name.localeCompare(b.name, 'zh-Hant'));
-        const counts = { all: list.length, rare: 0, workshop: 0, other: 0 }; list.forEach(x => counts[x.cat]++);
+        const avail = x => x.where.some(w => w.on);
+        const cats = ['rare', 'workshop', 'other', 'all'];
+        const cnt = {}; cats.forEach(c => { const xs = list.filter(x => c === 'all' || x.cat === c); cnt[c] = [xs.filter(avail).length, xs.length]; });
         const catsEl = document.getElementById('smCats');
-        catsEl.innerHTML = ['all', 'rare', 'workshop', 'other'].map(c => `<button type="button" class="map-group-tab${c === smCat ? ' active' : ''}" data-c="${c}">${c === 'all' ? '全部' : SM_CAT_LABEL[c]}<small style="margin-left:4px;opacity:.75">${counts[c]}</small></button>`).join('');
+        catsEl.innerHTML = cats.map(c => `<button type="button" class="map-group-tab${c === smCat ? ' active' : ''}" data-c="${c}">${c === 'all' ? '全部' : SM_CAT_LABEL[c]}<small style="margin-left:5px;opacity:.8">${cnt[c][0]}/${cnt[c][1]}</small></button>`).join('')
+            + `<label class="sm-only"><input type="checkbox" id="smOnlyAvail"${smOnlyAvail ? ' checked' : ''}> 只看撈得到的</label>`;
         catsEl.querySelectorAll('[data-c]').forEach(b => b.onclick = () => { smCat = b.dataset.c; renderSeaMap(); });
-        document.getElementById('smLootSub').textContent = '依稀有度排序';
-        const shown = list.filter(x => smCat === 'all' || x.cat === smCat);
-        document.getElementById('smLoot').innerHTML = shown.length ? shown.map(x => `<div class="sm-item ${x.cat}"><div class="sm-item-main"><div class="sm-item-name">${escapeHtml(x.name)}<span class="sm-item-cat">${SM_CAT_LABEL[x.cat]}</span></div><div class="sm-item-where">${x.where.map(w => `<span class="sm-where${w.on ? '' : ' off'}" title="${w.l} 點・T${w.tr}${w.p != null ? '・約 ' + w.p + '%' : ''}${w.on ? '' : '（未開）'}">${w.l}・T${w.tr}${w.p != null ? ' ' + w.p + '%' : ''}</span>`).join('')}</div></div></div>`).join('') : '<div class="sm-empty">這個分類沒有物品</div>';
+        document.getElementById('smOnlyAvail').onchange = e => { smOnlyAvail = e.target.checked; renderSeaMap(); };
+        const [ca, ct] = cnt[smCat];
+        document.getElementById('smLootSub').innerHTML = `目前撈得到 <b>${ca}</b> / ${ct} 項`;
+        const rowHtml = x => {
+            const ok = avail(x);
+            const best = x.where.filter(w => w.p != null).reduce((m, w) => Math.max(m, w.p), 0);
+            return `<div class="sm-row ${ok ? 'ok' : 'no'}" title="${escapeHtml(x.name)}${best ? `・最高約 ${best}%` : ''}${ok ? '' : '・要先開海點'}"><span class="sm-st" aria-label="${ok ? '撈得到' : '還沒開'}">${ok ? '✓' : ''}</span><span class="sm-nm">${escapeHtml(x.name)}</span><span class="sm-pts">${x.where.map(w => `<i class="${w.on ? 'on' : ''}" title="${w.l} 點・T${w.tr}${w.p != null ? '・約 ' + w.p + '%' : ''}${w.on ? '' : '（未開）'}">${w.l}</i>`).join('')}</span></div>`;
+        };
+        const pick = xs => smOnlyAvail ? xs.filter(avail) : xs;
+        let html = '';
+        if (smCat === 'all') {
+            ['rare', 'workshop', 'other'].forEach(c => { const xs = pick(list.filter(x => x.cat === c)); if (xs.length) html += `<div class="sm-grp ${c}">${SM_CAT_LABEL[c]}<small>${cnt[c][0]}/${cnt[c][1]}</small></div>` + xs.map(rowHtml).join(''); });
+        } else html = pick(list.filter(x => x.cat === smCat)).map(rowHtml).join('');
+        const lootEl = document.getElementById('smLoot');
+        lootEl.className = 'sm-loot sm-cat-' + smCat;
+        lootEl.innerHTML = html || `<div class="sm-empty">${smOnlyAvail ? '目前開的海點撈不到這類物品' : '這個分類沒有物品'}</div>`;
     };
 
 
