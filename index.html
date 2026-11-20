@@ -1402,6 +1402,16 @@ window.UI_ACTIONS = {
         .sm-tr.trade { color: #e0b15a; background: rgba(224,168,74,.14); }
         .sm-tr.no { color: #ef8a8a; background: rgba(239,83,80,.14); }
         body.light-mode .sm-tr.market { color: #2e7d32; } body.light-mode .sm-tr.trade { color: #a06a00; } body.light-mode .sm-tr.no { color: #c62828; }
+        .sm-mkt { flex-basis: 100%; display: flex; align-items: center; gap: 8px; margin-top: 6px; font-size: 12px; color: #999; }
+        .sm-mkt select { background: var(--card-color); color: var(--text-color); border: 1px solid rgba(255,255,255,0.15); border-radius: 7px; padding: 3px 6px; font: inherit; font-size: 12px; }
+        body.light-mode .sm-mkt select { border-color: rgba(0,0,0,0.15); }
+        .sm-mkt select option { background: #26252c; color: #f2f2f2; } body.light-mode .sm-mkt select option { background: #fff; color: #222; }
+        .sm-sortbtn { margin-left: auto; font: inherit; font-size: 12px; padding: 3px 10px; border-radius: 999px; cursor: pointer; background: transparent; color: #b5b5b5; border: 1px solid rgba(255,255,255,0.15); }
+        .sm-sortbtn.on { background: var(--accent-color); border-color: var(--accent-color); color: #fff; }
+        .sm-pr { margin-left: 10px; flex: none; min-width: 96px; text-align: right; font-size: 13px; font-weight: 800; color: #e9c46a; font-variant-numeric: tabular-nums; white-space: nowrap; }
+        body.light-mode .sm-pr { color: #a06a00; }
+        .sm-pr small { font-size: 10.5px; font-weight: 500; color: #888; margin-left: 4px; }
+        .sm-pr.na, .sm-pr.ld { color: #777; font-weight: 500; font-size: 11.5px; }
         .sm-pts { margin-left: auto; flex: none; display: inline-flex; gap: 3px; flex-wrap: wrap; justify-content: flex-end; max-width: 46%; }
         .sm-pts i { font-style: normal; font-size: 11px; font-weight: 800; min-width: 18px; padding: 1px 4px; text-align: center; border-radius: 5px; color: #7d828c; background: rgba(255,255,255,0.05); }
         body.light-mode .sm-pts i { background: rgba(0,0,0,0.05); color: #999; }
@@ -1433,6 +1443,7 @@ window.UI_ACTIONS = {
         .sm-empty { font-size: 13px; color: #888; padding: 14px 4px; text-align: center; }
         @media (max-width: 900px) { .sm-grid { display: flex; flex-direction: column; gap: 14px; } .sm-col { display: contents; } .sm-split { display: none; } .sm-card + .sm-card { margin-top: 0; } .sm-o1 { order: 1; } .sm-o2 { order: 2; } .sm-o4 { order: 4; } .sm-loot { max-height: none; } }
         @media (max-width: 640px) { #panelSeamap { padding: 0 10px 16px; } }
+        @media (max-width: 640px) { .sm-row { flex-wrap: wrap; row-gap: 3px; } .sm-nm { flex: 1 1 auto; } .sm-pr { order: 2; min-width: 0; } .sm-pts { order: 3; flex-basis: calc(100% - 26px); margin-left: 26px; justify-content: flex-start; max-width: none; } }
         @media (max-width: 640px) { .sm-mapbox { width: 100%; } .sm-pin { min-width: 40px; height: 40px; font-size: 16px; border-width: 2px; } .sm-legend { margin-left: 0; } }
         .map-group-tab:hover { border-color: rgba(var(--accent-rgb),0.4); color: var(--accent-color); }
         .map-group-tab.active { background: var(--accent-color); color: #fff; border-color: var(--accent-color); }
@@ -4725,7 +4736,7 @@ window.icHtml = function (t) {
 
         <footer class="site-credits" aria-label="資料來源">
             <div><b>資料來源</b>
-                <a href="https://v2.xivapi.com/" target="_blank" rel="noopener">XIVAPI</a>・<a href="https://docs.google.com/spreadsheets/d/1eiuGRrQTjJ5n4ogybKOBxJRT7EiJLlX93fge-Z8MmD4" target="_blank" rel="noopener">Submersible Loot Spreadsheet</a>・<a href="https://ffxiv.consolegameswiki.com/wiki/Submersibles" target="_blank" rel="noopener">Final Fantasy XIV Online Wiki</a>・<a href="https://forum.square-enix.com/ffxiv/" target="_blank" rel="noopener">SQUARE ENIX 官方論壇</a>
+                <a href="https://v2.xivapi.com/" target="_blank" rel="noopener">XIVAPI</a>・<a href="https://docs.google.com/spreadsheets/d/1eiuGRrQTjJ5n4ogybKOBxJRT7EiJLlX93fge-Z8MmD4" target="_blank" rel="noopener">Submersible Loot Spreadsheet</a>・<a href="https://ffxiv.consolegameswiki.com/wiki/Submersibles" target="_blank" rel="noopener">Final Fantasy XIV Online Wiki</a>・<a href="https://forum.square-enix.com/ffxiv/" target="_blank" rel="noopener">SQUARE ENIX 官方論壇</a>・<a href="https://universalis.app/" target="_blank" rel="noopener">Universalis</a>
             </div>
             <div>FINAL FANTASY XIV &copy; SQUARE ENIX CO., LTD. All Rights Reserved. 本站為玩家自製工具，與 SQUARE ENIX 無關；遊戲圖片與資料版權屬於 SQUARE ENIX。</div>
         </footer>
@@ -8055,6 +8066,45 @@ window.showConfirm = showConfirm;
     // 交易：遊戲資料的 IsUntradable／ItemSearchCategory（XIVAPI）
     const SM_UNTRADABLE = new Set([37487]), SM_NO_MARKET = new Set([12920, 12921, 12922, 12923, 12924, 12925, 12926, 12927, 12928, 12929, 22500, 22501, 22502, 22503, 22504, 22505, 22506, 22507, 26528, 29590, 37083]);
     function smTrade(id) { return SM_UNTRADABLE.has(id) ? 'no' : SM_NO_MARKET.has(id) ? 'trade' : 'market'; }
+    // ── 市場價格：Universalis 最近 7 天成交（中位數單價、成交筆數）──
+    const SM_MKT_KEY = 'sub_mkt_world';
+    const SM_MKT_WORLDS = ['陸行鳥', '伊弗利特', '迦樓羅', '利維坦', '鳳凰', '奧汀', '巴哈姆特', '拉姆', '泰坦'];
+    let smMktWorld = (() => { try { return localStorage.getItem(SM_MKT_KEY) || '陸行鳥'; } catch (e) { return '陸行鳥'; } })();
+    let smSort = 'name';
+    const smPrice = {};   // `${world}|${id}` → { med, n, t } 或 { none: true }
+    const smPriceLoading = new Set();
+    function smPriceOf(id) { return smPrice[smMktWorld + '|' + id]; }
+    function smPriceHtml(id) {
+        if (smTrade(id) !== 'market') return '<span class="sm-pr na" title="不能上市場板">—</span>';
+        const p = smPriceOf(id);
+        if (!p) return `<span class="sm-pr ld" data-pid="${id}">…</span>`;
+        if (p.err) return `<span class="sm-pr na" data-pid="${id}" title="價格讀取失敗">?</span>`;
+        if (p.none) return `<span class="sm-pr na" data-pid="${id}" title="最近 7 天沒有成交">無成交</span>`;
+        return `<span class="sm-pr" data-pid="${id}" title="${smMktWorld}・最近 7 天成交 ${p.n} 筆，中位數單價 ${p.med.toLocaleString()} gil（最低 ${p.min.toLocaleString()}、最高 ${p.max.toLocaleString()}）">${p.med.toLocaleString()}<small>${p.n}筆</small></span>`;
+    }
+    async function smLoadPrices(ids) {
+        const world = smMktWorld;
+        const need = ids.filter(id => smTrade(id) === 'market' && !smPrice[world + '|' + id] && !smPriceLoading.has(world + '|' + id));
+        if (!need.length) return;
+        need.forEach(id => smPriceLoading.add(world + '|' + id));
+        for (let i = 0; i < need.length; i += 100) {
+            const chunk = need.slice(i, i + 100);
+            try {
+                const r = await fetch(`https://universalis.app/api/v2/history/${encodeURIComponent(world)}/${chunk.join(',')}?entriesWithin=604800&entriesToReturn=999`);
+                if (!r.ok) throw new Error(r.status);
+                const d = await r.json();
+                const items = d.items || (d.itemID ? { [d.itemID]: d } : {});
+                chunk.forEach(id => {
+                    const e = ((items[id] || {}).entries || []).map(x => x.pricePerUnit).filter(v => v > 0).sort((a, b) => a - b);
+                    smPrice[world + '|' + id] = e.length ? { med: e[Math.floor((e.length - 1) / 2)], n: e.length, min: e[0], max: e[e.length - 1] } : { none: true };
+                });
+            } catch (err) { chunk.forEach(id => { smPrice[world + '|' + id] = { err: true }; }); }
+            chunk.forEach(id => smPriceLoading.delete(world + '|' + id));
+        }
+        if (world !== smMktWorld) return;
+        if (smSort === 'price') renderSeaMap();
+        else document.querySelectorAll('#smLoot [data-pid]').forEach(el => { el.outerHTML = smPriceHtml(+el.dataset.pid); });
+    }
     window.renderSeaMap = function renderSeaMap() {
         const panel = document.getElementById('panelSeamap'); if (!panel) return;
         const allGroups = allGroupNames();
@@ -8139,15 +8189,18 @@ window.showConfirm = showConfirm;
         const cnt = {}; cats.forEach(c => { const xs = list.filter(x => c === 'all' || x.cat === c); cnt[c] = [xs.filter(avail).length, xs.length]; });
         const catsEl = document.getElementById('smCats');
         catsEl.innerHTML = cats.map(c => `<button type="button" class="map-group-tab${c === smCat ? ' active' : ''}" data-c="${c}">${c === 'all' ? '全部' : SM_CAT_LABEL[c]}<small style="margin-left:5px;opacity:.8">${cnt[c][0]}/${cnt[c][1]}</small></button>`).join('')
-            + `<label class="sm-only"><input type="checkbox" id="smOnlyAvail"${smOnlyAvail ? ' checked' : ''}> 只看撈得到的</label>`;
+            + `<label class="sm-only"><input type="checkbox" id="smOnlyAvail"${smOnlyAvail ? ' checked' : ''}> 只看撈得到的</label>`
+            + `<div class="sm-mkt"><span>市場價格（7 天）</span><select id="smMktWorld" aria-label="市場伺服器">${SM_MKT_WORLDS.map(w => `<option value="${w}"${w === smMktWorld ? ' selected' : ''}>${w === '陸行鳥' ? '陸行鳥（全區）' : w}</option>`).join('')}</select><button type="button" class="sm-sortbtn${smSort === 'price' ? ' on' : ''}" id="smSortBtn" title="依價格高到低排序">依價格排序</button></div>`;
         catsEl.querySelectorAll('[data-c]').forEach(b => b.onclick = () => { smCat = b.dataset.c; renderSeaMap(); });
         document.getElementById('smOnlyAvail').onchange = e => { smOnlyAvail = e.target.checked; renderSeaMap(); };
+        document.getElementById('smMktWorld').onchange = e => { smMktWorld = e.target.value; try { localStorage.setItem(SM_MKT_KEY, smMktWorld); } catch (er) {} renderSeaMap(); };
+        document.getElementById('smSortBtn').onclick = () => { smSort = smSort === 'price' ? 'name' : 'price'; renderSeaMap(); };
         const [ca, ct] = cnt[smCat];
         document.getElementById('smLootSub').innerHTML = `目前撈得到 <b>${ca}</b> / ${ct} 項`;
         const rowHtml = x => {
             const ok = avail(x);
             const best = x.where.filter(w => w.p != null).reduce((m, w) => Math.max(m, w.p), 0);
-            return `<div class="sm-row ${ok ? 'ok' : 'no'} cat-${x.cat}" title="${escapeHtml(x.name)}${best ? `・最高約 ${best}%` : ''}${ok ? '' : '・要先開海點'}"><span class="sm-st" aria-label="${ok ? '撈得到' : '還沒開'}">${ok ? '✓' : ''}</span><span class="sm-nm">${escapeHtml(x.name)}</span>${(tr => `<span class="sm-tr ${tr}" title="${tr === 'market' ? '可交易，可以上市場板' : tr === 'trade' ? '可以交易，但不能上市場板' : '不可交易'}">${tr === 'market' ? '可交易' : tr === 'trade' ? '可交易・無市場' : '不可交易'}</span>`)(smTrade(x.id))}<span class="sm-pts">${x.where.map(w => `<i class="${w.on ? 'on' : ''}" title="${w.l} 點・T${w.tr}${w.p != null ? '・約 ' + w.p + '%' : ''}${w.on ? '' : '（未開）'}">${w.l}</i>`).join('')}</span></div>`;
+            return `<div class="sm-row ${ok ? 'ok' : 'no'} cat-${x.cat}" title="${escapeHtml(x.name)}${best ? `・最高約 ${best}%` : ''}${ok ? '' : '・要先開海點'}"><span class="sm-st" aria-label="${ok ? '撈得到' : '還沒開'}">${ok ? '✓' : ''}</span><span class="sm-nm">${escapeHtml(x.name)}</span>${(tr => `<span class="sm-tr ${tr}" title="${tr === 'market' ? '可交易，可以上市場板' : tr === 'trade' ? '可以交易，但不能上市場板' : '不可交易'}">${tr === 'market' ? '可交易' : tr === 'trade' ? '可交易・無市場' : '不可交易'}</span>`)(smTrade(x.id))}<span class="sm-pts">${x.where.map(w => `<i class="${w.on ? 'on' : ''}" title="${w.l} 點・T${w.tr}${w.p != null ? '・約 ' + w.p + '%' : ''}${w.on ? '' : '（未開）'}">${w.l}</i>`).join('')}</span>${smPriceHtml(x.id)}</div>`;
         };
         const pick = xs => smOnlyAvail ? xs.filter(avail) : xs;
         // 依類型分段（沉船裝備、樂譜、家具…），每段標出撈得到／總數
@@ -8155,13 +8208,15 @@ window.showConfirm = showConfirm;
         const inCat = list.filter(x => smCat === 'all' || x.cat === smCat);
         SM_TYPE_ORDER.forEach(t => {
             const all = inCat.filter(x => x.type === t); if (!all.length) return;
-            const xs = pick(all); if (!xs.length) return;
+            let xs = pick(all); if (!xs.length) return;
+            if (smSort === 'price') { const v = x => { const p = smPriceOf(x.id); return p && p.med ? p.med : -1; }; xs = xs.slice().sort((a, b) => v(b) - v(a)); }
             const c = all[0].cat;
             html += `<div class="sm-grp ${c}">${t}<small>${all.filter(avail).length}/${all.length}</small></div>` + xs.map(rowHtml).join('');
         });
         const lootEl = document.getElementById('smLoot');
         lootEl.className = 'sm-loot sm-cat-' + smCat;
         lootEl.innerHTML = html || `<div class="sm-empty">${smOnlyAvail ? '目前開的海點撈不到這類物品' : '這個分類沒有物品'}</div>`;
+        smLoadPrices(list.map(x => x.id));
     };
 
 
