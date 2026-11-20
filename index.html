@@ -1345,7 +1345,7 @@ window.UI_ACTIONS = {
         #panelSeamap .map-group-tab:hover { border-color: rgba(var(--accent-rgb),0.5); color: var(--accent-color); }
         #panelSeamap .map-group-tab.active { background: var(--accent-color); color: #fff; border-color: var(--accent-color); }
         #panelSeamap .sm-groups-lbl { font-size: 12.5px; color: #888; margin-right: 4px; }
-        .sm-grid { display: grid; grid-template-columns: minmax(0, var(--sm-left, 59%)) 16px minmax(0, 1fr); gap: 0; align-items: start; }
+        .sm-grid { display: grid; grid-template-columns: minmax(0, var(--sm-left, 52%)) 16px minmax(0, 1fr); gap: 0; align-items: start; }
         /* 左右欄中間的拖曳把手：拖曳、方向鍵調整寬度，雙擊恢復預設 */
         .sm-split { align-self: stretch; cursor: col-resize; position: relative; touch-action: none; outline: none; }
         .sm-split::before { content: ''; position: absolute; top: 0; bottom: 0; left: 50%; width: 2px; margin-left: -1px; border-radius: 2px; background: transparent; transition: background .15s; }
@@ -1398,6 +1398,24 @@ window.UI_ACTIONS = {
         .sm-row { flex-wrap: wrap; row-gap: 3px; }
         .sm-row .sm-nm { flex-shrink: 0; max-width: calc(100% - 60px); }
         .sm-br { display: none; }
+        .sm-namec { display: inline-flex; align-items: center; gap: 4px; min-width: 0; }
+        .sm-thead { display: none; }
+        .sm-prob-k { font-style: normal; }
+        /* 電腦版：和艦隊條列一樣，每一欄對齊 */
+        @media (min-width: 641px) {
+            #smLoot .sm-row, #smLoot .sm-thead { display: grid; row-gap: 0; grid-template-columns: 18px minmax(96px, 1fr) 66px 100px 52px minmax(56px, 100px) 76px; column-gap: 8px; align-items: center; }
+            #smLoot .sm-row { flex-wrap: nowrap; }
+            #smLoot .sm-row .sm-nm { white-space: normal; max-width: none; flex-shrink: 1; line-height: 1.35; }
+            #smLoot .sm-right { display: contents; }
+            .sm-row .sm-tr, .sm-row .sm-stat { justify-self: start; }
+            .sm-row .sm-pts { margin: 0; justify-content: flex-start; max-width: none; }
+            .sm-row .sm-pr { margin: 0; min-width: 0; }
+            .sm-prob-k { display: none; }
+            .sm-prob { font-variant-numeric: tabular-nums; }
+            .sm-thead { position: sticky; top: 0; z-index: 2; background: var(--card-color); font-size: 11.5px; font-weight: 700; color: #888; padding: 4px 4px 6px; border-bottom: 1px solid rgba(255,255,255,0.12); }
+            body.light-mode .sm-thead { border-bottom-color: rgba(0,0,0,0.12); }
+            .sm-thead span:last-child { text-align: right; }
+        }
         .sm-right { margin-left: auto; display: inline-flex; align-items: center; flex: none; }
         .sm-right .sm-pts { margin-left: 0; }
         .sm-prob { flex: none; font-size: 11px; color: #9aa0aa; white-space: nowrap; }
@@ -1469,7 +1487,7 @@ window.UI_ACTIONS = {
         .sm-empty { font-size: 13px; color: #888; padding: 14px 4px; text-align: center; }
         @media (max-width: 900px) { .sm-grid { display: flex; flex-direction: column; gap: 14px; } .sm-col { display: contents; } .sm-split { display: none; } .sm-card + .sm-card { margin-top: 0; } .sm-o1 { order: 1; } .sm-o2 { order: 2; } .sm-o4 { order: 4; } .sm-loot { max-height: none; } }
         @media (max-width: 640px) { #panelSeamap { padding: 0 10px 16px; } }
-        @media (max-width: 640px) { .sm-row { row-gap: 2px; } .sm-br { display: block; flex-basis: 100%; height: 0; margin-top: -2px; } .sm-tr { margin-left: 26px; } .sm-stat { padding-left: 0; } .sm-right { order: 5; flex-basis: calc(100% - 26px); margin-left: 26px; justify-content: space-between; } .sm-row .sm-nm { flex: 0 1 auto; max-width: calc(100% - 120px); } .sm-pr { min-width: 0; } .sm-right .sm-pts { justify-content: flex-start; max-width: none; } }
+        @media (max-width: 640px) { .sm-row { row-gap: 2px; } .sm-br { display: block; flex-basis: 100%; height: 0; margin-top: -2px; } .sm-tr { margin-left: 26px; } .sm-stat { padding-left: 0; } .sm-right { order: 5; flex-basis: calc(100% - 26px); margin-left: 26px; justify-content: space-between; } .sm-namec { flex: 0 1 auto; min-width: 0; max-width: calc(100% - 30px); } .sm-row .sm-nm { flex: 0 1 auto; max-width: none; white-space: normal; } .sm-pr { min-width: 0; } .sm-right .sm-pts { justify-content: flex-start; max-width: none; } }
         @media (max-width: 640px) { .sm-mapbox { width: 100%; } .sm-pin { min-width: 40px; height: 40px; font-size: 16px; border-width: 2px; } .sm-legend { margin-left: 0; } }
         .map-group-tab:hover { border-color: rgba(var(--accent-rgb),0.4); color: var(--accent-color); }
         .map-group-tab.active { background: var(--accent-color); color: #fff; border-color: var(--accent-color); }
@@ -8067,7 +8085,7 @@ window.showConfirm = showConfirm;
     (function initSmSplit() {
         const grid = document.querySelector('#panelSeamap .sm-grid'), sp = document.getElementById('smSplit');
         if (!grid || !sp) return;
-        const KEY = 'sub_sm_split', DEF = 59, MIN = 32, MAX = 75;
+        const KEY = 'sub_sm_split', DEF = 52, MIN = 32, MAX = 75;
         const set = (v, save) => { v = Math.round(Math.min(MAX, Math.max(MIN, v)) * 10) / 10; grid.style.setProperty('--sm-left', v + '%'); sp.setAttribute('aria-valuenow', String(Math.round(v))); if (save) { try { localStorage.setItem(KEY, String(v)); } catch (e) {} } return v; };
         let cur = DEF; try { const v = parseFloat(localStorage.getItem(KEY)); if (v) cur = v; } catch (e) {}
         cur = set(cur);
@@ -8252,7 +8270,7 @@ window.showConfirm = showConfirm;
                 cls = 'lv'; txt = `等級不足 Lv${need}`;
             } else { ws = x.where; cls = 'off'; txt = '未開點'; }
             const d = bestD(ws);
-            return `<span class="sm-stat ${cls}">${txt}</span>${d != null ? `<span class="sm-prob" title="撈一次拿到的機率（取最高的點）">獲得機率 ${d}%</span>` : ''}`;
+            return `<span class="sm-stat ${cls}">${txt}</span><span class="sm-prob" title="撈一次拿到的機率（取最高的點）">${d != null ? `<i class="sm-prob-k">獲得機率 </i>${d}%` : '—'}</span>`;
         };
         const nearly = x => !avail(x) && x.where.some(w => w.st === 'ex');
         const cats = ['rare', 'workshop', 'other', 'all'];
@@ -8272,7 +8290,7 @@ window.showConfirm = showConfirm;
             const ok = avail(x), ex = nearly(x);
             const exW = ex ? x.where.filter(w => w.st === 'ex').sort((a, b) => (parseInt(a.why.split('差 ')[1]) || 0) - (parseInt(b.why.split('差 ')[1]) || 0))[0] : null;
             const bestW = x.where.filter(w => w.d != null).sort((a, b) => b.d - a.d)[0];   // 獲得機率（撈一次拿到的機率）最高的點
-            return `<div class="sm-row ${ok ? 'ok' : ex ? 'ex' : 'no'} cat-${x.cat}" title="${escapeHtml(x.name)}${bestW ? `・獲得機率最高 ${bestW.l} 點約 ${bestW.d}%` : ''}${ok ? '' : ex ? `・${exW.l} 點${exW.why}` : ship ? '・海點未開或等級不足' : '・要先開海點'}"><span class="sm-st" aria-label="${ok ? '撈得到' : ex ? '探索不足' : '撈不到'}">${ok ? '✓' : ex ? '△' : ''}</span><span class="sm-nm">${escapeHtml(x.name)}</span><button type="button" class="sm-copy" data-copy="${escapeHtml(x.name)}" title="複製名稱" aria-label="複製「${escapeHtml(x.name)}」"><svg class="ic" aria-hidden="true"><use href="#i-copy"/></svg></button><span class="sm-br"></span>${(tr => `<span class="sm-tr ${tr}" title="${tr === 'market' ? '可交易，可以上市場板' : tr === 'trade' ? '可以交易，但不能上市場板' : '不可交易'}">${tr === 'market' ? '可交易' : tr === 'trade' ? '可交易・無市場' : '不可交易'}</span>`)(smTrade(x.id))}${smStatusHtml(x)}<span class="sm-right"><span class="sm-pts">${x.where.map(w => `<i class="${w.st === 'ok' ? 'on' : w.st === 'ex' ? 'ex' : ''}" title="${w.l} 點・T${w.tr}${w.d != null ? '・獲得機率約 ' + w.d + '%' : w.p != null ? '・T' + w.tr + ' 內機率 ' + w.p + '%（無獲得機率資料）' : ''}${w.why ? '（' + w.why + '）' : ''}">${w.l}</i>`).join('')}</span>${smPriceHtml(x.id)}</span></div>`;
+            return `<div class="sm-row ${ok ? 'ok' : ex ? 'ex' : 'no'} cat-${x.cat}" title="${escapeHtml(x.name)}${bestW ? `・獲得機率最高 ${bestW.l} 點約 ${bestW.d}%` : ''}${ok ? '' : ex ? `・${exW.l} 點${exW.why}` : ship ? '・海點未開或等級不足' : '・要先開海點'}"><span class="sm-st" aria-label="${ok ? '撈得到' : ex ? '探索不足' : '撈不到'}">${ok ? '✓' : ex ? '△' : ''}</span><span class="sm-namec"><span class="sm-nm">${escapeHtml(x.name)}</span><button type="button" class="sm-copy" data-copy="${escapeHtml(x.name)}" title="複製名稱" aria-label="複製「${escapeHtml(x.name)}」"><svg class="ic" aria-hidden="true"><use href="#i-copy"/></svg></button></span><span class="sm-br"></span>${(tr => `<span class="sm-tr ${tr}" title="${tr === 'market' ? '可交易，可以上市場板' : tr === 'trade' ? '可以交易，但不能上市場板' : '不可交易'}">${tr === 'market' ? '可交易' : tr === 'trade' ? '可交易・無市場' : '不可交易'}</span>`)(smTrade(x.id))}${smStatusHtml(x)}<span class="sm-right"><span class="sm-pts">${x.where.map(w => `<i class="${w.st === 'ok' ? 'on' : w.st === 'ex' ? 'ex' : ''}" title="${w.l} 點・T${w.tr}${w.d != null ? '・獲得機率約 ' + w.d + '%' : w.p != null ? '・T' + w.tr + ' 內機率 ' + w.p + '%（無獲得機率資料）' : ''}${w.why ? '（' + w.why + '）' : ''}">${w.l}</i>`).join('')}</span>${smPriceHtml(x.id)}</span></div>`;
         };
         const pick = xs => smOnlyAvail ? xs.filter(avail) : xs;
         // 依類型分段（沉船裝備、樂譜、家具…），每段標出撈得到／總數
@@ -8287,6 +8305,7 @@ window.showConfirm = showConfirm;
         });
         const lootEl = document.getElementById('smLoot');
         lootEl.className = 'sm-loot sm-cat-' + smCat;
+        if (html) html = '<div class="sm-thead"><span></span><span>物品</span><span>交易</span><span>狀態</span><span>獲得機率</span><span>海點</span><span>估算價格</span></div>' + html;
         lootEl.innerHTML = html || `<div class="sm-empty">${smOnlyAvail ? '目前開的海點撈不到這類物品' : '這個分類沒有物品'}</div>`;
         lootEl.querySelectorAll('.sm-copy').forEach(b => b.onclick = e => {
             e.stopPropagation();
