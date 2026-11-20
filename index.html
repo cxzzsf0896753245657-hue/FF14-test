@@ -7875,6 +7875,7 @@ window.showConfirm = showConfirm;
     }
 
     function toggleMapNode(mapId, node, el) {
+        smMaterialize();   // 還沒設定過（全部視為已開）時先寫入全開，點一下才是「關掉這個點」
         if (!mapNodeState[activeMapGroup]) mapNodeState[activeMapGroup] = {};
         if (!mapNodeState[activeMapGroup][mapId]) mapNodeState[activeMapGroup][mapId] = [];
         const arr = mapNodeState[activeMapGroup][mapId];
@@ -7882,8 +7883,7 @@ window.showConfirm = showConfirm;
         if (idx === -1) { arr.push(node); el.classList.add('on'); }
         else { arr.splice(idx, 1); el.classList.remove('on'); }
         saveMapNodeState();
-        const countEl = document.getElementById(`map-count-${mapId}`);
-        if (countEl) countEl.innerText = `(${arr.length}/${MAP_DATA.find(m=>m.id===mapId).nodes.length})`;
+        renderMapNodes();   // 左側海圖與海圖設定分頁同步更新
     }
 
     function setAllMapNodes(mapId, on) {
@@ -8030,7 +8030,6 @@ window.showConfirm = showConfirm;
         const node = document.querySelector(`#smNodes .sm-node[data-l="${letter}"]`) || document.createElement('i');
         smMaterialize();
         toggleMapNode(smMapId, letter, node);
-        renderMapNodes();
     }
     function smSetAll(on) { smMaterialize(); setAllMapNodes(smMapId, on); }
     // 依目前地圖大小排海點按鈕：重疊的點互相推開（盡量靠近原位），再畫連結線
