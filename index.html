@@ -390,7 +390,6 @@ window.UI_ACTIONS = {
         :where(.u41) { font-weight: bold !important; margin: 12px 0 6px !important; }
         :where(.u42) { padding: 1px 4px !important; }
         :where(.u43) { font-size: 12px !important; padding: 1px 7px !important; margin-left: 4px !important; vertical-align: middle !important; text-align: center !important; }
-        :where(.u44) { font-size: 10px !important; margin-left: 3px !important; }
         :where(.u45) { padding: 0 4px 18px !important; }
         :where(.u46) { margin-top: 10px !important; }
         :where(.u47) { margin-bottom: 6px !important; }
@@ -401,7 +400,6 @@ window.UI_ACTIONS = {
         :where(.u52) { margin-left: auto !important; gap: 8px !important; flex-wrap: wrap !important; align-items: center !important; }
         :where(.u53) { margin-top: 20px !important; }
         :where(.u54) { margin-top: 14px !important; align-items: flex-end !important; gap: 12px !important; }
-        :where(.u55) { font-size: 11.5px !important; align-self: center !important; padding-bottom: 4px !important; }
         :where(.u56) { margin-top: 6px !important; padding: 7px 12px !important; border-left: 3px solid var(--accent-color) !important; font-size: 12px !important; line-height: 1.6 !important; }
         :where(.u57) { margin-top: 8px !important; }
         :where(.u58) { margin-top: 4px !important; }
@@ -438,13 +436,12 @@ window.UI_ACTIONS = {
         .ic-circle-x { color: #e06a6a; }
         body.light-mode .ic-triangle-alert { color: #c27a12; }
         body.light-mode .ic-lightbulb { color: #b8860b; }
-        .an-warn .ic-triangle-alert, .bad .ic-triangle-alert, .warn .ic-triangle-alert { color: inherit; }
+        .bad .ic-triangle-alert, .warn .ic-triangle-alert { color: inherit; }
         .toast-ico svg.ic, #customAlertIcon svg.ic { color: inherit; width: .9em; height: .9em; vertical-align: -0.1em; stroke-width: 3; }
         button svg.ic + *, a svg.ic { pointer-events: none; }
         svg.ic { pointer-events: none; }
     </style>
 
-    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <!-- 網站數據：版本更新時只要換掉 data 資料夾裡的檔案（包含 version.js），這裡不用改 -->
     <script>
         /* version.js 每次都重新讀取（不使用快取），裡面的版本號決定要不要重新下載下面 5 個數據檔 */
@@ -741,7 +738,6 @@ window.UI_ACTIONS = {
         .header-wrapper { display: flex; flex-direction: column; align-items: flex-start; width: 100%; margin-bottom: 14px; gap: 0; }
         h1 { color: var(--text-color); font-size: 18px; font-weight: 800; margin: 0 0 12px 0; letter-spacing: 0.2px; line-height: 1.3; }
         h1 span { font-size: 12px; color: #888; font-weight: 400; margin-left: 6px; }
-        .top-btns { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; justify-content: flex-start; width: 100%; }
         .btn-top { cursor: pointer; background: rgba(255,255,255,0.05); color: var(--text-color); border: 1px solid rgba(255,255,255,0.1); padding: 6px 12px; border-radius: 8px; font-size: 13px; transition: background 0.15s; }
         .btn-top:hover { background: rgba(255,255,255,0.1); }
 
@@ -945,16 +941,6 @@ window.UI_ACTIONS = {
         
         .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.85); align-items: center; justify-content: center; }
         .modal img { max-width: 90%; max-height: 90%; border: 2px solid #fff; }
-
-        /* Right panel: sticky so timers scroll independently */
-        .right-panel-title {
-            color: var(--accent-color);
-            font-size: 16px;
-            font-weight: bold;
-            margin: 0 0 12px 0;
-            text-align: center;
-            letter-spacing: 1px;
-        }
 
         /* 船艇小卡：依可用寬度自動排列（約 1280px 寬 3 張、1920px 寬 4 張） */
         .timer-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 15px; align-items: start; }
@@ -1389,7 +1375,6 @@ window.UI_ACTIONS = {
         .sm-ship select { background: var(--card-color); color: var(--text-color); border: 1px solid rgba(255,255,255,0.15); border-radius: 7px; padding: 4px 6px; font: inherit; font-size: 12.5px; max-width: 100%; }
         body.light-mode .sm-ship select { border-color: rgba(0,0,0,0.15); }
         .sm-ship select option, .sm-ship select optgroup { background: #26252c; color: #f2f2f2; } body.light-mode .sm-ship select option, body.light-mode .sm-ship select optgroup { background: #fff; color: #222; }
-        .sm-ship-st b { color: var(--accent-color); font-size: 13px; }
         .sm-row.ex .sm-st { background: #e0a84a; color: #1b1206; font-size: 10px; }
         .sm-row.ex .sm-nm { color: #d9b26b; font-weight: 600; }
         .sm-pts i.ex { background: rgba(224,168,74,.85); color: #1b1206; }
@@ -1471,22 +1456,6 @@ window.UI_ACTIONS = {
         .sm-maps .map-group-tab small { font-size: 11px; opacity: .75; margin-left: 4px; }
         .sm-cat-tabs { display: flex; gap: 5px; flex-wrap: wrap; }
         .sm-loot { display: flex; flex-direction: column; gap: 6px; max-height: 640px; overflow-y: auto; padding-right: 2px; }
-        .sm-item { display: flex; gap: 10px; align-items: flex-start; padding: 8px 10px; border-radius: 9px; border: 1px solid rgba(255,255,255,0.07); border-left: 4px solid #6b7280; }
-        body.light-mode .sm-item { border-color: rgba(0,0,0,0.07); }
-        .sm-item.rare { border-left-color: #c89fef; background: rgba(200,159,239,0.07); }
-        .sm-item.workshop { border-left-color: #5fb3e8; }
-        .sm-item.other { border-left-color: #8b949e; }
-        .sm-item-main { flex: 1; min-width: 0; }
-        .sm-item-name { font-size: 14px; font-weight: 700; }
-        .sm-item-cat { font-size: 11px; font-weight: 700; padding: 1px 7px; border-radius: 999px; margin-left: 6px; vertical-align: 1px; }
-        .sm-item.rare .sm-item-cat { background: rgba(200,159,239,0.2); color: #d7b8f5; }
-        .sm-item.workshop .sm-item-cat { background: rgba(95,179,232,0.18); color: #8fcaf0; }
-        .sm-item.other .sm-item-cat { background: rgba(139,148,158,0.2); color: #b4bcc6; }
-        body.light-mode .sm-item.rare .sm-item-cat { color: #7a3fb5; } body.light-mode .sm-item.workshop .sm-item-cat { color: #1f6fa3; } body.light-mode .sm-item.other .sm-item-cat { color: #555; }
-        .sm-item-where { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 5px; }
-        .sm-where { font-size: 11.5px; padding: 1px 7px; border-radius: 6px; background: rgba(255,255,255,0.06); color: #c9ced8; cursor: default; }
-        body.light-mode .sm-where { background: rgba(0,0,0,0.05); color: #444; }
-        .sm-where.off { opacity: .4; text-decoration: line-through; }
         .sm-empty { font-size: 13px; color: #888; padding: 14px 4px; text-align: center; }
         @media (max-width: 900px) { .sm-grid { display: flex; flex-direction: column; gap: 14px; } .sm-col { display: contents; } .sm-split { display: none; } .sm-card + .sm-card { margin-top: 0; } .sm-o1 { order: 1; } .sm-o2 { order: 2; } .sm-o4 { order: 4; } .sm-loot { max-height: none; } }
         @media (max-width: 640px) { #panelSeamap { padding: 0 10px 16px; } }
@@ -1864,7 +1833,6 @@ window.UI_ACTIONS = {
         #timerList.list-mode .an-mini-txt { display: none; }   /* 電腦版條列：欄位名稱已寫「自動導航」 */
         #timerList.list-mode .an-ctl { white-space: nowrap; }
         @container fleet (max-width: 1209px) { #timerList.list-mode .sub-an-line { margin: 2px 0 0; } #timerList.list-mode .an-mini-txt { display: inline; } }
-        .route-auto .an-warn { color: #ffcb6b; margin-left: 4px; }
         #timerList.list-mode .route-auto { font-size: 11.5px; }
 
         .cfg-an { display: flex; flex-direction: column; gap: 10px; }
@@ -1996,7 +1964,6 @@ window.UI_ACTIONS = {
         body.light-mode .rp-panel-tab:hover { color: var(--text-color); }
 
         /* ── 路線規劃 (Route Planner) ── */
-        .rp-outer { max-width: 1600px; margin: 0 auto 25px; }
         .rp-body { padding: 14px 16px 18px; }
 
         /* ── 文字層級系統：大 / 中 / 小 ── */
@@ -2018,7 +1985,6 @@ window.UI_ACTIONS = {
             font-size: 12px; font-weight: 800; flex-shrink: 0;
         }
         .rp-section-title { font-size: 15px; font-weight: 800; color: var(--accent-color); margin: 0; letter-spacing: 0.3px; }
-        .rp-section-hint { font-size: 11.5px; color: #888; margin: 2px 0 12px 30px; line-height: 1.5; }
         .rp-section-hint-inline { font-size: 11px; color: #888; font-weight: 400; margin-left: 6px; align-self: center; }
         body.light-mode .rp-section-hint-inline { color: #8a94a3; }
 
@@ -2078,7 +2044,6 @@ window.UI_ACTIONS = {
         .rp-chk { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--text-color); opacity: 0.85; cursor: pointer; }
         .rp-sector-wrap { display: flex; flex-direction: column; gap: 6px; min-width: 260px; }
         .rp-sector-map-sel { background: var(--edit-bg); color: var(--text-color); border: 1px solid var(--edit-border); padding: 7px 10px; border-radius: 7px; font-size: 13px; outline: none; }
-        .rp-sector-chk-list label { display: flex; align-items: center; gap: 6px; font-size: 12.5px; cursor: pointer; white-space: nowrap; }
         .rp-item-search-wrap { position: relative; }
         .rp-suggest-box { display:none; position:absolute; top: 100%; left:0; z-index: 20; background: var(--card-color); border: 1px solid var(--edit-border); border-radius: 6px; max-height: 220px; overflow-y:auto; width: 260px; box-shadow: 0 6px 12px rgba(0,0,0,0.4); margin-top:4px; }
         .rp-suggest-item { padding: 6px 10px; font-size: 12.5px; cursor: pointer; }
@@ -2107,7 +2072,6 @@ window.UI_ACTIONS = {
         #rpStatusText { font-size: 12px; color: #888; }
 
         .rp-results { margin-top: 4px; display: flex; flex-direction: column; gap: 12px; }
-        .rp-result-head { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; flex-wrap: wrap; }
         /* 大字：路線排名 */
 
         /* 中字：海域名稱 */
@@ -2824,16 +2788,6 @@ window.UI_ACTIONS = {
         .gp-send-count { font-size: 12px; color: #888; }
         body.light-mode .gp-send-count { color: #888; }
 
-        /* 舊 pill 樣式保留供相容 */
-
-        /* ── 路線規劃按鈕（船艇小卡）── */
-        .route-plan-btn {
-            background-color: #2a3a5a; border: 1px solid #4a6fa5; color: #82aaff;
-            cursor: pointer; padding: 6px 14px; border-radius: 6px; font-size: 12px;
-            min-height: 36px; display: inline-flex; align-items: center;
-            transition: background-color 0.15s;
-        }
-
         /* ── 使用此路線按鈕（路線結果小卡）── */
         .rp-use-route-btn {
             display: inline-flex; align-items: center; gap: 5px;
@@ -3013,7 +2967,6 @@ window.UI_ACTIONS = {
         .craft-part-qty-input {
             width: 36px !important;
         }
-        body.light-mode .craft-qty-btn { color: #444; }
 
         @media (max-width: 760px) {
             .craft-mat-cols { grid-template-columns: repeat(4, minmax(180px, 1fr)); min-width: 720px; }
@@ -3138,9 +3091,6 @@ window.UI_ACTIONS = {
         .craft-minus { position: absolute; left: 3px; bottom: 3px; width: 20px; height: 20px; border-radius: 50%; border: 0; background: rgba(0,0,0,0.28); color: #fff; font-size: 14px; font-weight: 800; line-height: 20px; padding: 0; cursor: pointer; }
         .craft-minus:hover { background: rgba(0,0,0,0.5); }
         .craft-sel-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
-        .craft-sel-help { font-size: 13px; color: #999; }
-        .craft-sel-help b { color: var(--accent-color); }
-        body.light-mode .craft-sel-help { color: #666; }
         .craft-sel-actions { display: flex; align-items: center; gap: 10px; }
         .craft-total { font-size: 13px; font-weight: 700; color: var(--accent-color); font-variant-numeric: tabular-nums; }
         body.light-mode .craft-grid-cell:hover { background: rgba(var(--accent-rgb),0.12); color: var(--accent-color); }
@@ -3382,9 +3332,6 @@ window.UI_ACTIONS = {
 
             /* 計時卡片：單欄 */
             .timer-list { grid-template-columns: 1fr; padding: 8px 14px; gap: 10px; }
-
-            /* 路線規劃欄位全寬 */
-            .rp-multiselect  { min-width: 0; width: 100%; }
             .rp-sector-wrap  { min-width: 0; width: 100%; }
             .rp-row          { flex-direction: column; align-items: stretch; }
             .rp-row .rp-field { width: 100%; }
@@ -3646,17 +3593,11 @@ window.UI_ACTIONS = {
             const snap = await get(ref(db, `rooms/${roomId}`));
             return snap.exists() ? snap.val() : null;
         };
-        window._fbGetNickname = async function(uuid) {
-            const snap = await get(ref(db, `users/${uuid}/nickname`));
-            return snap.exists() ? snap.val() : uuid.slice(0, 8);
-        };
         window._getMyNickname = getMyNickname;
         window._setMyNickname = setMyNickname;
 
         window.CloudSync = {
             myUUID,
-            // 相容舊呼叫：有資料變動時交給 SubSync 處理
-            pushMyData() { window.SubSync?.changed(); },
             async getUser() {
                 const snap = await get(ref(db, `users/${myUUID}`));
                 return snap.exists() ? snap.val() : null;
@@ -3802,7 +3743,7 @@ window.SubPalette = (function () {
 </script>
 </head>
 <body>
-<svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true"><!-- 圖示：Lucide (ISC License) --><symbol id="i-alarm-clock" viewBox="0 0 24 24"><circle cx="12" cy="13" r="8" /><path d="M12 9v4l2 2" /><path d="M5 3 2 6" /><path d="m22 6-3-3" /><path d="M6.38 18.7 4 21" /><path d="M17.64 18.67 20 21" /></symbol><symbol id="i-bell" viewBox="0 0 24 24"><path d="M10.268 21a2 2 0 0 0 3.464 0" /><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326" /></symbol><symbol id="i-bell-off" viewBox="0 0 24 24"><path d="M10.268 21a2 2 0 0 0 3.464 0" /><path d="M17 17H4a1 1 0 0 1-.74-1.673C4.59 13.956 6 12.499 6 8a6 6 0 0 1 .258-1.742" /><path d="m2 2 20 20" /><path d="M8.668 3.01A6 6 0 0 1 18 8c0 2.687.77 4.653 1.707 6.05" /></symbol><symbol id="i-copy" viewBox="0 0 24 24"><rect width="14" height="14" x="8" y="8" rx="2" ry="2" /><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" /></symbol><symbol id="i-book-open" viewBox="0 0 24 24"><path d="M12 5v16" /><path d="M20.001 19A2 2 0 0022 17V5a2 2 0 00-1.999-2L16 3.002A5 5 0 0012 5a5 5 0 00-4-2H4a2 2 0 00-2 2v12a2 2 0 001.999 2H8a5 5 0 014 2 5 5 0 014-2z" /></symbol><symbol id="i-calendar" viewBox="0 0 24 24"><path d="M8 2v3" /><path d="M16 2v3" /><rect x="3" y="3" width="18" height="18" rx="2" /><path d="M3 9h18" /></symbol><symbol id="i-calendar-days" viewBox="0 0 24 24"><path d="M8 2v3" /><path d="M16 2v3" /><rect x="3" y="3" width="18" height="18" rx="2" /><path d="M3 9h18" /><path d="M8 13h.01" /><path d="M12 13h.01" /><path d="M16 13h.01" /><path d="M8 17h.01" /><path d="M12 17h.01" /><path d="M16 17h.01" /></symbol><symbol id="i-camera" viewBox="0 0 24 24"><path d="M13.997 4a2 2 0 0 1 1.76 1.05l.486.9A2 2 0 0 0 18.003 7H20a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h1.997a2 2 0 0 0 1.759-1.048l.489-.904A2 2 0 0 1 10.004 4z" /><circle cx="12" cy="13" r="3" /></symbol><symbol id="i-circle-alert" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /><line x1="12" x2="12" y1="8" y2="12" /><line x1="12" x2="12.01" y1="16" y2="16" /></symbol><symbol id="i-circle-check" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /><path d="m16 9-5.5 5.5L8 12" /></symbol><symbol id="i-circle-x" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /><path d="m15 9-6 6" /><path d="m9 9 6 6" /></symbol><symbol id="i-cloud" viewBox="0 0 24 24"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z" /></symbol><symbol id="i-coins" viewBox="0 0 24 24"><path d="M13.744 17.736a6 6 0 1 1-7.48-7.48" /><path d="M15 6h1v4" /><path d="m6.134 14.768.866-.5 2 3.464" /><circle cx="16" cy="8" r="6" /></symbol><symbol id="i-compass" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /><path d="m16.24 7.76-1.804 5.411a2 2 0 0 1-1.265 1.265L7.76 16.24l1.804-5.411a2 2 0 0 1 1.265-1.265z" /></symbol><symbol id="i-fish" viewBox="0 0 24 24"><path d="M6.5 12c.94-3.46 4.94-6 8.5-6 3.56 0 6.06 2.54 7 6-.94 3.47-3.44 6-7 6s-7.56-2.53-8.5-6Z" /><path d="M18 12v.5" /><path d="M16 17.93a9.77 9.77 0 0 1 0-11.86" /><path d="M7 10.67C7 8 5.58 5.97 2.73 5.5c-1 1.5-1 5 .23 6.5-1.24 1.5-1.24 5-.23 6.5C5.58 18.03 7 16 7 13.33" /><path d="M10.46 7.26C10.2 5.88 9.17 4.24 8 3h5.8a2 2 0 0 1 1.98 1.67l.23 1.4" /><path d="m16.01 17.93-.23 1.4A2 2 0 0 1 13.8 21H9.5a5.96 5.96 0 0 0 1.49-3.98" /></symbol><symbol id="i-folder-open" viewBox="0 0 24 24"><path d="m6 14 1.5-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.54 6a2 2 0 0 1-1.95 1.5H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H18a2 2 0 0 1 2 2v2" /></symbol><symbol id="i-gem" viewBox="0 0 24 24"><path d="M10.5 3 8 9l4 13 4-13-2.5-6" /><path d="M17 3a2 2 0 0 1 1.6.8l3 4a2 2 0 0 1 .013 2.382l-7.99 10.986a2 2 0 0 1-3.247 0l-7.99-10.986A2 2 0 0 1 2.4 7.8l2.998-3.997A2 2 0 0 1 7 3z" /><path d="M2 9h20" /></symbol><symbol id="i-hammer" viewBox="0 0 24 24"><path d="m15 12-9.373 9.373a1 1 0 0 1-3.001-3L12 9" /><path d="m18 15 4-4" /><path d="m21.5 11.5-1.914-1.914A2 2 0 0 1 19 8.172v-.344a2 2 0 0 0-.586-1.414l-1.657-1.657A6 6 0 0 0 12.516 3H9l1.243 1.243A6 6 0 0 1 12 8.485V10l2 2h1.172a2 2 0 0 1 1.414.586L18.5 14.5" /></symbol><symbol id="i-hourglass" viewBox="0 0 24 24"><path d="M5 22h14" /><path d="M5 2h14" /><path d="M17 22v-4.172a2 2 0 0 0-.586-1.414L12 12l-4.414 4.414A2 2 0 0 0 7 17.828V22" /><path d="M7 2v4.172a2 2 0 0 0 .586 1.414L12 12l4.414-4.414A2 2 0 0 0 17 6.172V2" /></symbol><symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /><path d="M12 16v-4" /><path d="M12 8h.01" /></symbol><symbol id="i-lightbulb" viewBox="0 0 24 24"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5" /><path d="M9 18h6" /><path d="M10 22h4" /></symbol><symbol id="i-link" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" /><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" /></symbol><symbol id="i-list" viewBox="0 0 24 24"><path d="M3 5h.01" /><path d="M3 12h.01" /><path d="M3 19h.01" /><path d="M8 5h13" /><path d="M8 12h13" /><path d="M8 19h13" /></symbol><symbol id="i-lock" viewBox="0 0 24 24"><rect width="18" height="11" x="3" y="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></symbol><symbol id="i-map" viewBox="0 0 24 24"><path d="M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 0 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 0 1 1.788 0z" /><path d="M15 5.764v15" /><path d="M9 3.236v15" /></symbol><symbol id="i-map-pin" viewBox="0 0 24 24"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0" /><circle cx="12" cy="10" r="3" /></symbol><symbol id="i-megaphone" viewBox="0 0 24 24"><path d="M11 6a13 13 0 0 0 8.4-2.8A1 1 0 0 1 21 4v12a1 1 0 0 1-1.6.8A13 13 0 0 0 11 14H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z" /><path d="M6 14a12 12 0 0 0 2.4 7.2 2 2 0 0 0 3.2-2.4A8 8 0 0 1 10 14" /><path d="M8 6v8" /></symbol><symbol id="i-moon" viewBox="0 0 24 24"><path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401" /></symbol><symbol id="i-notebook-pen" viewBox="0 0 24 24"><path d="M13.4 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7.4" /><path d="M2 6h4" /><path d="M2 10h4" /><path d="M2 14h4" /><path d="M2 18h4" /><path d="M21.378 5.626a1 1 0 1 0-3.004-3.004l-5.01 5.012a2 2 0 0 0-.506.854l-.837 2.87a.5.5 0 0 0 .62.62l2.87-.837a2 2 0 0 0 .854-.506z" /></symbol><symbol id="i-palette" viewBox="0 0 24 24"><path d="M12 22a1 1 0 0 1 0-20 10 9 0 0 1 10 9 5 5 0 0 1-5 5h-2.25a1.75 1.75 0 0 0-1.4 2.8l.3.4a1.75 1.75 0 0 1-1.4 2.8z" /><circle cx="13.5" cy="6.5" r=".5" fill="currentColor" /><circle cx="17.5" cy="10.5" r=".5" fill="currentColor" /><circle cx="6.5" cy="12.5" r=".5" fill="currentColor" /><circle cx="8.5" cy="7.5" r=".5" fill="currentColor" /></symbol><symbol id="i-party-popper" viewBox="0 0 24 24"><path d="M5.8 11.3 2 22l10.7-3.79" /><path d="M4 3h.01" /><path d="M22 8h.01" /><path d="M15 2h.01" /><path d="M22 20h.01" /><path d="m22 2-2.24.75a2.9 2.9 0 0 0-1.96 3.12c.1.86-.57 1.63-1.45 1.63h-.38c-.86 0-1.6.6-1.76 1.44L14 10" /><path d="m22 13-.82-.33c-.86-.34-1.82.2-1.98 1.11c-.11.7-.72 1.22-1.43 1.22H17" /><path d="m11 2 .33.82c.34.86-.2 1.82-1.11 1.98C9.52 4.9 9 5.52 9 6.23V7" /><path d="M11 13c1.93 1.93 2.83 4.17 2 5-.83.83-3.07-.07-5-2-1.93-1.93-2.83-4.17-2-5 .83-.83 3.07.07 5 2Z" /></symbol><symbol id="i-pencil" viewBox="0 0 24 24"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z" /><path d="m15 5 4 4" /></symbol><symbol id="i-pointer" viewBox="0 0 24 24"><path d="M22 14a8 8 0 0 1-8 8" /><path d="M18 11v-1a2 2 0 0 0-2-2a2 2 0 0 0-2 2" /><path d="M14 10V9a2 2 0 0 0-2-2a2 2 0 0 0-2 2v1" /><path d="M10 9.5V4a2 2 0 0 0-2-2a2 2 0 0 0-2 2v10" /><path d="M18 11a2 2 0 1 1 4 0v3a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15" /></symbol><symbol id="i-refresh-cw" viewBox="0 0 24 24"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" /><path d="M21 3v5h-5" /><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" /><path d="M8 16H3v5" /></symbol><symbol id="i-rocket" viewBox="0 0 24 24"><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5" /><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09" /><path d="M9 12a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.4 22.4 0 0 1-4 2z" /><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 .05 5 .05" /></symbol><symbol id="i-search" viewBox="0 0 24 24"><path d="m21 21-4.34-4.34" /><circle cx="11" cy="11" r="8" /></symbol><symbol id="i-settings" viewBox="0 0 24 24"><path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915" /><circle cx="12" cy="12" r="3" /></symbol><symbol id="i-ship-wheel" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" /><path d="M12 2v7.5" /><path d="m19 5-5.23 5.23" /><path d="M22 12h-7.5" /><path d="m19 19-5.23-5.23" /><path d="M12 14.5V22" /><path d="M10.23 13.77 5 19" /><path d="M9.5 12H2" /><path d="M10.23 10.23 5 5" /><circle cx="12" cy="12" r="2.5" /></symbol><symbol id="i-sparkles" viewBox="0 0 24 24"><path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z" /><path d="M20 2v4" /><path d="M22 4h-4" /><circle cx="4" cy="20" r="2" /></symbol><symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4" /><path d="M12 2v2" /><path d="M12 20v2" /><path d="m4.93 4.93 1.41 1.41" /><path d="m17.66 17.66 1.41 1.41" /><path d="M2 12h2" /><path d="M20 12h2" /><path d="m6.34 17.66-1.41 1.41" /><path d="m19.07 4.93-1.41 1.41" /></symbol><symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /><circle cx="12" cy="12" r="6" /><circle cx="12" cy="12" r="2" /></symbol><symbol id="i-trash-2" viewBox="0 0 24 24"><path d="M10 11v6" /><path d="M14 11v6" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" /><path d="M3 6h18" /><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /></symbol><symbol id="i-trending-up" viewBox="0 0 24 24"><path d="M16 7h6v6" /><path d="m22 7-8.5 8.5-5-5L2 17" /></symbol><symbol id="i-triangle-alert" viewBox="0 0 24 24"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3" /><path d="M12 9v4" /><path d="M12 17h.01" /></symbol><symbol id="i-users" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><path d="M16 3.128a4 4 0 0 1 0 7.744" /><path d="M22 21v-2a4 4 0 0 0-3-3.87" /><circle cx="9" cy="7" r="4" /></symbol><symbol id="i-volume-2" viewBox="0 0 24 24"><path d="M11 4.702a.705.705 0 0 0-1.203-.498L6.413 7.587A1.4 1.4 0 0 1 5.416 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.416a1.4 1.4 0 0 1 .997.413l3.383 3.384A.705.705 0 0 0 11 19.298z" /><path d="M16 9a5 5 0 0 1 0 6" /><path d="M19.364 18.364a9 9 0 0 0 0-12.728" /></symbol><symbol id="i-wrench" viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.106-3.105c.32-.322.863-.22.983.218a6 6 0 0 1-8.259 7.057l-7.91 7.91a1 1 0 0 1-2.999-3l7.91-7.91a6 6 0 0 1 7.057-8.259c.438.12.54.662.219.984z" /></symbol><symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></symbol><symbol id="i-zap" viewBox="0 0 24 24"><path d="M15.914 4a1.5 1.5 0 00-2.474-1.561l-9 9A1.5 1.5 0 005.5 14h4.002a.5.5 0 01.471.666L8.086 20a1.5 1.5 0 002.475 1.56l9-9A1.5 1.5 0 0018.5 10h-3.997a.5.5 0 01-.472-.667z" /></symbol><symbol id="i-layout-grid" viewBox="0 0 24 24"><rect width="7" height="7" x="3" y="3" rx="1" /><rect width="7" height="7" x="14" y="3" rx="1" /><rect width="7" height="7" x="14" y="14" rx="1" /><rect width="7" height="7" x="3" y="14" rx="1" /></symbol><symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5" /></symbol><symbol id="i-sub" viewBox="0 0 24 24"><path d="M9.5 4h3v4"/><path d="M7.5 11V9a1 1 0 0 1 1-1h5a1 1 0 0 1 1 1v2"/><path d="M5.5 11h11a3.5 3.5 0 0 1 0 7h-11a3.5 3.5 0 0 1 0-7z"/><circle cx="7.5" cy="14.5" r=".6"/><circle cx="11.5" cy="14.5" r=".6"/><path d="M20 14.5h1.5"/><path d="M22 12.5v4"/><path d="M3 21.5c1.5 0 1.5-1 3-1s1.5 1 3 1 1.5-1 3-1 1.5 1 3 1"/></symbol></svg>
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true"><!-- 圖示：Lucide (ISC License) --><symbol id="i-alarm-clock" viewBox="0 0 24 24"><circle cx="12" cy="13" r="8" /><path d="M12 9v4l2 2" /><path d="M5 3 2 6" /><path d="m22 6-3-3" /><path d="M6.38 18.7 4 21" /><path d="M17.64 18.67 20 21" /></symbol><symbol id="i-bell" viewBox="0 0 24 24"><path d="M10.268 21a2 2 0 0 0 3.464 0" /><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326" /></symbol><symbol id="i-copy" viewBox="0 0 24 24"><rect width="14" height="14" x="8" y="8" rx="2" ry="2" /><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" /></symbol><symbol id="i-book-open" viewBox="0 0 24 24"><path d="M12 5v16" /><path d="M20.001 19A2 2 0 0022 17V5a2 2 0 00-1.999-2L16 3.002A5 5 0 0012 5a5 5 0 00-4-2H4a2 2 0 00-2 2v12a2 2 0 001.999 2H8a5 5 0 014 2 5 5 0 014-2z" /></symbol><symbol id="i-calendar" viewBox="0 0 24 24"><path d="M8 2v3" /><path d="M16 2v3" /><rect x="3" y="3" width="18" height="18" rx="2" /><path d="M3 9h18" /></symbol><symbol id="i-calendar-days" viewBox="0 0 24 24"><path d="M8 2v3" /><path d="M16 2v3" /><rect x="3" y="3" width="18" height="18" rx="2" /><path d="M3 9h18" /><path d="M8 13h.01" /><path d="M12 13h.01" /><path d="M16 13h.01" /><path d="M8 17h.01" /><path d="M12 17h.01" /><path d="M16 17h.01" /></symbol><symbol id="i-camera" viewBox="0 0 24 24"><path d="M13.997 4a2 2 0 0 1 1.76 1.05l.486.9A2 2 0 0 0 18.003 7H20a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h1.997a2 2 0 0 0 1.759-1.048l.489-.904A2 2 0 0 1 10.004 4z" /><circle cx="12" cy="13" r="3" /></symbol><symbol id="i-circle-alert" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /><line x1="12" x2="12" y1="8" y2="12" /><line x1="12" x2="12.01" y1="16" y2="16" /></symbol><symbol id="i-circle-check" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /><path d="m16 9-5.5 5.5L8 12" /></symbol><symbol id="i-circle-x" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /><path d="m15 9-6 6" /><path d="m9 9 6 6" /></symbol><symbol id="i-cloud" viewBox="0 0 24 24"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z" /></symbol><symbol id="i-coins" viewBox="0 0 24 24"><path d="M13.744 17.736a6 6 0 1 1-7.48-7.48" /><path d="M15 6h1v4" /><path d="m6.134 14.768.866-.5 2 3.464" /><circle cx="16" cy="8" r="6" /></symbol><symbol id="i-compass" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /><path d="m16.24 7.76-1.804 5.411a2 2 0 0 1-1.265 1.265L7.76 16.24l1.804-5.411a2 2 0 0 1 1.265-1.265z" /></symbol><symbol id="i-fish" viewBox="0 0 24 24"><path d="M6.5 12c.94-3.46 4.94-6 8.5-6 3.56 0 6.06 2.54 7 6-.94 3.47-3.44 6-7 6s-7.56-2.53-8.5-6Z" /><path d="M18 12v.5" /><path d="M16 17.93a9.77 9.77 0 0 1 0-11.86" /><path d="M7 10.67C7 8 5.58 5.97 2.73 5.5c-1 1.5-1 5 .23 6.5-1.24 1.5-1.24 5-.23 6.5C5.58 18.03 7 16 7 13.33" /><path d="M10.46 7.26C10.2 5.88 9.17 4.24 8 3h5.8a2 2 0 0 1 1.98 1.67l.23 1.4" /><path d="m16.01 17.93-.23 1.4A2 2 0 0 1 13.8 21H9.5a5.96 5.96 0 0 0 1.49-3.98" /></symbol><symbol id="i-folder-open" viewBox="0 0 24 24"><path d="m6 14 1.5-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.54 6a2 2 0 0 1-1.95 1.5H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H18a2 2 0 0 1 2 2v2" /></symbol><symbol id="i-gem" viewBox="0 0 24 24"><path d="M10.5 3 8 9l4 13 4-13-2.5-6" /><path d="M17 3a2 2 0 0 1 1.6.8l3 4a2 2 0 0 1 .013 2.382l-7.99 10.986a2 2 0 0 1-3.247 0l-7.99-10.986A2 2 0 0 1 2.4 7.8l2.998-3.997A2 2 0 0 1 7 3z" /><path d="M2 9h20" /></symbol><symbol id="i-hammer" viewBox="0 0 24 24"><path d="m15 12-9.373 9.373a1 1 0 0 1-3.001-3L12 9" /><path d="m18 15 4-4" /><path d="m21.5 11.5-1.914-1.914A2 2 0 0 1 19 8.172v-.344a2 2 0 0 0-.586-1.414l-1.657-1.657A6 6 0 0 0 12.516 3H9l1.243 1.243A6 6 0 0 1 12 8.485V10l2 2h1.172a2 2 0 0 1 1.414.586L18.5 14.5" /></symbol><symbol id="i-hourglass" viewBox="0 0 24 24"><path d="M5 22h14" /><path d="M5 2h14" /><path d="M17 22v-4.172a2 2 0 0 0-.586-1.414L12 12l-4.414 4.414A2 2 0 0 0 7 17.828V22" /><path d="M7 2v4.172a2 2 0 0 0 .586 1.414L12 12l4.414-4.414A2 2 0 0 0 17 6.172V2" /></symbol><symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /><path d="M12 16v-4" /><path d="M12 8h.01" /></symbol><symbol id="i-lightbulb" viewBox="0 0 24 24"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5" /><path d="M9 18h6" /><path d="M10 22h4" /></symbol><symbol id="i-link" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" /><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" /></symbol><symbol id="i-list" viewBox="0 0 24 24"><path d="M3 5h.01" /><path d="M3 12h.01" /><path d="M3 19h.01" /><path d="M8 5h13" /><path d="M8 12h13" /><path d="M8 19h13" /></symbol><symbol id="i-lock" viewBox="0 0 24 24"><rect width="18" height="11" x="3" y="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></symbol><symbol id="i-map" viewBox="0 0 24 24"><path d="M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 0 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 0 1 1.788 0z" /><path d="M15 5.764v15" /><path d="M9 3.236v15" /></symbol><symbol id="i-map-pin" viewBox="0 0 24 24"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0" /><circle cx="12" cy="10" r="3" /></symbol><symbol id="i-megaphone" viewBox="0 0 24 24"><path d="M11 6a13 13 0 0 0 8.4-2.8A1 1 0 0 1 21 4v12a1 1 0 0 1-1.6.8A13 13 0 0 0 11 14H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z" /><path d="M6 14a12 12 0 0 0 2.4 7.2 2 2 0 0 0 3.2-2.4A8 8 0 0 1 10 14" /><path d="M8 6v8" /></symbol><symbol id="i-moon" viewBox="0 0 24 24"><path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401" /></symbol><symbol id="i-notebook-pen" viewBox="0 0 24 24"><path d="M13.4 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7.4" /><path d="M2 6h4" /><path d="M2 10h4" /><path d="M2 14h4" /><path d="M2 18h4" /><path d="M21.378 5.626a1 1 0 1 0-3.004-3.004l-5.01 5.012a2 2 0 0 0-.506.854l-.837 2.87a.5.5 0 0 0 .62.62l2.87-.837a2 2 0 0 0 .854-.506z" /></symbol><symbol id="i-palette" viewBox="0 0 24 24"><path d="M12 22a1 1 0 0 1 0-20 10 9 0 0 1 10 9 5 5 0 0 1-5 5h-2.25a1.75 1.75 0 0 0-1.4 2.8l.3.4a1.75 1.75 0 0 1-1.4 2.8z" /><circle cx="13.5" cy="6.5" r=".5" fill="currentColor" /><circle cx="17.5" cy="10.5" r=".5" fill="currentColor" /><circle cx="6.5" cy="12.5" r=".5" fill="currentColor" /><circle cx="8.5" cy="7.5" r=".5" fill="currentColor" /></symbol><symbol id="i-party-popper" viewBox="0 0 24 24"><path d="M5.8 11.3 2 22l10.7-3.79" /><path d="M4 3h.01" /><path d="M22 8h.01" /><path d="M15 2h.01" /><path d="M22 20h.01" /><path d="m22 2-2.24.75a2.9 2.9 0 0 0-1.96 3.12c.1.86-.57 1.63-1.45 1.63h-.38c-.86 0-1.6.6-1.76 1.44L14 10" /><path d="m22 13-.82-.33c-.86-.34-1.82.2-1.98 1.11c-.11.7-.72 1.22-1.43 1.22H17" /><path d="m11 2 .33.82c.34.86-.2 1.82-1.11 1.98C9.52 4.9 9 5.52 9 6.23V7" /><path d="M11 13c1.93 1.93 2.83 4.17 2 5-.83.83-3.07-.07-5-2-1.93-1.93-2.83-4.17-2-5 .83-.83 3.07.07 5 2Z" /></symbol><symbol id="i-pencil" viewBox="0 0 24 24"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z" /><path d="m15 5 4 4" /></symbol><symbol id="i-pointer" viewBox="0 0 24 24"><path d="M22 14a8 8 0 0 1-8 8" /><path d="M18 11v-1a2 2 0 0 0-2-2a2 2 0 0 0-2 2" /><path d="M14 10V9a2 2 0 0 0-2-2a2 2 0 0 0-2 2v1" /><path d="M10 9.5V4a2 2 0 0 0-2-2a2 2 0 0 0-2 2v10" /><path d="M18 11a2 2 0 1 1 4 0v3a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15" /></symbol><symbol id="i-refresh-cw" viewBox="0 0 24 24"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" /><path d="M21 3v5h-5" /><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" /><path d="M8 16H3v5" /></symbol><symbol id="i-rocket" viewBox="0 0 24 24"><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5" /><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09" /><path d="M9 12a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.4 22.4 0 0 1-4 2z" /><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 .05 5 .05" /></symbol><symbol id="i-search" viewBox="0 0 24 24"><path d="m21 21-4.34-4.34" /><circle cx="11" cy="11" r="8" /></symbol><symbol id="i-settings" viewBox="0 0 24 24"><path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915" /><circle cx="12" cy="12" r="3" /></symbol><symbol id="i-ship-wheel" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" /><path d="M12 2v7.5" /><path d="m19 5-5.23 5.23" /><path d="M22 12h-7.5" /><path d="m19 19-5.23-5.23" /><path d="M12 14.5V22" /><path d="M10.23 13.77 5 19" /><path d="M9.5 12H2" /><path d="M10.23 10.23 5 5" /><circle cx="12" cy="12" r="2.5" /></symbol><symbol id="i-sparkles" viewBox="0 0 24 24"><path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z" /><path d="M20 2v4" /><path d="M22 4h-4" /><circle cx="4" cy="20" r="2" /></symbol><symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4" /><path d="M12 2v2" /><path d="M12 20v2" /><path d="m4.93 4.93 1.41 1.41" /><path d="m17.66 17.66 1.41 1.41" /><path d="M2 12h2" /><path d="M20 12h2" /><path d="m6.34 17.66-1.41 1.41" /><path d="m19.07 4.93-1.41 1.41" /></symbol><symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /><circle cx="12" cy="12" r="6" /><circle cx="12" cy="12" r="2" /></symbol><symbol id="i-trash-2" viewBox="0 0 24 24"><path d="M10 11v6" /><path d="M14 11v6" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" /><path d="M3 6h18" /><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /></symbol><symbol id="i-trending-up" viewBox="0 0 24 24"><path d="M16 7h6v6" /><path d="m22 7-8.5 8.5-5-5L2 17" /></symbol><symbol id="i-triangle-alert" viewBox="0 0 24 24"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3" /><path d="M12 9v4" /><path d="M12 17h.01" /></symbol><symbol id="i-users" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><path d="M16 3.128a4 4 0 0 1 0 7.744" /><path d="M22 21v-2a4 4 0 0 0-3-3.87" /><circle cx="9" cy="7" r="4" /></symbol><symbol id="i-volume-2" viewBox="0 0 24 24"><path d="M11 4.702a.705.705 0 0 0-1.203-.498L6.413 7.587A1.4 1.4 0 0 1 5.416 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.416a1.4 1.4 0 0 1 .997.413l3.383 3.384A.705.705 0 0 0 11 19.298z" /><path d="M16 9a5 5 0 0 1 0 6" /><path d="M19.364 18.364a9 9 0 0 0 0-12.728" /></symbol><symbol id="i-wrench" viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.106-3.105c.32-.322.863-.22.983.218a6 6 0 0 1-8.259 7.057l-7.91 7.91a1 1 0 0 1-2.999-3l7.91-7.91a6 6 0 0 1 7.057-8.259c.438.12.54.662.219.984z" /></symbol><symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></symbol><symbol id="i-zap" viewBox="0 0 24 24"><path d="M15.914 4a1.5 1.5 0 00-2.474-1.561l-9 9A1.5 1.5 0 005.5 14h4.002a.5.5 0 01.471.666L8.086 20a1.5 1.5 0 002.475 1.56l9-9A1.5 1.5 0 0018.5 10h-3.997a.5.5 0 01-.472-.667z" /></symbol><symbol id="i-layout-grid" viewBox="0 0 24 24"><rect width="7" height="7" x="3" y="3" rx="1" /><rect width="7" height="7" x="14" y="3" rx="1" /><rect width="7" height="7" x="14" y="14" rx="1" /><rect width="7" height="7" x="3" y="14" rx="1" /></symbol><symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5" /></symbol><symbol id="i-sub" viewBox="0 0 24 24"><path d="M9.5 4h3v4"/><path d="M7.5 11V9a1 1 0 0 1 1-1h5a1 1 0 0 1 1 1v2"/><path d="M5.5 11h11a3.5 3.5 0 0 1 0 7h-11a3.5 3.5 0 0 1 0-7z"/><circle cx="7.5" cy="14.5" r=".6"/><circle cx="11.5" cy="14.5" r=".6"/><path d="M20 14.5h1.5"/><path d="M22 12.5v4"/><path d="M3 21.5c1.5 0 1.5-1 3-1s1.5 1 3 1 1.5-1 3-1 1.5 1 3 1"/></symbol></svg>
 <script>
 // 圖示：IC('名稱') 產生線條圖示；icHtml(文字) 會跳脫 HTML，並把文字裡的 emoji 換成對應圖示
 window.IC = function (n) { return '<svg class="ic ic-' + n + '" aria-hidden="true"><use href="#i-' + n + '"/></svg>'; };
@@ -3975,7 +3916,7 @@ window.icHtml = function (t) {
                 <div class="upload-zone" id="dropZone" role="button" tabindex="0" aria-label="上傳截圖：點擊選擇圖片，或拖曳／貼上截圖" data-on-click="a16">
                     <p>點擊選擇圖片、拖曳圖片至此，或直接 Ctrl + V 貼上截圖</p>
                     <input type="file" id="fileInput" accept="image/*">
-                    <div class="status" id="statusText" aria-live="polite">正在初始化引擎...</div>
+                    <div class="status" id="statusText" aria-live="polite"></div>
                 </div>
             </div>
         </div>
@@ -3986,11 +3927,11 @@ window.icHtml = function (t) {
             <div id="content1" class="content">
                 <div class="u2" style="display: flex;">
                     <div class="thumb-container">
-                        <img src="https://lh3.googleusercontent.com/d/1WCegLEryF0QmoLonxRmI5VYHKEGO710M" class="thumb-img" data-on-click="a18" alt="1-50" tabindex="0" role="button">
+                        <img loading="lazy" src="https://lh3.googleusercontent.com/d/1WCegLEryF0QmoLonxRmI5VYHKEGO710M" class="thumb-img" data-on-click="a18" alt="1-50" tabindex="0" role="button">
                         <div class="thumb-text">1-50</div>
                     </div>
                     <div class="thumb-container">
-                        <img src="https://lh3.googleusercontent.com/d/1AyZK4QKE-2Xs9TN6RUsCW1lgP_PtvlXH" class="thumb-img" data-on-click="a18" alt="50-85" tabindex="0" role="button">
+                        <img loading="lazy" src="https://lh3.googleusercontent.com/d/1AyZK4QKE-2Xs9TN6RUsCW1lgP_PtvlXH" class="thumb-img" data-on-click="a18" alt="50-85" tabindex="0" role="button">
                         <div class="thumb-text">50-85</div>
                     </div>
                 </div>
@@ -3998,13 +3939,13 @@ window.icHtml = function (t) {
             <button type="button" class="collapsible-btn" data-on-click="a19" aria-expanded="false" aria-controls="content2"><span>+</span> 海圖</button>
             <div id="content2" class="content">
                 <div class="u2" style="display: flex;">
-                    <div class="thumb-container"><img src="https://lh3.googleusercontent.com/d/1rqb4ffiMkxNZNOdzfEgIgtDNci1r8AiX" class="thumb-img" data-on-click="a18" alt="1 - 溺沒海" tabindex="0" role="button"><div class="thumb-text">1 - 溺沒海</div></div>
-                    <div class="thumb-container"><img src="https://lh3.googleusercontent.com/d/1jQ-fxdQApBObUD6P7Fvip-sAPwYwpr5O" class="thumb-img" data-on-click="a18" alt="2 - 灰海" tabindex="0" role="button"><div class="thumb-text">2 - 灰海</div></div>
-                    <div class="thumb-container"><img src="https://lh3.googleusercontent.com/d/1kac6_l3-imrSudG-KvI89zxZXXOq9OHr" class="thumb-img" data-on-click="a18" alt="3 - 翠浪海" tabindex="0" role="button"><div class="thumb-text">3 - 翠浪海</div></div>
-                    <div class="thumb-container"><img src="https://lh3.googleusercontent.com/d/1fyaK8sqprffUXwCixmJbmElUI2QABhad" class="thumb-img" data-on-click="a18" alt="4 - 賽蓮海" tabindex="0" role="button"><div class="thumb-text">4 - 賽蓮海</div></div>
-                    <div class="thumb-container"><img src="https://lh3.googleusercontent.com/d/1seFiP33E4kIC9cAAIPzOV7kmXuIiE4qq" class="thumb-img" data-on-click="a18" alt="5 - 紫礁海" tabindex="0" role="button"><div class="thumb-text">5 - 紫礁海</div></div>
-                    <div class="thumb-container"><img src="https://lh3.googleusercontent.com/d/1PRrj73-Xs7njm0jCgggbgl3VQtnhphXz" class="thumb-img" data-on-click="a18" alt="6 - 南蒼茫洋" tabindex="0" role="button"><div class="thumb-text">6 - 南蒼茫洋</div></div>
-                    <div class="thumb-container"><img src="https://lh3.googleusercontent.com/d/1dmXdI9zo2tqO_PRdlwd9gdadHB0KeZby" class="thumb-img" data-on-click="a18" alt="7 - 北洋海" tabindex="0" role="button"><div class="thumb-text">7 - 北洋海</div></div>
+                    <div class="thumb-container"><img loading="lazy" src="https://lh3.googleusercontent.com/d/1rqb4ffiMkxNZNOdzfEgIgtDNci1r8AiX" class="thumb-img" data-on-click="a18" alt="1 - 溺沒海" tabindex="0" role="button"><div class="thumb-text">1 - 溺沒海</div></div>
+                    <div class="thumb-container"><img loading="lazy" src="https://lh3.googleusercontent.com/d/1jQ-fxdQApBObUD6P7Fvip-sAPwYwpr5O" class="thumb-img" data-on-click="a18" alt="2 - 灰海" tabindex="0" role="button"><div class="thumb-text">2 - 灰海</div></div>
+                    <div class="thumb-container"><img loading="lazy" src="https://lh3.googleusercontent.com/d/1kac6_l3-imrSudG-KvI89zxZXXOq9OHr" class="thumb-img" data-on-click="a18" alt="3 - 翠浪海" tabindex="0" role="button"><div class="thumb-text">3 - 翠浪海</div></div>
+                    <div class="thumb-container"><img loading="lazy" src="https://lh3.googleusercontent.com/d/1fyaK8sqprffUXwCixmJbmElUI2QABhad" class="thumb-img" data-on-click="a18" alt="4 - 賽蓮海" tabindex="0" role="button"><div class="thumb-text">4 - 賽蓮海</div></div>
+                    <div class="thumb-container"><img loading="lazy" src="https://lh3.googleusercontent.com/d/1seFiP33E4kIC9cAAIPzOV7kmXuIiE4qq" class="thumb-img" data-on-click="a18" alt="5 - 紫礁海" tabindex="0" role="button"><div class="thumb-text">5 - 紫礁海</div></div>
+                    <div class="thumb-container"><img loading="lazy" src="https://lh3.googleusercontent.com/d/1PRrj73-Xs7njm0jCgggbgl3VQtnhphXz" class="thumb-img" data-on-click="a18" alt="6 - 南蒼茫洋" tabindex="0" role="button"><div class="thumb-text">6 - 南蒼茫洋</div></div>
+                    <div class="thumb-container"><img loading="lazy" src="https://lh3.googleusercontent.com/d/1dmXdI9zo2tqO_PRdlwd9gdadHB0KeZby" class="thumb-img" data-on-click="a18" alt="7 - 北洋海" tabindex="0" role="button"><div class="thumb-text">7 - 北洋海</div></div>
                 </div>
                 <hr class="map-divider">
                 <div class="map-block" id="mapNodeBlock"></div>
@@ -5070,12 +5011,7 @@ const MAP_NAMES=SUB_DATA.MAP_NAMES;
 
 /* ===== PARTS (TC names from msgpack) ===== */
 const PARTS=SUB_DATA.PARTS;
-const COMMON_LOOT=SUB_DATA.COMMON_LOOT;
 
-/* ── 使用者定義的「高優先」物品清單 ──────────────────────────────
- * 若路線可獲得以下物品，在結果顯示時優先排到前面
- * ─────────────────────────────────────────────────────────── */
-const PRIORITY_LOOT=new Set(Object.values(SUB_DATA.PRIORITY_LOOT_GROUPS).flat());
 
 
 /* ===== SECTOR LOOKUP MAP (O(1) ID → row) ===== */
@@ -5295,7 +5231,7 @@ self.onmessage = (e) => {
     try { self.postMessage({ id, ok: true, results: (fn === 'auto' ? subAutoRoute : subFindRoutes)(...args) }); }
     catch (err) { self.postMessage({ id, ok: false, error: String((err && err.message) || err) }); }
 };`;
-            const need = ['MAP_NAMES','SUB_HOMES','SUB_SECTORS','SUB_PATCH','SUB_TANK','SUB_DIST','SUB_RANKS','SUB_CAP','PARTS','SUB_LOOT','SUB_LOOT_TIER','COMMON_LOOT','PRIORITY_LOOT_GROUPS'];
+            const need = ['MAP_NAMES','SUB_HOMES','SUB_SECTORS','SUB_PATCH','SUB_TANK','SUB_DIST','SUB_RANKS','SUB_CAP','PARTS','SUB_LOOT','SUB_LOOT_TIER'];
             const dataJs = 'self.SUB_DATA = ' + JSON.stringify(Object.fromEntries(need.map(k => [k, SUB_DATA[k]]))) + ';\n';
             const url = URL.createObjectURL(new Blob([dataJs, core, glue], { type: 'text/javascript' }));
             worker = new Worker(url);
@@ -6300,6 +6236,12 @@ window.showConfirm = showConfirm;
         applyGroupFilter();
     }
 
+    let _groupFilterQueued = false;
+    function queueGroupFilter() {
+        if (_groupFilterQueued) return;
+        _groupFilterQueued = true;
+        queueMicrotask(() => { _groupFilterQueued = false; applyGroupFilter(); });
+    }
     function applyGroupFilter() {
         const timers = _viewTimers !== null ? _viewTimers : savedTimers;
         timers.forEach(t => {
@@ -6532,7 +6474,21 @@ window.showConfirm = showConfirm;
         if (typeof callback === 'function') callback();
     }
     function testAlarm() { playSound(); showNotification("測試潛水艇"); }
-    async function initOCR() { try { statusText.innerHTML = icHtml("⏳ 正在載入辨識引擎..."); workerInitPromise = Tesseract.createWorker('chi_tra'); worker = await workerInitPromise; statusText.innerHTML = icHtml("🟢 引擎初始化成功！請上傳截圖。"); } catch (e) { statusText.innerHTML = icHtml("❌ 初始化失敗，請重整。"); } }
+    // 文字辨識引擎很大（程式＋繁中語言檔），第一次上傳截圖時才下載
+    function initOCR() { statusText.innerHTML = icHtml("📷 第一次辨識時會先下載辨識引擎，需要等一下。"); }
+    function ensureOCR() {
+        if (workerInitPromise) return workerInitPromise;
+        statusText.innerHTML = icHtml("⏳ 正在載入辨識引擎...");
+        workerInitPromise = new Promise((resolve, reject) => {
+            if (window.Tesseract) return resolve();
+            const sc = document.createElement('script');
+            sc.src = 'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
+            sc.onload = resolve; sc.onerror = reject;
+            document.head.appendChild(sc);
+        }).then(() => Tesseract.createWorker('chi_tra')).then(w => { worker = w; return w; })
+          .catch(e => { workerInitPromise = null; throw e; });
+        return workerInitPromise;
+    }
     fileInput.addEventListener('change', (e) => { if (fileInput.files.length) handleFile(fileInput.files[0]); });
     dropZone.addEventListener('dragover', (e) => { e.preventDefault(); });
     dropZone.addEventListener('drop', (e) => { e.preventDefault(); if (e.dataTransfer.files.length > 0) handleFile(e.dataTransfer.files[0]); });
@@ -6565,10 +6521,11 @@ window.showConfirm = showConfirm;
         });
     }
     function handleFile(file) {
-        if (!file || !worker) return;
-        statusText.innerHTML = icHtml("🔍 正在分析圖片...");
+        if (!file) return;
         const reader = new FileReader();
         reader.onload = async function (e) {
+            try { await ensureOCR(); } catch (err) { statusText.innerHTML = icHtml("❌ 辨識引擎載入失敗，請確認網路後再試一次。"); return; }
+            statusText.innerHTML = icHtml("🔍 正在分析圖片...");
             try {
                 const prep = await ocrPrepareImage(e.target.result);
                 await worker.setParameters({ tessedit_pageseg_mode: prep.psm });
@@ -7292,7 +7249,9 @@ window.showConfirm = showConfirm;
         timerList.appendChild(card); 
         updateConfigSummary(timer.id);
         updateRouteLine(timer.id);
-        applyGroupFilter();
+        // 只先決定這張卡要不要顯示；整體的篩選、船數、標籤計數合併成一次（一次建很多張卡時不會重複跑 N 次）
+        card.style.display = (activeGroup === GROUP_ALL || (timer.group || DEFAULT_GROUP) === activeGroup) ? '' : 'none';
+        queueGroupFilter();
         if (timer.endTime - Date.now() <= 0) {
             document.getElementById(`count-${timer.id}`).innerHTML = IC('sparkles') + " 已回港！";
             document.getElementById(`bg-${timer.id}`).classList.add('finished');
@@ -7507,7 +7466,7 @@ window.showConfirm = showConfirm;
             clearTimeout(band._t); band._t = setTimeout(() => { band.classList.remove('flash'); if (!dragKey) band.style.display = 'none'; }, 1150);
         }
         // 移動後的提示（可復原）
-        function showToast(key, prev) {
+        function showColToast(key, prev) {
             toast.innerHTML = (key ? `已把「<b>${NAMES[key]}</b>」移到新位置` : '已恢復預設欄位順序') + '<button type="button">復原</button>';
             toast.querySelector('button').onclick = () => {
                 saveListOrder(prev); toast.classList.remove('on');
@@ -7515,13 +7474,13 @@ window.showConfirm = showConfirm;
             };
             toast.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => toast.classList.remove('on'), 5000);
         }
-        window._listColToast = showToast;
+        window._listColToast = showColToast;
         function doMove(key, target, after) {
             const prev = getListOrder();
             moveListCol(key, target, after);
             if (getListOrder().join() === prev.join()) return false;
             requestAnimationFrame(() => flash(key));
-            showToast(key, prev);
+            showColToast(key, prev);
             window.dismissListColTip();
             return true;
         }
@@ -8342,19 +8301,12 @@ window.showConfirm = showConfirm;
         const id = document.getElementById('gpShipSelect').value;
         if (!id) return;
         const t = getActiveTimers().find(x => x.id === id);
-        if (!t) {
-            // 房間視圖下找不到對應船艦，顯示提示
-            const gpResultHint = document.getElementById('gpResultHint');
-            if (gpResultHint) gpResultHint.innerText = `ℹ️ 目前為房間視圖，海圖進度以「${activeMapGroup}」標籤為準`;
-            return;
-        }
+        if (!t) return;
         document.getElementById('gpLevel').value = subPlanLevel(t);
         const parts = t.parts || createEmptyParts();
         PART_KEYS.forEach(key => setPartVal(key, 'gp', parts[key] || ''));
         const presetSel = document.getElementById('gpPresetSelect');
         if (presetSel) presetSel.value = '';
-        const presetRow = document.getElementById('gpPresetStatRow');
-        if (presetRow) presetRow.style.display = 'none';
         // 依船艦標籤切換 activeMapGroup
         const shipGroup = t.group || '未分類';
         activeMapGroup = shipGroup;
@@ -8400,14 +8352,6 @@ window.showConfirm = showConfirm;
         // sec 欄位: [8]=T1探索, [9]=恩惠, [10]=T2探索, [11]=T3探索, [12]=一般收集, [13]=最佳收集
         // 航速、航距：地點資料中無對應門檻，顯示 --
 
-        // ── 各地點 Tier Proc 率（來源：Submersible Loot Spreadsheet + Indepth Submarine loot Drop info）
-        // 格式：{ secId: [T1proc%, T2proc%, T3proc%] }
-        // 資料來源：https://docs.google.com/spreadsheets/d/1eiuGRrQTjJ5n4ogybKOBxJRT7EiJLlX93fge-Z8MmD4
-        // 涵蓋溺沒海（地圖1）全部 30 個地點 + 灰海（地圖2）全部 20 個地點 + 翡翠海（地圖3）+ 賽蓮海（地圖4）+ 紫礁海（地圖5）+ 南蒼茫洋（地圖6）全部地點
-        const GP_TIER_PROC = SUB_DATA.GP_TIER_PROC;
-
-        // D% 直接獲得機率（來源：Submersible Loot Spreadsheet D% 欄）
-        const GP_TIER_PROC_D = SUB_DATA.GP_TIER_PROC_D;
 
 
         const GP_ITEM_PROB = SUB_DATA.GP_ITEM_PROB;
@@ -8439,7 +8383,6 @@ window.showConfirm = showConfirm;
             const tierIdx = { T1: 0, T2: 1, T3: 2 }[tier] ?? 0;
             const tierNum = tierIdx + 1;
             const itemProbSec = (GP_ITEM_PROB[secId] || {})[tierNum] || {};
-            const procDataD = GP_TIER_PROC_D[secId];
 
             // 根據目前物品ID取得 T% 和 D%（若無資料顯示 --）
             // 這裡傳入 itemId 供外層呼叫時使用，預設抓第一個有資料的物品做示範
@@ -8858,50 +8801,20 @@ window.showConfirm = showConfirm;
     gpLoadMyPresets();
 
     function gpApplyPreset(key) {
-        const presetRow = document.getElementById('gpPresetStatRow');
-        const presetBadges = document.getElementById('gpPresetStatBadges');
         if (!key) {
-            // 還原回船艇原本的配件設定
+            // 還原回船艇原本的配件設定；手動輸入模式則清空四部位
             const shipId = document.getElementById('gpShipSelect').value;
-            if (shipId) {
-                const t = savedTimers.find(x => x.id === shipId);
-                if (t) {
-                    const parts = t.parts || createEmptyParts();
-                    PART_KEYS.forEach(k => {
-                        const sel = document.getElementById(`gp-${k}`);
-                        if (sel) sel.value = parts[k] || '';
-                    });
-                }
-            } else {
-                // 手動輸入模式：清空四部位
-                PART_KEYS.forEach(k => {
-                    const sel = document.getElementById(`gp-${k}`);
-                    if (sel) sel.value = '';
-                });
-            }
-            if (presetRow) presetRow.style.display = 'none';
+            const t = shipId ? getActiveTimers().find(x => x.id === shipId) : null;
+            const parts = (t && t.parts) || createEmptyParts();
+            PART_KEYS.forEach(k => setPartVal(k, 'gp', shipId ? (parts[k] || '') : ''));
             gpRecalc();
             return;
         }
         const preset = gpPresetParts(key);
         if (!preset) return;
-
-        // 套用到四部位下拉
+        // 套用到四部位並重新計算
         PART_KEYS.forEach(k => setPartVal(k, 'gp', preset[k] || ''));
-
-        // 重新計算並更新
         gpRecalc();
-
-        // 顯示性能預覽列
-        if (presetRow && presetBadges) {
-            const level = document.getElementById('gpLevel').value.trim();
-            const stats = computeStats(level, preset);
-            const statLabels = { explore: '探索性能', gather: '收集性能', speed: '巡航速度', range: '航行距離', favor: '恩惠' };
-            presetBadges.innerHTML = STAT_KEYS.map(k =>
-                `<span class="gp-stat-badge"><span class="gp-stat-badge-label">${statLabels[k]}</span><span class="gp-stat-badge-val">${stats[k]}</span></span>`
-            ).join('');
-            presetRow.style.display = 'block';
-        }
     }
 
     
@@ -11413,8 +11326,6 @@ const CRAFT_BASE = SUB_DATA.CRAFT_BASE;
         rpRenderChips();
         const catSel = document.getElementById('rpItemCategory');
         if (catSel) { catSel.value = ''; rpOnCategoryChange(); }
-        const itemSel = document.getElementById('rpItemSelect');
-        if (itemSel) { itemSel.value = ''; }
         const lootStrict = document.getElementById('rpLootStrict');
         if (lootStrict) lootStrict.checked = false;
 

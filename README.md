@@ -9,6 +9,8 @@ data/                    網站數據（由數據總表轉出）
   presets.js             常用配件預設
   craft.js               配件製作配方
   version.js             數據版本號（讓玩家的瀏覽器知道要重新下載數據）
+  maps/1.jpg ~ 7.jpg      海圖設定分頁的海圖底圖（來源：XIVAPI）
+  jkopay-qr.png          贊助用的街口支付 QR Code
 tools/
   excel-to-data.html     數據總表（xlsx）→ data 檔案的轉換工具，用瀏覽器打開即可
   convert.js             轉換工具的程式
