@@ -3777,6 +3777,13 @@ window.icHtml = function (t) {
                         <option value="soft">01 柔和</option>
                         <option value="sharp">02 清脆</option>
                         <option value="ding">03 叮咚</option>
+                        <option value="bell">04 鈴聲</option>
+                        <option value="rise">05 上揚</option>
+                        <option value="gong">06 鐘響</option>
+                        <option value="beep">07 嗶嗶</option>
+                        <option value="marimba">08 木琴</option>
+                        <option value="sonar">09 聲納</option>
+                        <option value="bubble">10 氣泡</option>
                     </select>
                     <input type="range" id="volumeSlider" min="0" max="1" step="0.1" value="0.5" data-on-input="a13" aria-label="音量">
                     <button type="button" class="lp-test-btn" data-on-click="a14">測試</button>
@@ -5336,13 +5343,15 @@ window.showConfirm = showConfirm;
         }
         if (_audioCtx.state === 'suspended') _audioCtx.resume();
         const ctx = _audioCtx;
-        function playNote(freq, type, duration, time) {
+        // g：相對音量；toFreq：結束時滑到的頻率（滑音用）
+        function playNote(freq, type, duration, time, g = 1, toFreq) {
             const osc = ctx.createOscillator();
             const gain = ctx.createGain();
             osc.connect(gain); gain.connect(ctx.destination);
             osc.type = type;
             osc.frequency.setValueAtTime(freq, ctx.currentTime + time);
-            gain.gain.setValueAtTime(volume * 0.75, ctx.currentTime + time);
+            if (toFreq) osc.frequency.exponentialRampToValueAtTime(toFreq, ctx.currentTime + time + duration * 0.8);
+            gain.gain.setValueAtTime(Math.max(0.0011, volume * 0.75 * g), ctx.currentTime + time);
             gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + time + duration);
             osc.start(ctx.currentTime + time);
             osc.stop(ctx.currentTime + time + duration);
@@ -5350,6 +5359,13 @@ window.showConfirm = showConfirm;
         if (alarmMode === 'soft') { playNote(523.25, 'triangle', 0.3, 0); playNote(659.25, 'triangle', 0.3, 0.2); }
         else if (alarmMode === 'sharp') { playNote(880, 'square', 0.1, 0); playNote(880, 'square', 0.1, 0.2); }
         else if (alarmMode === 'ding') { playNote(1046.5, 'sine', 0.5, 0); playNote(1318.5, 'sine', 0.5, 0.1); }
+        else if (alarmMode === 'bell') { [0, 0.45].forEach(t => { playNote(880, 'sine', 1.1, t); playNote(2200, 'sine', 0.5, t, 0.35); playNote(3520, 'sine', 0.25, t, 0.15); }); }
+        else if (alarmMode === 'rise') { [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => playNote(f, 'triangle', 0.28, i * 0.11)); }
+        else if (alarmMode === 'gong') { playNote(196, 'sine', 2.2, 0); playNote(392, 'sine', 1.8, 0, 0.6); playNote(587.33, 'sine', 1.2, 0, 0.3); }
+        else if (alarmMode === 'beep') { [0, 0.14, 0.28, 0.6, 0.74, 0.88].forEach(t => playNote(1000, 'square', 0.09, t, 0.9)); }
+        else if (alarmMode === 'marimba') { [[783.99, 0], [659.25, 0.13], [1046.5, 0.26], [1046.5, 0.5]].forEach(([f, t]) => { playNote(f, 'sine', 0.22, t); playNote(f * 4, 'sine', 0.06, t, 0.2); }); }
+        else if (alarmMode === 'sonar') { playNote(1200, 'sine', 1.0, 0); playNote(1200, 'sine', 0.8, 0.55, 0.3); playNote(1200, 'sine', 0.6, 1.0, 0.12); }
+        else if (alarmMode === 'bubble') { [0, 0.16, 0.3].forEach((t, i) => playNote(320 + i * 90, 'sine', 0.14, t, 0.9, 1100 + i * 200)); }
     }
 
     const dropZone = document.getElementById('dropZone');
