@@ -1361,6 +1361,9 @@ window.UI_ACTIONS = {
         .sm-pin { position: absolute; transform: translate(-50%, -50%); min-width: 26px; height: 26px; padding: 0 4px; box-sizing: border-box; border-radius: 999px; border: 2px solid rgba(255,255,255,.85); background: rgba(22,26,34,.78); color: #d9dee7; font: 800 12px/1 inherit; font-family: inherit; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 1px 4px rgba(0,0,0,.6); transition: transform .12s, background .12s; }
         .sm-pin.on { background: var(--accent-color); color: #fff; border-color: #fff; }
         .sm-pin:hover, .sm-pin.hl { transform: translate(-50%, -50%) scale(1.22); border-color: #ffd36b; z-index: 2; }
+        .sm-links { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+        .sm-links line { stroke: rgba(255,255,255,.75); stroke-width: 2; stroke-dasharray: 5 4; stroke-linecap: round; filter: drop-shadow(0 0 1.5px rgba(0,0,0,.9)); }
+        .sm-links line.on { stroke: var(--accent-color); stroke-dasharray: none; stroke-width: 2.5; }
         .sm-home { position: absolute; width: 13px; height: 13px; transform: translate(-50%, -50%) rotate(45deg); background: #e9b949; border: 2px solid #fff; border-radius: 2px; box-shadow: 0 1px 4px rgba(0,0,0,.6); }
         .sm-nodes-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 12px 0 8px; font-size: 12px; color: #888; }
         .sm-nodes-head b { font-size: 14px; color: var(--text-color); }
@@ -4642,7 +4645,7 @@ window.icHtml = function (t) {
                         <div class="sm-card-head"><h3 id="smMapTitle">海圖</h3><button type="button" class="sm-mini-btn" data-on-click="a161" data-all="1">全選</button><button type="button" class="sm-mini-btn" data-on-click="a161" data-all="0">全清</button></div>
                         <div id="smRoomHint"></div>
                         <div class="sm-mapbox" id="smMapBox"><img id="smMapImg" alt="" decoding="async"></div>
-                        <div class="sm-nodes-head"><b>海點</b><span>點地圖上或下方的編號，切換已開／未開</span><span class="sm-legend"><span><i style="background:var(--accent-color)"></i>已開</span><span><i style="background:#3a3f4a"></i>未開</span><span><i style="background:#e9b949;border-radius:2px;transform:rotate(45deg)"></i>出發點</span></span></div>
+                        <div class="sm-nodes-head"><b>海點</b><span>點地圖上或下方的編號，切換已開／未開</span><span class="sm-legend"><span><i style="background:var(--accent-color)"></i>已開</span><span><i style="background:#3a3f4a"></i>未開</span><span><i style="background:#e9b949;border-radius:2px;transform:rotate(45deg)"></i>出發點</span><span>線：探索後解鎖的點</span></span></div>
                         <div class="sm-nodes" id="smNodes"></div>
                     </div>
                 </div>
@@ -7968,7 +7971,19 @@ window.showConfirm = showConfirm;
         const src = `data/maps/${smMapId}.jpg`;
         if (img.getAttribute('src') !== src) { img.setAttribute('src', src); img.alt = `${MAP_NAMES[smMapId]}海圖`; }
         const pos = id => { const p = SUB_XY[id]; return p ? [(40 + p[0] * 0.602) / 685 * 100, (52 + p[1] * 0.603) / 705 * 100] : null; };
-        box.querySelectorAll('.sm-pin, .sm-home').forEach(e => e.remove());
+        box.querySelectorAll('.sm-pin, .sm-home, .sm-links').forEach(e => e.remove());
+        // 連結線：探索 A 點後解鎖 B 點（同一張海圖內）；起點已開時用主題色
+        const px = id => { const p = SUB_XY[id]; return p ? [40 + p[0] * 0.602, 52 + p[1] * 0.603] : null; };
+        const secIds = new Set(secs.map(s => s[0]));
+        let lines = '';
+        secs.forEach(s => ((SUB_DATA.SUB_UNLOCK || {})[s[0]] || []).forEach(src => {
+            if (!secIds.has(src)) return;
+            const a = px(src), b = px(s[0]); if (!a || !b) return;
+            const srcSec = secs.find(t => t[0] === src);
+            const on = srcSec && onOf(srcSec) && onOf(s);
+            lines += `<line class="${on ? 'on' : ''}" x1="${a[0].toFixed(1)}" y1="${a[1].toFixed(1)}" x2="${b[0].toFixed(1)}" y2="${b[1].toFixed(1)}"/>`;
+        }));
+        box.insertAdjacentHTML('beforeend', `<svg class="sm-links" viewBox="0 0 685 705" preserveAspectRatio="none" aria-hidden="true">${lines}</svg>`);
         const homeId = SUB_HOMES[smMapId], hp = pos(homeId);
         if (hp) { const h = document.createElement('span'); h.className = 'sm-home'; h.title = '出發點'; h.style.left = hp[0] + '%'; h.style.top = hp[1] + '%'; box.appendChild(h); }
         secs.forEach(s => {
