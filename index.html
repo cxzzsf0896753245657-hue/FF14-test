@@ -1358,13 +1358,13 @@ window.UI_ACTIONS = {
         /* 大地圖：高度跟著視窗，地圖＋下方海點一個畫面看得完 */
         .sm-mapbox { position: relative; margin: 0 auto; aspect-ratio: 685 / 705; width: min(100%, max(320px, calc((100vh - 385px) * 685 / 705))); border-radius: 10px; overflow: hidden; background: #141418; }
         .sm-mapbox img { display: block; width: 100%; height: 100%; object-fit: cover; user-select: none; -webkit-user-drag: none; }
-        .sm-pin { position: absolute; transform: translate(-50%, -50%); min-width: 39px; height: 39px; padding: 0 5px; box-sizing: border-box; border-radius: 999px; border: 2.5px solid rgba(255,255,255,.85); background: rgba(22,26,34,.78); color: #d9dee7; font: 800 16px/1 inherit; font-family: inherit; font-size: 16px; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 1px 4px rgba(0,0,0,.6); transition: transform .12s, background .12s; }
+        .sm-pin { position: absolute; transform: translate(-50%, -50%); min-width: 58px; height: 58px; padding: 0 6px; box-sizing: border-box; border-radius: 999px; border: 3px solid rgba(255,255,255,.85); background: rgba(22,26,34,.8); color: #d9dee7; font: 800 22px/1 inherit; font-family: inherit; font-size: 22px; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 1px 4px rgba(0,0,0,.6); transition: transform .12s, background .12s; }
         .sm-pin.on { background: var(--accent-color); color: #fff; border-color: #fff; }
         .sm-pin:hover, .sm-pin.hl { transform: translate(-50%, -50%) scale(1.15); border-color: #ffd36b; z-index: 2; }
         .sm-links { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
         .sm-links line { stroke: rgba(255,255,255,.75); stroke-width: 2; stroke-dasharray: 5 4; stroke-linecap: round; filter: drop-shadow(0 0 1.5px rgba(0,0,0,.9)); }
         .sm-links line.on { stroke: var(--accent-color); stroke-dasharray: none; stroke-width: 2.5; }
-        .sm-home { position: absolute; width: 18px; height: 18px; transform: translate(-50%, -50%) rotate(45deg); background: #e9b949; border: 2px solid #fff; border-radius: 2px; box-shadow: 0 1px 4px rgba(0,0,0,.6); }
+        .sm-home { position: absolute; width: 22px; height: 22px; transform: translate(-50%, -50%) rotate(45deg); background: #e9b949; border: 2px solid #fff; border-radius: 2px; box-shadow: 0 1px 4px rgba(0,0,0,.6); }
         .sm-nodes-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 12px 0 8px; font-size: 12px; color: #888; }
         .sm-nodes-head b { font-size: 14px; color: var(--text-color); }
         .sm-legend { display: inline-flex; gap: 12px; flex-wrap: wrap; margin-left: auto; }
@@ -1398,7 +1398,7 @@ window.UI_ACTIONS = {
         .sm-empty { font-size: 13px; color: #888; padding: 14px 4px; text-align: center; }
         @media (max-width: 900px) { .sm-grid { display: flex; flex-direction: column; gap: 14px; } .sm-col { display: contents; } .sm-card + .sm-card { margin-top: 0; } .sm-o1 { order: 1; } .sm-o2 { order: 2; } .sm-o4 { order: 4; } .sm-loot { max-height: none; } }
         @media (max-width: 640px) { #panelSeamap { padding: 0 10px 16px; } }
-        @media (max-width: 640px) { .sm-mapbox { width: 100%; } .sm-pin { min-width: 30px; height: 30px; font-size: 13px; border-width: 2px; } .sm-legend { margin-left: 0; } }
+        @media (max-width: 640px) { .sm-mapbox { width: 100%; } .sm-pin { min-width: 40px; height: 40px; font-size: 16px; border-width: 2px; } .sm-legend { margin-left: 0; } }
         .map-group-tab:hover { border-color: rgba(var(--accent-rgb),0.4); color: var(--accent-color); }
         .map-group-tab.active { background: var(--accent-color); color: #fff; border-color: var(--accent-color); }
         body.light-mode .map-group-tab { border-color: rgba(0,0,0,0.12); color: #666; }
@@ -7939,6 +7939,57 @@ window.showConfirm = showConfirm;
         renderMapNodes();
     }
     function smSetAll(on) { smMaterialize(); setAllMapNodes(smMapId, on); }
+    // 依目前地圖大小排海點按鈕：重疊的點互相推開（盡量靠近原位），再畫連結線
+    function smLayoutPins() {
+        const box = document.getElementById('smMapBox'); if (!box || !box._sm) return;
+        const { secs, onOf, edges, px, hpx } = box._sm;
+        const W = box.clientWidth; if (!W) return;
+        const pin = box.querySelector('.sm-pin');
+        const size = pin ? Math.max(pin.offsetWidth, pin.offsetHeight) : 40;
+        const k = 685 / W;                       // 像素 → 地圖座標
+        const r = (size / 2 + 2) * k;            // 兩點中心至少相距 2r
+        const base = {}, pos = {};
+        secs.forEach(s => { const p = px(s[0]); if (p) { base[s[0]] = p; pos[s[0]] = p.slice(); } });
+        const ids = Object.keys(pos);
+        for (let it = 0; it < 160; it++) {
+            let moved = false;
+            for (let i = 0; i < ids.length; i++) for (let j = i + 1; j < ids.length; j++) {
+                const a = pos[ids[i]], b = pos[ids[j]];
+                let dx = b[0] - a[0], dy = b[1] - a[1], d = Math.hypot(dx, dy);
+                if (d >= 2 * r) continue;
+                if (d < 0.01) { dx = 1; dy = 0; d = 1; }
+                const push = (2 * r - d) / 2 + 0.2;
+                a[0] -= dx / d * push; a[1] -= dy / d * push; b[0] += dx / d * push; b[1] += dy / d * push; moved = true;
+            }
+            if (hpx) ids.forEach(id => {   // 也別蓋住出發點
+                const a = pos[id], dx = a[0] - hpx[0], dy = a[1] - hpx[1], d = Math.hypot(dx, dy) || 1, need = r + 12 * k;
+                if (d < need) { a[0] += dx / d * (need - d); a[1] += dy / d * (need - d); moved = true; }
+            });
+            ids.forEach(id => {   // 往原位拉回一點，並限制在地圖內
+                const a = pos[id], o = base[id];
+                a[0] += (o[0] - a[0]) * 0.04; a[1] += (o[1] - a[1]) * 0.04;
+                a[0] = Math.min(685 - r, Math.max(r, a[0])); a[1] = Math.min(705 - r, Math.max(r, a[1]));
+            });
+            if (!moved && it > 10) break;
+        }
+        box.querySelectorAll('.sm-pin').forEach(b => { const p = pos[b.dataset.id]; if (p) { b.style.left = (p[0] / 685 * 100) + '%'; b.style.top = (p[1] / 705 * 100) + '%'; } });
+        const home = box.querySelector('.sm-home');
+        if (home && hpx) { home.style.left = (hpx[0] / 685 * 100) + '%'; home.style.top = (hpx[1] / 705 * 100) + '%'; }
+        const secOn = id => { const s = secs.find(t => t[0] === id); return !!s && onOf(s); };
+        const pt = id => id === 'home' ? hpx : pos[id];
+        const lines = edges.map(([a, b]) => {
+            const p1 = pt(a), p2 = pt(b); if (!p1 || !p2) return '';
+            const on = (a === 'home' || secOn(+a)) && secOn(+b);
+            return `<line class="${on ? 'on' : ''}" x1="${p1[0].toFixed(1)}" y1="${p1[1].toFixed(1)}" x2="${p2[0].toFixed(1)}" y2="${p2[1].toFixed(1)}"/>`;
+        }).join('');
+        box.querySelector('.sm-links')?.remove();
+        box.insertAdjacentHTML('afterbegin', `<svg class="sm-links" viewBox="0 0 685 705" preserveAspectRatio="none" aria-hidden="true">${lines}</svg>`);
+        box.prepend(box.querySelector('#smMapImg'));
+    }
+    if (window.ResizeObserver) {
+        let _smRaf = 0;
+        new ResizeObserver(() => { cancelAnimationFrame(_smRaf); _smRaf = requestAnimationFrame(smLayoutPins); }).observe(document.getElementById('smMapBox') || document.body);
+    }
     window.renderSeaMap = function renderSeaMap() {
         const panel = document.getElementById('panelSeamap'); if (!panel) return;
         const allGroups = allGroupNames();
@@ -7965,47 +8016,35 @@ window.showConfirm = showConfirm;
         const onOf = s => isNodeOn(smMapId, s[2]);
         const onCount = secs.filter(onOf).length;
         document.getElementById('smMapTitle').innerHTML = `${escapeHtml(MAP_NAMES[smMapId])}<span class="sm-sub">已開 ${onCount}/${secs.length}</span>`;
-        // 大地圖：遊戲海圖圖片＋可點的海點按鈕（座標換算成圖片百分比）
+        // 大地圖：遊戲海圖圖片＋可點的海點按鈕；按鈕太擠時自動微調位置，連結線跟著調整後的位置
         const box = document.getElementById('smMapBox');
         const img = document.getElementById('smMapImg');
         const src = `data/maps/${smMapId}.jpg`;
         if (img.getAttribute('src') !== src) { img.setAttribute('src', src); img.alt = `${MAP_NAMES[smMapId]}海圖`; }
-        const pos = id => { const p = SUB_XY[id]; return p ? [(40 + p[0] * 0.602) / 685 * 100, (52 + p[1] * 0.603) / 705 * 100] : null; };
         box.querySelectorAll('.sm-pin, .sm-home, .sm-links').forEach(e => e.remove());
-        // 連結線：探索 A 點後解鎖 B 點（同一張海圖內）；起點已開時用主題色
         const px = id => { const p = SUB_XY[id]; return p ? [40 + p[0] * 0.602, 52 + p[1] * 0.603] : null; };
         const secIds = new Set(secs.map(s => s[0]));
-        let lines = '';
-        secs.forEach(s => ((SUB_DATA.SUB_UNLOCK || {})[s[0]] || []).forEach(src => {
-            if (!secIds.has(src)) return;
-            const a = px(src), b = px(s[0]); if (!a || !b) return;
-            const srcSec = secs.find(t => t[0] === src);
-            const on = srcSec && onOf(srcSec) && onOf(s);
-            lines += `<line class="${on ? 'on' : ''}" x1="${a[0].toFixed(1)}" y1="${a[1].toFixed(1)}" x2="${b[0].toFixed(1)}" y2="${b[1].toFixed(1)}"/>`;
-        }));
-        // 這張海圖的起點（沒有同圖解鎖來源的點，例如 A、B）：從出發點連過去
-        const hpx = px(SUB_HOMES[smMapId]);
-        if (hpx) secs.forEach(s => {
-            const srcs = ((SUB_DATA.SUB_UNLOCK || {})[s[0]] || []).filter(id => secIds.has(id));
-            if (srcs.length) return;
-            const b = px(s[0]); if (!b) return;
-            lines += `<line class="${onOf(s) ? 'on' : ''}" x1="${hpx[0].toFixed(1)}" y1="${hpx[1].toFixed(1)}" x2="${b[0].toFixed(1)}" y2="${b[1].toFixed(1)}"/>`;
-        });
-        box.insertAdjacentHTML('beforeend', `<svg class="sm-links" viewBox="0 0 685 705" preserveAspectRatio="none" aria-hidden="true">${lines}</svg>`);
-        const homeId = SUB_HOMES[smMapId], hp = pos(homeId);
-        if (hp) { const h = document.createElement('span'); h.className = 'sm-home'; h.title = '出發點'; h.style.left = hp[0] + '%'; h.style.top = hp[1] + '%'; box.appendChild(h); }
+        const homeId = SUB_HOMES[smMapId], hpx = px(homeId);
+        const edges = [];   // [來源 id（出發點用 'home'）, 目標 id]
         secs.forEach(s => {
-            const p = pos(s[0]); if (!p) return;
+            const srcs = ((SUB_DATA.SUB_UNLOCK || {})[s[0]] || []).filter(id => secIds.has(id));
+            if (srcs.length) srcs.forEach(id => edges.push([id, s[0]]));
+            else if (hpx) edges.push(['home', s[0]]);   // 這張海圖的起點（例如 A、B）
+        });
+        if (hpx) { const h = document.createElement('span'); h.className = 'sm-home'; h.title = '出發點'; box.appendChild(h); }
+        secs.forEach(s => {
+            if (!px(s[0])) return;
             const b = document.createElement('button');
-            b.type = 'button'; b.className = 'sm-pin' + (onOf(s) ? ' on' : ''); b.dataset.l = s[2];
+            b.type = 'button'; b.className = 'sm-pin' + (onOf(s) ? ' on' : ''); b.dataset.l = s[2]; b.dataset.id = s[0];
             b.textContent = s[2]; b.title = `${s[2]} ${s[4]}（需要 Lv${s[5]}）`;
             b.setAttribute('aria-pressed', String(onOf(s)));
-            b.style.left = p[0] + '%'; b.style.top = p[1] + '%';
             b.onclick = () => smToggle(s[2]);
             b.onmouseenter = () => document.querySelector(`#smNodes [data-l="${s[2]}"]`)?.classList.add('hl');
             b.onmouseleave = () => document.querySelector(`#smNodes [data-l="${s[2]}"]`)?.classList.remove('hl');
             box.appendChild(b);
         });
+        box._sm = { secs, onOf, edges, px, hpx };
+        smLayoutPins();
         // 海點：只顯示英文編號
         const nodesEl = document.getElementById('smNodes');
         nodesEl.innerHTML = secs.map(s => `<button type="button" class="sm-node${onOf(s) ? ' on' : ''}" data-l="${s[2]}" aria-pressed="${onOf(s)}" title="${s[2]} ${escapeHtml(s[4])}（需要 Lv${s[5]}）">${s[2]}</button>`).join('');
