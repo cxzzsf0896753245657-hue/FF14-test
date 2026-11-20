@@ -8063,7 +8063,8 @@ window.showConfirm = showConfirm;
                 (items[id] = items[id] || []).push({ l: s[2], tr: +tr, p: p == null ? null : p, on: onOf(s) });
             }));
         });
-        const list = Object.keys(items).map(Number).filter(id => ITEM_DB[id]).map(id => {
+        // 不顯示魔晶石、碎晶／水晶／晶簇、黑暗物質（和路線規劃的目標物品清單一致）
+        const list = Object.keys(items).map(Number).filter(id => ITEM_DB[id] && !/魔晶石|之(碎晶|水晶|晶簇)$|黑暗物質/.test(ITEM_DB[id])).map(id => {
             const where = items[id].sort((a, b) => a.l.localeCompare(b.l));
             const ps = where.map(w => w.p).filter(v => v != null);
             return { id, name: ITEM_DB[id], cat: itemCategoryOf(id), where, best: ps.length ? Math.max(...ps) : 999, maxTier: Math.max(...where.map(w => w.tr)) };
