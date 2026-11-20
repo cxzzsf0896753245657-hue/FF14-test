@@ -8066,7 +8066,7 @@ window.showConfirm = showConfirm;
     // 交易：遊戲資料的 IsUntradable／ItemSearchCategory（XIVAPI）
     const SM_UNTRADABLE = new Set([37487]), SM_NO_MARKET = new Set([12920, 12921, 12922, 12923, 12924, 12925, 12926, 12927, 12928, 12929, 22500, 22501, 22502, 22503, 22504, 22505, 22506, 22507, 26528, 29590, 37083]);
     function smTrade(id) { return SM_UNTRADABLE.has(id) ? 'no' : SM_NO_MARKET.has(id) ? 'trade' : 'market'; }
-    // ── 市場價格：Universalis 最近 7 天成交（平均單價、成交筆數）──
+    // ── 市場價格：Universalis 最近 7 天成交（中位數單價、成交筆數）──
     const SM_MKT_KEY = 'sub_mkt_world';
     const SM_MKT_WORLDS = ['陸行鳥', '伊弗利特', '迦樓羅', '利維坦', '鳳凰', '奧汀', '巴哈姆特', '拉姆', '泰坦'];
     let smMktWorld = (() => { try { return localStorage.getItem(SM_MKT_KEY) || '陸行鳥'; } catch (e) { return '陸行鳥'; } })();
@@ -8080,7 +8080,7 @@ window.showConfirm = showConfirm;
         if (!p) return `<span class="sm-pr ld" data-pid="${id}">…</span>`;
         if (p.err) return `<span class="sm-pr na" data-pid="${id}" title="價格讀取失敗">?</span>`;
         if (p.none) return `<span class="sm-pr na" data-pid="${id}" title="最近 7 天沒有成交">無成交</span>`;
-        return `<span class="sm-pr" data-pid="${id}" title="${smMktWorld === '陸行鳥' ? '繁中服' : smMktWorld}・最近 7 天成交 ${p.n} 筆，平均單價 ${p.med.toLocaleString()} gil（最低 ${p.min.toLocaleString()}、最高 ${p.max.toLocaleString()}）">${p.med.toLocaleString()}<small>${p.n}筆</small></span>`;
+        return `<span class="sm-pr" data-pid="${id}" title="${smMktWorld === '陸行鳥' ? '繁中服' : smMktWorld}・最近 7 天成交 ${p.n} 筆，中位數單價 ${p.med.toLocaleString()} gil（最低 ${p.min.toLocaleString()}、最高 ${p.max.toLocaleString()}）">${p.med.toLocaleString()}<small>${p.n}筆</small></span>`;
     }
     async function smLoadPrices(ids) {
         const world = smMktWorld;
@@ -8096,7 +8096,7 @@ window.showConfirm = showConfirm;
                 const items = d.items || (d.itemID ? { [d.itemID]: d } : {});
                 chunk.forEach(id => {
                     const e = ((items[id] || {}).entries || []).map(x => x.pricePerUnit).filter(v => v > 0).sort((a, b) => a - b);
-                    smPrice[world + '|' + id] = e.length ? { med: Math.round(e.reduce((a, b) => a + b, 0) / e.length), n: e.length, min: e[0], max: e[e.length - 1] } : { none: true };
+                    smPrice[world + '|' + id] = e.length ? { med: e[Math.floor((e.length - 1) / 2)], n: e.length, min: e[0], max: e[e.length - 1] } : { none: true };
                 });
             } catch (err) { chunk.forEach(id => { smPrice[world + '|' + id] = { err: true }; }); }
             chunk.forEach(id => smPriceLoading.delete(world + '|' + id));
@@ -8190,7 +8190,7 @@ window.showConfirm = showConfirm;
         const catsEl = document.getElementById('smCats');
         catsEl.innerHTML = cats.map(c => `<button type="button" class="map-group-tab${c === smCat ? ' active' : ''}" data-c="${c}">${c === 'all' ? '全部' : SM_CAT_LABEL[c]}<small style="margin-left:5px;opacity:.8">${cnt[c][0]}/${cnt[c][1]}</small></button>`).join('')
             + `<label class="sm-only"><input type="checkbox" id="smOnlyAvail"${smOnlyAvail ? ' checked' : ''}> 只看撈得到的</label>`
-            + `<div class="sm-mkt"><span>市場平均價格（7 天）</span><select id="smMktWorld" aria-label="市場伺服器">${SM_MKT_WORLDS.map(w => `<option value="${w}"${w === smMktWorld ? ' selected' : ''}>${w === '陸行鳥' ? '繁中服' : w}</option>`).join('')}</select><button type="button" class="sm-sortbtn${smSort === 'price' ? ' on' : ''}" id="smSortBtn" title="依價格高到低排序">依價格排序</button></div>`;
+            + `<div class="sm-mkt"><span>市場估算價格（7 天）</span><select id="smMktWorld" aria-label="市場伺服器">${SM_MKT_WORLDS.map(w => `<option value="${w}"${w === smMktWorld ? ' selected' : ''}>${w === '陸行鳥' ? '繁中服' : w}</option>`).join('')}</select><button type="button" class="sm-sortbtn${smSort === 'price' ? ' on' : ''}" id="smSortBtn" title="依價格高到低排序">依價格排序</button></div>`;
         catsEl.querySelectorAll('[data-c]').forEach(b => b.onclick = () => { smCat = b.dataset.c; renderSeaMap(); });
         document.getElementById('smOnlyAvail').onchange = e => { smOnlyAvail = e.target.checked; renderSeaMap(); };
         document.getElementById('smMktWorld').onchange = e => { smMktWorld = e.target.value; try { localStorage.setItem(SM_MKT_KEY, smMktWorld); } catch (er) {} renderSeaMap(); };
