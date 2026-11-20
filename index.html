@@ -1331,6 +1331,13 @@ window.UI_ACTIONS = {
             transition: all .15s;
             user-select: none;
         }
+        /* 頁尾：資料來源（小字） */
+        .site-credits { margin: 36px 0 18px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.07); font-size: 11px; line-height: 1.7; color: #777; }
+        body.light-mode .site-credits { border-top-color: rgba(0,0,0,0.08); color: #888; }
+        .site-credits b { font-weight: 700; margin-right: 6px; color: #8a8a8a; }
+        .site-credits a { color: inherit; text-decoration: underline; text-decoration-color: rgba(128,128,128,.5); text-underline-offset: 2px; }
+        .site-credits a:hover { color: var(--accent-color); }
+        @media (max-width: 640px) { .site-credits { margin: 24px 12px 90px; } }
         /* ══ 海圖設定分頁 ══ */
         #panelSeamap .sm-groups { display: flex; flex-wrap: wrap; gap: 6px; margin: 2px 0 14px; align-items: center; }
         #panelSeamap .map-group-tab { background: transparent; font-family: inherit; font-size: 13px; padding: 5px 13px; color: #b5b5b5; }
@@ -4677,6 +4684,15 @@ window.icHtml = function (t) {
             </div>
         </div>
 
+        <footer class="site-credits" aria-label="資料來源">
+            <div><b>資料來源</b>
+                地點、座標、海圖圖片、燃料：FF14 遊戲資料（<a href="https://v2.xivapi.com/" target="_blank" rel="noopener">XIVAPI</a>）・
+                掉落機率：<a href="https://docs.google.com/spreadsheets/d/1eiuGRrQTjJ5n4ogybKOBxJRT7EiJLlX93fge-Z8MmD4" target="_blank" rel="noopener">Submersible Loot Spreadsheet</a>・
+                掉落分層、地點開放版本：<a href="https://ffxiv.consolegameswiki.com/wiki/Submersibles" target="_blank" rel="noopener">Final Fantasy XIV Online Wiki</a>、日文 wiki 交叉比對・
+                物品分類：SE 官方論壇 Submersible Information Thread
+            </div>
+            <div>FINAL FANTASY XIV &copy; SQUARE ENIX CO., LTD. All Rights Reserved. 本站為玩家自製工具，與 SQUARE ENIX 無關；遊戲圖片與資料版權屬於 SQUARE ENIX。</div>
+        </footer>
     </div><!-- end right-panel -->
 
 </div><!-- end page-layout -->
