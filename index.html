@@ -1129,7 +1129,11 @@ window.UI_ACTIONS = {
         #timerListHead > [data-col=name] { grid-area: name; } #timerListHead > [data-col=count] { grid-area: count; }
         #timerListHead > [data-col=dep] { grid-area: dep; } #timerListHead > [data-col=ret] { grid-area: ret; }
         #timerListHead > [data-col=route] { grid-area: route; } #timerListHead > [data-col=group] { grid-area: group; }
-        #timerListHead > [data-col=an] { grid-area: an; }
+        #timerListHead > [data-col=an] { grid-area: an; } #timerListHead > [data-col=parts] { grid-area: parts; }
+        /* 條列：配件代碼（例如 1121、4改2改5改4改） */
+        .list-parts, .list-parts-in { display: none; }
+        #timerList.list-mode .list-parts { display: block; grid-area: parts; margin-left: var(--col-ind); font-size: 13px; font-weight: 700; letter-spacing: 0; font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+        #timerList.list-mode .list-parts.none { opacity: .45; font-weight: 500; }
         #timerListHead > [data-col=act] { grid-area: act; justify-self: end; }
         /* 拖曳欄位名稱調整順序：⠿ 常駐，滑過變成可拖曳的膠囊 */
         #timerListHead > [data-col] { position: relative; cursor: grab; user-select: none; outline: none; white-space: nowrap;
@@ -1268,6 +1272,9 @@ window.UI_ACTIONS = {
         /* 窄畫面（手機）：兩行，點一下展開航線和操作 */
         @container fleet (max-width: 1209px) {
             #timerListHead.on { display: none; }
+            #timerList.list-mode .list-parts { display: none !important; }
+            #timerList.list-mode .list-parts-in { display: inline-block; font-size: 11.5px; font-weight: 700; margin-left: 6px; padding: 1px 6px; border-radius: 6px; background: color-mix(in srgb, var(--text-color) 9%, transparent); vertical-align: 1px; }
+            #timerList.list-mode .list-parts-in:empty { display: none; }
             #timerList.list-mode .timer-footer > span:first-child { display: none; }
             #timerList.list-mode { border-radius: 10px; }
             .fleet-layout-toggle .flt-txt { display: none; }
@@ -4309,7 +4316,7 @@ window.icHtml = function (t) {
                 </div>
             </div>
             <div id="listColTip" hidden><svg class="ic ic-lightbulb" aria-hidden="true"><use href="#i-lightbulb"/></svg> 按住欄位名稱前的 <b>⠿</b> 左右拖曳，可以調整欄位順序<button type="button" data-on-click="a131" aria-label="關閉提示" title="不再顯示"><svg class="ic ic-x" aria-hidden="true"><use href="#i-x"/></svg></button></div>
-            <div id="timerListHead" role="toolbar" aria-label="欄位順序（拖曳欄位名稱，或用 Alt + ← → 調整）"><span data-col="name">船名</span><span data-col="count">剩餘</span><span data-col="dep">出航</span><span data-col="ret">回港</span><span data-col="route">上次航線／下次回港</span><span data-col="an">自動導航</span><span data-col="group">標籤</span><span data-col="act">操作</span></div>
+            <div id="timerListHead" role="toolbar" aria-label="欄位順序（拖曳欄位名稱，或用 Alt + ← → 調整）"><span data-col="name">船名</span><span data-col="parts">配件</span><span data-col="count">剩餘</span><span data-col="dep">出航</span><span data-col="ret">回港</span><span data-col="route">上次航線／下次回港</span><span data-col="an">自動導航</span><span data-col="group">標籤</span><span data-col="act">操作</span></div>
             <div class="timer-list" id="timerList"></div>
             <div class="fleet-empty" id="fleetEmpty" hidden>
                 <div class="fleet-empty-ico" aria-hidden="true"><svg class="ic ic-sub" aria-hidden="true"><use href="#i-sub"/></svg></div>
@@ -7176,13 +7183,20 @@ window.showConfirm = showConfirm;
         const summary = formatConfigSummary(t);
         el.innerHTML = summary;
         el.style.display = summary ? 'block' : 'none';
+        // 條列用的配件代碼
+        const parts = t.parts || {};
+        const code = PART_KEYS.some(k => parts[k]) ? PART_KEYS.map(k => parts[k] || '-').join('') : '';
+        const lp = document.getElementById(`lparts-${id}`);
+        if (lp) { lp.textContent = code || '未設定'; lp.classList.toggle('none', !code); lp.title = code ? `配件：${code}（船體・船尾・船首・艦橋）` : '尚未設定配件'; }
+        const lpi = document.getElementById(`lpartsin-${id}`);
+        if (lpi) lpi.textContent = code;
     }
     
     function createTimerCard(timer) { 
         const card = document.createElement('div'); 
         card.className = 'timer-card'; 
         card.id = `card-${timer.id}`; 
-        card.innerHTML = `<div class="timer-header" id="header-${timer.id}"><span class="timer-name"><span id="name-${timer.id}">${escapeHtml(String(timer.name||''))}</span> <span class="timer-level" id="level-${timer.id}">${timer.level ? `[${escapeHtml(String(timer.level))}]` : ''}</span></span><span class="timer-countdown" id="count-${timer.id}">計算中...</span></div><div class="progress-bar-bg" id="bg-${timer.id}"><div class="progress-bar" id="bar-${timer.id}" style="width: 100%"></div></div><div class="timer-footer"><span>出航：<span class="time-highlight">${formatDateTime(timer.startTime)}</span></span><span>回港：<span class="time-highlight target">${formatDateTime(timer.endTime)}</span></span></div><div class="sub-config-summary" id="config-summary-${timer.id}"></div><div class="sub-route-line" id="route-line-${timer.id}"></div><div class="sub-an-line" id="an-line-${timer.id}"></div><div class="delete-btn-wrapper"><select class="card-group-select" id="group-select-${timer.id}" onchange="changeCardGroup('${timer.id}', this.value)">${groupSelectOptionsHtml(timer.group || DEFAULT_GROUP)}</select><div class="card-action-btns"><button class="card-icon-btn btn-route" onclick="sendCardToRoutePlanner('${timer.id}')">路線規劃</button><button class="card-icon-btn btn-config" onclick="openSubConfigModal('${timer.id}')">船艇設定</button><button class="card-icon-btn btn-delete" onclick="deleteTimer('${timer.id}')" aria-label="刪除 ${escapeHtml(String(timer.name||''))}"><span aria-hidden="true"><svg class="ic ic-trash-2" aria-hidden="true"><use href="#i-trash-2"/></svg></span> 刪除</button></div></div>`; 
+        card.innerHTML = `<div class="timer-header" id="header-${timer.id}"><span class="timer-name"><span id="name-${timer.id}">${escapeHtml(String(timer.name||''))}</span> <span class="timer-level" id="level-${timer.id}">${timer.level ? `[${escapeHtml(String(timer.level))}]` : ''}</span><span class="list-parts-in" id="lpartsin-${timer.id}"></span></span><span class="timer-countdown" id="count-${timer.id}">計算中...</span></div><div class="progress-bar-bg" id="bg-${timer.id}"><div class="progress-bar" id="bar-${timer.id}" style="width: 100%"></div></div><div class="timer-footer"><span>出航：<span class="time-highlight">${formatDateTime(timer.startTime)}</span></span><span>回港：<span class="time-highlight target">${formatDateTime(timer.endTime)}</span></span></div><div class="sub-config-summary" id="config-summary-${timer.id}"></div><span class="list-parts" id="lparts-${timer.id}"></span><div class="sub-route-line" id="route-line-${timer.id}"></div><div class="sub-an-line" id="an-line-${timer.id}"></div><div class="delete-btn-wrapper"><select class="card-group-select" id="group-select-${timer.id}" onchange="changeCardGroup('${timer.id}', this.value)">${groupSelectOptionsHtml(timer.group || DEFAULT_GROUP)}</select><div class="card-action-btns"><button class="card-icon-btn btn-route" onclick="sendCardToRoutePlanner('${timer.id}')">路線規劃</button><button class="card-icon-btn btn-config" onclick="openSubConfigModal('${timer.id}')">船艇設定</button><button class="card-icon-btn btn-delete" onclick="deleteTimer('${timer.id}')" aria-label="刪除 ${escapeHtml(String(timer.name||''))}"><span aria-hidden="true"><svg class="ic ic-trash-2" aria-hidden="true"><use href="#i-trash-2"/></svg></span> 刪除</button></div></div>`; 
         // 先停掉這艘船舊卡片的倒數，避免舊計時器把舊卡片又塞回清單（造成重複卡片）
         if (_timerIntervals.has(timer.id)) { clearInterval(_timerIntervals.get(timer.id)); _timerIntervals.delete(timer.id); }
         timerList.appendChild(card); 
@@ -7284,21 +7298,24 @@ window.showConfirm = showConfirm;
     })();
     // ── 條列欄位順序（電腦版，可拖曳；只存在這台裝置）──
     const LIST_COLS = {
-        name:  { full: 'minmax(140px,1fr)', mid: 'minmax(130px,1fr)', area: 'name' },
+        name:  { full: 'minmax(116px,1fr)', mid: 'minmax(106px,1fr)', area: 'name' },
+        parts: { full: 'minmax(104px,.4fr)', mid: 'minmax(100px,.35fr)', area: 'parts' },
         count: { full: 'minmax(108px,.45fr)', mid: 'minmax(104px,.45fr)', area: 'count' },
-        dep:   { full: 'minmax(102px,.45fr)', mid: 'minmax(100px,.45fr)', area: 'dep' },
-        ret:   { full: 'minmax(102px,.45fr)', mid: 'minmax(100px,.45fr)', area: 'ret' },
-        route: { full: 'minmax(280px,1.5fr)', mid: 'minmax(280px,1.5fr)', area: 'route' },
-        an:    { full: 'minmax(160px,.7fr)', mid: 'minmax(150px,.6fr)', area: 'an' },
-        group: { full: 'minmax(124px,.4fr)', mid: null, area: 'group' },
-        act:   { full: '246px', mid: '236px', area: 'act' }
+        dep:   { full: 'minmax(98px,.45fr)', mid: 'minmax(94px,.45fr)', area: 'dep' },
+        ret:   { full: 'minmax(98px,.45fr)', mid: 'minmax(94px,.45fr)', area: 'ret' },
+        route: { full: 'minmax(250px,1.5fr)', mid: 'minmax(240px,1.5fr)', area: 'route' },
+        an:    { full: 'minmax(145px,.7fr)', mid: 'minmax(136px,.6fr)', area: 'an' },
+        group: { full: 'minmax(110px,.4fr)', mid: null, area: 'group' },
+        act:   { full: '240px', mid: '236px', area: 'act' }
     };
-    const LIST_DEFAULT = ['name', 'count', 'dep', 'ret', 'route', 'an', 'group', 'act'];
+    const LIST_DEFAULT = ['name', 'parts', 'count', 'dep', 'ret', 'route', 'an', 'group', 'act'];
     function getListOrder() {
         try {
             let a = JSON.parse(localStorage.getItem('sub_list_cols') || 'null');
             // 舊的欄位順序沒有「自動導航」：插在航線後面
             if (Array.isArray(a) && !a.includes('an') && a.includes('route')) { a = a.slice(); a.splice(a.indexOf('route') + 1, 0, 'an'); }
+            // 舊的欄位順序沒有「配件」：插在船名後面
+            if (Array.isArray(a) && !a.includes('parts') && a.includes('name')) { a = a.slice(); a.splice(a.indexOf('name') + 1, 0, 'parts'); }
             if (Array.isArray(a) && a.length === LIST_DEFAULT.length && LIST_DEFAULT.every(k => a.includes(k))) return a;
         } catch (e) {}
         return LIST_DEFAULT.slice();
