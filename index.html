@@ -1457,6 +1457,8 @@ window.UI_ACTIONS = {
         .sm-pr small { font-size: 10.5px; font-weight: 500; color: #888; margin-left: 4px; }
         .sm-pr.na, .sm-pr.ld { color: #777; font-weight: 500; font-size: 11.5px; }
         .sm-pts { margin-left: auto; flex: none; display: inline-flex; gap: 3px; flex-wrap: wrap; justify-content: flex-end; max-width: 46%; }
+        .sm-help { display: inline-flex; align-items: center; justify-content: center; width: 13px; height: 13px; margin-left: 3px; border-radius: 50%; font-style: normal; font-size: 9.5px; font-weight: 800; line-height: 1; vertical-align: 1px; cursor: help; color: #9aa0aa; border: 1px solid rgba(154,160,170,.55); }
+        .sm-help:hover, .sm-help:focus-visible { color: rgb(var(--accent-rgb)); border-color: rgb(var(--accent-rgb)); outline: none; }
         .sm-pts i { font-style: normal; font-size: 11px; font-weight: 800; min-width: 18px; padding: 1px 4px; text-align: center; border-radius: 5px; color: #7d828c; background: rgba(255,255,255,0.05); }
         body.light-mode .sm-pts i { background: rgba(0,0,0,0.05); color: #999; }
         .sm-pts i.on { background: rgba(var(--accent-rgb), .9); color: #fff; }
@@ -4746,7 +4748,7 @@ window.icHtml = function (t) {
                         <div class="sm-maps" id="smMaps"></div>
                     </div>
                     <div class="sm-card sm-o4">
-                        <div class="sm-card-head"><h3>可撈到的物品<span class="sm-sub" id="smLootSub"></span></h3><span class="sm-sub" style="font-size:11.5px">獲得機率＝撈一次拿到的機率</span></div>
+                        <div class="sm-card-head"><h3>可撈到的物品<span class="sm-sub" id="smLootSub"></span></h3></div>
                         <div class="sm-cat-tabs" id="smCats" style="margin-bottom:8px;align-items:center"></div>
                         <div class="sm-loot" id="smLoot"></div>
                     </div>
@@ -8305,7 +8307,7 @@ window.showConfirm = showConfirm;
         });
         const lootEl = document.getElementById('smLoot');
         lootEl.className = 'sm-loot sm-cat-' + smCat;
-        if (html) html = '<div class="sm-thead"><span></span><span>物品</span><span>交易</span><span>狀態</span><span>獲得機率</span><span>海點</span><span>估算價格</span></div>' + html;
+        if (html) html = '<div class="sm-thead"><span></span><span>物品</span><span>交易</span><span>狀態</span><span>獲得機率<i class="sm-help" tabindex="0" title="獲得機率＝撈一次拿到的機率（取最高的海點）" aria-label="說明：獲得機率＝撈一次拿到的機率">?</i></span><span>海點</span><span>估算價格</span></div>' + html;
         lootEl.innerHTML = html || `<div class="sm-empty">${smOnlyAvail ? '目前開的海點撈不到這類物品' : '這個分類沒有物品'}</div>`;
         lootEl.querySelectorAll('.sm-copy').forEach(b => b.onclick = e => {
             e.stopPropagation();
