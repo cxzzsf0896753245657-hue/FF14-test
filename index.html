@@ -782,6 +782,9 @@ window.UI_ACTIONS = {
         .lp-sound-label { font-size: 10.5px; color: #888; white-space: nowrap; flex-shrink: 0; }
         #alarmSelect { background: transparent; color: var(--text-color); border: none; font-size: 12px; cursor: pointer; outline: none; flex: 1; min-width: 0; }
         body.light-mode #alarmSelect { color: #333; }
+        #alarmSelect option { background: #26252c; color: #f2f2f2; }
+        #alarmSelect option:checked { background: var(--accent-color); color: #fff; }
+        body.light-mode #alarmSelect option { background: #fff; color: #222; }
         #volumeSlider { width: 55px; cursor: pointer; flex-shrink: 0; }
         .lp-test-btn {
             background: transparent; border: 1px solid rgba(255,255,255,0.1); color: #888;
