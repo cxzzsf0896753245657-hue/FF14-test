@@ -1385,6 +1385,14 @@ window.UI_ACTIONS = {
         .sm-node.on { border-color: var(--accent-color); background: var(--accent-color); color: #fff; }
         .sm-node:hover, .sm-node.hl { border-color: #ffd36b; }
         /* 可撈到的物品：一列一項，✓＝已開的海點撈得到 */
+        .sm-ship { flex-basis: 100%; order: -1; display: flex; align-items: center; gap: 8px; margin-bottom: 8px; font-size: 12px; color: #999; flex-wrap: wrap; }
+        .sm-ship select { background: var(--card-color); color: var(--text-color); border: 1px solid rgba(255,255,255,0.15); border-radius: 7px; padding: 4px 6px; font: inherit; font-size: 12.5px; max-width: 100%; }
+        body.light-mode .sm-ship select { border-color: rgba(0,0,0,0.15); }
+        .sm-ship select option, .sm-ship select optgroup { background: #26252c; color: #f2f2f2; } body.light-mode .sm-ship select option, body.light-mode .sm-ship select optgroup { background: #fff; color: #222; }
+        .sm-ship-st b { color: var(--accent-color); font-size: 13px; }
+        .sm-row.ex .sm-st { background: #e0a84a; color: #1b1206; font-size: 10px; }
+        .sm-row.ex .sm-nm { color: #d9b26b; font-weight: 600; }
+        .sm-pts i.ex { background: rgba(224,168,74,.85); color: #1b1206; }
         .sm-only { margin-left: auto; font-size: 12px; color: #999; display: inline-flex; align-items: center; gap: 5px; cursor: pointer; user-select: none; }
         .sm-only input { accent-color: var(--accent-color); margin: 0; }
         #smLootSub b { color: var(--success-color, #4caf50); font-size: 13px; }
@@ -4708,7 +4716,7 @@ window.icHtml = function (t) {
                         <div class="sm-maps" id="smMaps"></div>
                     </div>
                     <div class="sm-card sm-o4">
-                        <div class="sm-card-head"><h3>可撈到的物品<span class="sm-sub" id="smLootSub"></span></h3><span class="sm-sub" style="font-size:11.5px">✓ 已開的海點撈得到・編號亮起＝已開</span></div>
+                        <div class="sm-card-head"><h3>可撈到的物品<span class="sm-sub" id="smLootSub"></span></h3><span class="sm-sub" style="font-size:11.5px">✓ 撈得到・△ 探索不足・編號亮起＝這個點拿得到</span></div>
                         <div class="sm-cat-tabs" id="smCats" style="margin-bottom:8px;align-items:center"></div>
                         <div class="sm-loot" id="smLoot"></div>
                     </div>
@@ -8077,6 +8085,7 @@ window.showConfirm = showConfirm;
     const SM_MKT_WORLDS = ['陸行鳥', '伊弗利特', '迦樓羅', '利維坦', '鳳凰', '奧汀', '巴哈姆特', '拉姆', '泰坦'];
     let smMktWorld = (() => { try { return localStorage.getItem(SM_MKT_KEY) || '陸行鳥'; } catch (e) { return '陸行鳥'; } })();
     let smSort = 'name';
+    let smShipId = (() => { try { return localStorage.getItem('sub_sm_ship') || ''; } catch (e) { return ''; } })();
     const smPrice = {};   // `${world}|${id}` → { med, n, t } 或 { none: true }
     const smPriceLoading = new Set();
     function smPriceOf(id) { return smPrice[smMktWorld + '|' + id]; }
@@ -8198,23 +8207,43 @@ window.showConfirm = showConfirm;
             const ps = where.map(w => w.p).filter(v => v != null);
             return { id, name: ITEM_DB[id], cat: itemCategoryOf(id), type: smItemType(id, ITEM_DB[id]), where, best: ps.length ? Math.max(...ps) : 999, maxTier: Math.max(...where.map(w => w.tr)) };
         }).sort((a, b) => SM_CAT_RANK[a.cat] - SM_CAT_RANK[b.cat] || a.name.localeCompare(b.name, 'zh-Hant-TW-u-co-stroke'));   // 同類依名稱（筆畫）排序
-        const avail = x => x.where.some(w => w.on);
+        // 選了船：再看等級與探索性能（T1/T2/T3 探索門檻）；沒選船只看海點有沒有開
+        const ships = getActiveTimers();
+        const ship = smShipId ? ships.find(t => t.id === smShipId) : null;
+        if (smShipId && !ship) smShipId = '';
+        const shipStats = ship ? computeStats(ship.level, ship.parts || {}) : null;
+        const shipLv = ship ? parseInt(ship.level, 10) || 0 : 0;
+        const secBy = {}; secs.forEach(sc => { secBy[sc[2]] = sc; });
+        list.forEach(x => x.where.forEach(w => {
+            const sc = secBy[w.l];
+            if (!w.on) { w.st = 'off'; w.why = '海點未開'; return; }
+            if (!ship || !sc) { w.st = 'ok'; w.why = ''; return; }
+            if (shipLv < sc[5]) { w.st = 'lv'; w.why = `需要 Lv${sc[5]}（目前 ${shipLv}）`; return; }
+            const thr = w.tr === 3 ? sc[11] : w.tr === 2 ? sc[10] : sc[8];
+            if (shipStats.explore < thr) { w.st = 'ex'; w.why = `探索 ${shipStats.explore}／需要 ${thr}（差 ${thr - shipStats.explore}）`; return; }
+            w.st = 'ok'; w.why = '';
+        }));
+        const avail = x => x.where.some(w => w.st === 'ok');
+        const nearly = x => !avail(x) && x.where.some(w => w.st === 'ex');
         const cats = ['rare', 'workshop', 'other', 'all'];
         const cnt = {}; cats.forEach(c => { const xs = list.filter(x => c === 'all' || x.cat === c); cnt[c] = [xs.filter(avail).length, xs.length]; });
         const catsEl = document.getElementById('smCats');
         catsEl.innerHTML = cats.map(c => `<button type="button" class="map-group-tab${c === smCat ? ' active' : ''}" data-c="${c}">${c === 'all' ? '全部' : SM_CAT_LABEL[c]}<small style="margin-left:5px;opacity:.8">${cnt[c][0]}/${cnt[c][1]}</small></button>`).join('')
+            + `<div class="sm-ship"><span>用哪艘船判斷</span><select id="smShipSel" aria-label="用哪艘船判斷撈不撈得到"><option value="">不指定（只看海點有沒有開）</option>${(() => { const gs = {}; ships.forEach(t => { const g = t.group || DEFAULT_GROUP; (gs[g] = gs[g] || []).push(t); }); return Object.entries(gs).map(([g, ts]) => `<optgroup label="${escapeHtml(g)}">${ts.map(t => `<option value="${t.id}"${t.id === smShipId ? ' selected' : ''}>${escapeHtml(String(t.name || ''))}${t.level ? ` Lv${escapeHtml(String(t.level))}` : ''}</option>`).join('')}</optgroup>`).join(''); })()}</select>${shipStats ? `<span class="sm-ship-st">探索 <b>${shipStats.explore}</b></span>` : ''}</div>`
             + `<label class="sm-only"><input type="checkbox" id="smOnlyAvail"${smOnlyAvail ? ' checked' : ''}> 只看撈得到的</label>`
             + `<div class="sm-mkt"><span>市場估算價格（7 天）</span><select id="smMktWorld" aria-label="市場伺服器">${SM_MKT_WORLDS.map(w => `<option value="${w}"${w === smMktWorld ? ' selected' : ''}>${w === '陸行鳥' ? '繁中服' : w}</option>`).join('')}</select><button type="button" class="sm-sortbtn${smSort === 'price' ? ' on' : ''}" id="smSortBtn" title="依價格高到低排序">依價格排序</button></div>`;
         catsEl.querySelectorAll('[data-c]').forEach(b => b.onclick = () => { smCat = b.dataset.c; renderSeaMap(); });
         document.getElementById('smOnlyAvail').onchange = e => { smOnlyAvail = e.target.checked; renderSeaMap(); };
+        document.getElementById('smShipSel').onchange = e => { smShipId = e.target.value; try { localStorage.setItem('sub_sm_ship', smShipId); } catch (er) {} renderSeaMap(); };
         document.getElementById('smMktWorld').onchange = e => { smMktWorld = e.target.value; try { localStorage.setItem(SM_MKT_KEY, smMktWorld); } catch (er) {} renderSeaMap(); };
         document.getElementById('smSortBtn').onclick = () => { smSort = smSort === 'price' ? 'name' : 'price'; renderSeaMap(); };
         const [ca, ct] = cnt[smCat];
         document.getElementById('smLootSub').innerHTML = `目前撈得到 <b>${ca}</b> / ${ct} 項`;
         const rowHtml = x => {
-            const ok = avail(x);
+            const ok = avail(x), ex = nearly(x);
+            const exW = ex ? x.where.filter(w => w.st === 'ex').sort((a, b) => (parseInt(a.why.split('差 ')[1]) || 0) - (parseInt(b.why.split('差 ')[1]) || 0))[0] : null;
             const bestW = x.where.filter(w => w.d != null).sort((a, b) => b.d - a.d)[0];   // 獲得機率（撈一次拿到的機率）最高的點
-            return `<div class="sm-row ${ok ? 'ok' : 'no'} cat-${x.cat}" title="${escapeHtml(x.name)}${bestW ? `・獲得機率最高 ${bestW.l} 點約 ${bestW.d}%` : ''}${ok ? '' : '・要先開海點'}"><span class="sm-st" aria-label="${ok ? '撈得到' : '還沒開'}">${ok ? '✓' : ''}</span><span class="sm-nm">${escapeHtml(x.name)}</span><button type="button" class="sm-copy" data-copy="${escapeHtml(x.name)}" title="複製名稱" aria-label="複製「${escapeHtml(x.name)}」"><svg class="ic" aria-hidden="true"><use href="#i-copy"/></svg></button>${(tr => `<span class="sm-tr ${tr}" title="${tr === 'market' ? '可交易，可以上市場板' : tr === 'trade' ? '可以交易，但不能上市場板' : '不可交易'}">${tr === 'market' ? '可交易' : tr === 'trade' ? '可交易・無市場' : '不可交易'}</span>`)(smTrade(x.id))}<span class="sm-pts">${x.where.map(w => `<i class="${w.on ? 'on' : ''}" title="${w.l} 點・T${w.tr}${w.d != null ? '・獲得機率約 ' + w.d + '%' : w.p != null ? '・T' + w.tr + ' 內機率 ' + w.p + '%（無獲得機率資料）' : ''}${w.on ? '' : '（未開）'}">${w.l}</i>`).join('')}</span>${smPriceHtml(x.id)}</div>`;
+            return `<div class="sm-row ${ok ? 'ok' : ex ? 'ex' : 'no'} cat-${x.cat}" title="${escapeHtml(x.name)}${bestW ? `・獲得機率最高 ${bestW.l} 點約 ${bestW.d}%` : ''}${ok ? '' : ex ? `・${exW.l} 點${exW.why}` : ship ? '・海點未開或等級不足' : '・要先開海點'}"><span class="sm-st" aria-label="${ok ? '撈得到' : ex ? '探索不足' : '撈不到'}">${ok ? '✓' : ex ? '△' : ''}</span><span class="sm-nm">${escapeHtml(x.name)}</span><button type="button" class="sm-copy" data-copy="${escapeHtml(x.name)}" title="複製名稱" aria-label="複製「${escapeHtml(x.name)}」"><svg class="ic" aria-hidden="true"><use href="#i-copy"/></svg></button>${(tr => `<span class="sm-tr ${tr}" title="${tr === 'market' ? '可交易，可以上市場板' : tr === 'trade' ? '可以交易，但不能上市場板' : '不可交易'}">${tr === 'market' ? '可交易' : tr === 'trade' ? '可交易・無市場' : '不可交易'}</span>`)(smTrade(x.id))}<span class="sm-pts">${x.where.map(w => `<i class="${w.st === 'ok' ? 'on' : w.st === 'ex' ? 'ex' : ''}" title="${w.l} 點・T${w.tr}${w.d != null ? '・獲得機率約 ' + w.d + '%' : w.p != null ? '・T' + w.tr + ' 內機率 ' + w.p + '%（無獲得機率資料）' : ''}${w.why ? '（' + w.why + '）' : ''}">${w.l}</i>`).join('')}</span>${smPriceHtml(x.id)}</div>`;
         };
         const pick = xs => smOnlyAvail ? xs.filter(avail) : xs;
         // 依類型分段（沉船裝備、樂譜、家具…），每段標出撈得到／總數
