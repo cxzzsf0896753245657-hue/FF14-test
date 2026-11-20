@@ -1393,11 +1393,16 @@ window.UI_ACTIONS = {
         .sm-st { flex: none; width: 18px; height: 18px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 900; }
         .sm-row.ok .sm-st { background: var(--success-color, #4caf50); color: #fff; }
         .sm-row.no .sm-st { border: 1.5px solid rgba(160,160,170,.45); }
-        .sm-nm { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600; }
+        .sm-nm { flex: 0 1 auto; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600; }
         .sm-row.no .sm-nm { color: #8a8f99; font-weight: 500; }
         .sm-row.ok.cat-rare .sm-nm { color: #d7b8f5; }
         body.light-mode .sm-row.ok.cat-rare .sm-nm { color: #7a3fb5; }
-        .sm-pts { flex: none; display: inline-flex; gap: 3px; flex-wrap: wrap; justify-content: flex-end; max-width: 46%; }
+        .sm-tr { flex: none; font-size: 10.5px; font-weight: 700; padding: 1px 6px; border-radius: 999px; white-space: nowrap; }
+        .sm-tr.market { color: #7fc99a; background: rgba(76,175,80,.12); }
+        .sm-tr.trade { color: #e0b15a; background: rgba(224,168,74,.14); }
+        .sm-tr.no { color: #ef8a8a; background: rgba(239,83,80,.14); }
+        body.light-mode .sm-tr.market { color: #2e7d32; } body.light-mode .sm-tr.trade { color: #a06a00; } body.light-mode .sm-tr.no { color: #c62828; }
+        .sm-pts { margin-left: auto; flex: none; display: inline-flex; gap: 3px; flex-wrap: wrap; justify-content: flex-end; max-width: 46%; }
         .sm-pts i { font-style: normal; font-size: 11px; font-weight: 800; min-width: 18px; padding: 1px 4px; text-align: center; border-radius: 5px; color: #7d828c; background: rgba(255,255,255,0.05); }
         body.light-mode .sm-pts i { background: rgba(0,0,0,0.05); color: #999; }
         .sm-pts i.on { background: rgba(var(--accent-rgb), .9); color: #fff; }
@@ -8047,6 +8052,9 @@ window.showConfirm = showConfirm;
     const SM_TYPE_ORDER = ["管弦樂琴樂譜", "寵物", "家具", "桌上擺設", "壁掛", "地毯", "天花板照明", "桌子", "庭具", "部件", "雜貨", "頭部防具", "石材", "金屬", "木材", "布料", "皮革", "骨材", "鍊金術材料", "食材", "藥品", "觸媒", "魔晶石", "水晶", "其他"];
     const SM_GAME_CAT = (() => { const m = {}; Object.entries({"水晶":[2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19],"金屬":[5066,5067,5069,9360,12520,16706,19938,27708,27709,33872,38685,39586,39588,40696,43997,43998,43999,44000,44001,44011],"石材":[5113,5116,5118,5120,5121,5187,5188,5189,5192,5226,5230,5231,5232,7008,7009,7010,7588,7589,7671,10099,12223,12224,12225,12226,12227,12228,12229,12230,12531,12532,12533,12534,12537,12538,12539,12544,12545,12551,12928,12929,14151,14934,14955,16725,19952,19953,19956,19957,19962,19964,19967,25008,26531,27696,27697,27698,27699,27700,27701,27702,27703,27801,27803,30034,36164,36165,36174,36175,36176,36177,36178,36180,36181,37489,39587,41652,43992,43993,43994,43995,43996,44002,44003,44004,44005,44006,44007,44009,44010,44012],"木材":[5365,5384,5391,5392,5395,12221,12578,12579,12585,12586,12923,12924,12925,14957,19930,19932,19933,19934,26528,26529,27683,27684,27685,27686,27687,36190,36193,36194,40697,40698,41806,44014,44015,44016,44017,44018,44021,44022,44023,46262,52632],"鍊金術材料":[5512,5563,5564,7040,7047,7590,8028,12606,12610,12920,12921,12922,16908,20013,20014,20791,27773,27774,27817,29590,37083,45073,48731],"魔晶石":[5630,5631,5632,5633,5665,5666,5667,5668,5671,5672,5673,5675,5676,5677,5678,5680,5681,5682,5683,5688,5690,5691,5693,5695,5696,5698,5700,5701,5703,5705,5706,5707,5708,5710,5711,5712,5713,5715,5716,5717,5718,5720,5721,5722,5723,18011,18018,18019,18020,18021,18022,18023,18024,18025,18026,18027,18028,18029,25186,25187,25188,25189,25190,25197,25198],"觸媒":[7621,10335,10386,17837,21800],"頭部防具":[9298],"家具":[9733,44895,46110],"布料":[12220,12926,12927,16906,19980,20270,27753,27759,36205,36206,38684,44024,44025,44026,44029,44030,44031,50831],"皮革":[12222,27736,44053,44054,44055,44058,44059,44060],"雜貨":[12657,22441,22442,22500,22501,22502,22503,22504,22505,22506,22507,23222,24908,31322,33873,37485,37487,37490,39585,44261,46836,46837,46846,48149,50456,50457,52442,52443,52444,52445],"地毯":[15976,17019,41651,48131],"寵物":[21921,24902,26802,28621,30093,32848,33695,39476,40381,44486,44488],"管弦樂琴樂譜":[23337,31671,33120,33848,39618,41664,41665,44326,44327,45037,46146,48224,50794,50796,52358],"桌上擺設":[23875,24490,24503,24505,27287,27293,28136,28980,30386,32205,32223,39382,39387,40638,40659,41143,41818,41820,41821],"藥品":[27995,27996,27998],"桌子":[32214,44900],"庭具":[32248,38619,41427,46121,48102,51269],"壁掛":[33287,38580,38607,38608,41103,44911,46104,49853,51264],"骨材":[33871],"食材":[36083,36086,36087,36089,36094,36096,36097,43974,43976,43977,43978,43979,43981,43982,43985,43986,43987,43988],"部件":[40699],"天花板照明":[46089,48099]}).forEach(([c, ids]) => ids.forEach(id => { m[id] = c; })); return m; })();
     function smItemType(id) { return SM_GAME_CAT[id] || '其他'; }
+    // 交易：遊戲資料的 IsUntradable／ItemSearchCategory（XIVAPI）
+    const SM_UNTRADABLE = new Set([37487]), SM_NO_MARKET = new Set([12920, 12921, 12922, 12923, 12924, 12925, 12926, 12927, 12928, 12929, 22500, 22501, 22502, 22503, 22504, 22505, 22506, 22507, 26528, 29590, 37083]);
+    function smTrade(id) { return SM_UNTRADABLE.has(id) ? 'no' : SM_NO_MARKET.has(id) ? 'trade' : 'market'; }
     window.renderSeaMap = function renderSeaMap() {
         const panel = document.getElementById('panelSeamap'); if (!panel) return;
         const allGroups = allGroupNames();
@@ -8139,7 +8147,7 @@ window.showConfirm = showConfirm;
         const rowHtml = x => {
             const ok = avail(x);
             const best = x.where.filter(w => w.p != null).reduce((m, w) => Math.max(m, w.p), 0);
-            return `<div class="sm-row ${ok ? 'ok' : 'no'} cat-${x.cat}" title="${escapeHtml(x.name)}${best ? `・最高約 ${best}%` : ''}${ok ? '' : '・要先開海點'}"><span class="sm-st" aria-label="${ok ? '撈得到' : '還沒開'}">${ok ? '✓' : ''}</span><span class="sm-nm">${escapeHtml(x.name)}</span><span class="sm-pts">${x.where.map(w => `<i class="${w.on ? 'on' : ''}" title="${w.l} 點・T${w.tr}${w.p != null ? '・約 ' + w.p + '%' : ''}${w.on ? '' : '（未開）'}">${w.l}</i>`).join('')}</span></div>`;
+            return `<div class="sm-row ${ok ? 'ok' : 'no'} cat-${x.cat}" title="${escapeHtml(x.name)}${best ? `・最高約 ${best}%` : ''}${ok ? '' : '・要先開海點'}"><span class="sm-st" aria-label="${ok ? '撈得到' : '還沒開'}">${ok ? '✓' : ''}</span><span class="sm-nm">${escapeHtml(x.name)}</span>${(tr => `<span class="sm-tr ${tr}" title="${tr === 'market' ? '可交易，可以上市場板' : tr === 'trade' ? '可以交易，但不能上市場板' : '不可交易'}">${tr === 'market' ? '可交易' : tr === 'trade' ? '可交易・無市場' : '不可交易'}</span>`)(smTrade(x.id))}<span class="sm-pts">${x.where.map(w => `<i class="${w.on ? 'on' : ''}" title="${w.l} 點・T${w.tr}${w.p != null ? '・約 ' + w.p + '%' : ''}${w.on ? '' : '（未開）'}">${w.l}</i>`).join('')}</span></div>`;
         };
         const pick = xs => smOnlyAvail ? xs.filter(avail) : xs;
         // 依類型分段（沉船裝備、樂譜、家具…），每段標出撈得到／總數
