@@ -175,6 +175,9 @@ window.UI_ACTIONS = {
     a13: function (event) { testVolume(this.value) },
     a14: function (event) { testAlarm() },
     a160: function (event) { toggleSound() },
+    a161: function (event) { smSetAll(this.dataset.all === '1') },
+    a162: function (event) { switchRpTab('seamap') },
+    a163: function (event) { switchMobileTab('seamap') },
     a15: function (event) { toggleUploadZone(this) },
     a16: function (event) { document.getElementById('fileInput').click() },
     a17: function (event) { toggleCollapse('content1', this) },
@@ -1322,6 +1325,78 @@ window.UI_ACTIONS = {
             transition: all .15s;
             user-select: none;
         }
+        /* ══ 海圖設定分頁 ══ */
+        #panelSeamap .sm-groups { display: flex; flex-wrap: wrap; gap: 6px; margin: 2px 0 14px; align-items: center; }
+        #panelSeamap .map-group-tab { background: transparent; font-family: inherit; font-size: 13px; padding: 5px 13px; color: #b5b5b5; }
+        body.light-mode #panelSeamap .map-group-tab { color: #555; border-color: rgba(0,0,0,0.15); }
+        #panelSeamap .map-group-tab:hover { border-color: rgba(var(--accent-rgb),0.5); color: var(--accent-color); }
+        #panelSeamap .map-group-tab.active { background: var(--accent-color); color: #fff; border-color: var(--accent-color); }
+        #panelSeamap .sm-groups-lbl { font-size: 12.5px; color: #888; margin-right: 4px; }
+        .sm-grid { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+        .sm-card { background: var(--card-color); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 14px; }
+        body.light-mode .sm-card { border-color: rgba(0,0,0,0.08); }
+        .sm-card + .sm-card { margin-top: 16px; }
+        .sm-card-head { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
+        .sm-card-head h3 { margin: 0; font-size: 15px; font-weight: 800; flex: 1; min-width: 0; }
+        .sm-card-head .sm-sub { font-size: 12px; color: #888; font-weight: 500; margin-left: 6px; }
+        .sm-mini-btn { font-size: 12px; padding: 4px 10px; border-radius: 7px; cursor: pointer; background: transparent; color: var(--text-color); border: 1px solid rgba(255,255,255,0.15); }
+        .sm-mini-btn:hover { border-color: var(--accent-color); color: var(--accent-color); }
+        body.light-mode .sm-mini-btn { border-color: rgba(0,0,0,0.15); }
+        .sm-map-svg { width: 100%; height: auto; display: block; border-radius: 10px; background: radial-gradient(ellipse at 50% 40%, rgba(var(--accent-rgb),0.10), rgba(0,0,0,0) 70%), #10161d; }
+        body.light-mode .sm-map-svg { background: radial-gradient(ellipse at 50% 40%, rgba(var(--accent-rgb),0.10), rgba(0,0,0,0) 70%), #eaf1f6; }
+        .sm-map-svg .grid line { stroke: rgba(255,255,255,0.05); }
+        body.light-mode .sm-map-svg .grid line { stroke: rgba(0,0,0,0.06); }
+        .sm-map-svg .lk { stroke: rgba(255,255,255,0.22); stroke-width: 2; stroke-dasharray: 5 6; fill: none; }
+        body.light-mode .sm-map-svg .lk { stroke: rgba(0,0,0,0.22); }
+        .sm-map-svg .lk.on { stroke: rgba(var(--accent-rgb),0.6); }
+        .sm-map-svg .nd { cursor: pointer; }
+        .sm-map-svg .nd circle { fill: #2b2f38; stroke: #59606e; stroke-width: 2.5; transition: fill .15s; }
+        body.light-mode .sm-map-svg .nd circle { fill: #fff; stroke: #9aa3b2; }
+        .sm-map-svg .nd.on circle { fill: var(--accent-color); stroke: #fff; }
+        .sm-map-svg .nd:hover circle, .sm-map-svg .nd.hl circle { stroke: #ffd36b; stroke-width: 4; }
+        .sm-map-svg .nd text.l { font-weight: 900; font-size: 19px; fill: #9aa3b2; text-anchor: middle; dominant-baseline: central; pointer-events: none; }
+        .sm-map-svg .nd.on text.l { fill: #fff; }
+        .sm-map-svg .nd text.n { font-size: 13px; fill: #c9ced8; text-anchor: middle; pointer-events: none; paint-order: stroke; stroke: #10161d; stroke-width: 4px; }
+        body.light-mode .sm-map-svg .nd text.n { fill: #333; stroke: #eaf1f6; }
+        .sm-map-svg .home rect { fill: #e9b949; }
+        .sm-map-svg .home text { font-size: 12px; font-weight: 700; fill: #e9b949; text-anchor: middle; paint-order: stroke; stroke: #10161d; stroke-width: 4px; }
+        body.light-mode .sm-map-svg .home text { stroke: #eaf1f6; fill: #a77b12; }
+        .sm-legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12px; color: #888; margin-top: 8px; }
+        .sm-legend i { display: inline-block; width: 11px; height: 11px; border-radius: 50%; margin-right: 5px; vertical-align: -1px; }
+        .sm-hint { font-size: 12.5px; color: #e0a84a; background: rgba(224,168,74,0.1); border: 1px solid rgba(224,168,74,0.3); border-radius: 8px; padding: 7px 10px; margin-bottom: 10px; }
+        .sm-nodes { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px; }
+        .sm-node { display: flex; align-items: center; gap: 8px; padding: 6px 9px; border-radius: 8px; cursor: pointer; text-align: left; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.02); color: var(--text-color); font: inherit; }
+        body.light-mode .sm-node { border-color: rgba(0,0,0,0.1); background: rgba(0,0,0,0.015); }
+        .sm-node b { flex: none; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; background: rgba(255,255,255,0.08); color: #9aa3b2; }
+        .sm-node span { flex: 1; min-width: 0; font-size: 13px; line-height: 1.25; }
+        .sm-node small { display: block; font-size: 11px; color: #888; }
+        .sm-node.on { border-color: rgba(var(--accent-rgb),0.55); background: rgba(var(--accent-rgb),0.12); }
+        .sm-node.on b { background: var(--accent-color); color: #fff; }
+        .sm-node:hover, .sm-node.hl { border-color: #ffd36b; }
+        .sm-maps { display: flex; flex-wrap: wrap; gap: 6px; }
+        .sm-maps .map-group-tab small { font-size: 11px; opacity: .75; margin-left: 4px; }
+        .sm-cat-tabs { display: flex; gap: 5px; flex-wrap: wrap; }
+        .sm-loot { display: flex; flex-direction: column; gap: 6px; max-height: 640px; overflow-y: auto; padding-right: 2px; }
+        .sm-item { display: flex; gap: 10px; align-items: flex-start; padding: 8px 10px; border-radius: 9px; border: 1px solid rgba(255,255,255,0.07); border-left: 4px solid #6b7280; }
+        body.light-mode .sm-item { border-color: rgba(0,0,0,0.07); }
+        .sm-item.rare { border-left-color: #c89fef; background: rgba(200,159,239,0.07); }
+        .sm-item.workshop { border-left-color: #5fb3e8; }
+        .sm-item.other { border-left-color: #8b949e; }
+        .sm-item-main { flex: 1; min-width: 0; }
+        .sm-item-name { font-size: 14px; font-weight: 700; }
+        .sm-item-cat { font-size: 11px; font-weight: 700; padding: 1px 7px; border-radius: 999px; margin-left: 6px; vertical-align: 1px; }
+        .sm-item.rare .sm-item-cat { background: rgba(200,159,239,0.2); color: #d7b8f5; }
+        .sm-item.workshop .sm-item-cat { background: rgba(95,179,232,0.18); color: #8fcaf0; }
+        .sm-item.other .sm-item-cat { background: rgba(139,148,158,0.2); color: #b4bcc6; }
+        body.light-mode .sm-item.rare .sm-item-cat { color: #7a3fb5; } body.light-mode .sm-item.workshop .sm-item-cat { color: #1f6fa3; } body.light-mode .sm-item.other .sm-item-cat { color: #555; }
+        .sm-item-where { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 5px; }
+        .sm-where { font-size: 11.5px; padding: 1px 7px; border-radius: 6px; background: rgba(255,255,255,0.06); color: #c9ced8; cursor: default; }
+        body.light-mode .sm-where { background: rgba(0,0,0,0.05); color: #444; }
+        .sm-where.off { opacity: .4; text-decoration: line-through; }
+        .sm-empty { font-size: 13px; color: #888; padding: 14px 4px; text-align: center; }
+        @media (max-width: 900px) { .sm-grid { display: flex; flex-direction: column; gap: 14px; } .sm-col { display: contents; } .sm-card + .sm-card { margin-top: 0; } .sm-o1 { order: 1; } .sm-o2 { order: 2; } .sm-o3 { order: 3; } .sm-o4 { order: 4; } .sm-loot { max-height: none; } }
+        @media (max-width: 640px) { #panelSeamap { padding: 0 10px 16px; } }
+        @media (max-width: 640px) { .sm-map-svg .nd text.n { display: none; } .sm-nodes { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); } }
         .map-group-tab:hover { border-color: rgba(var(--accent-rgb),0.4); color: var(--accent-color); }
         .map-group-tab.active { background: var(--accent-color); color: #fff; border-color: var(--accent-color); }
         body.light-mode .map-group-tab { border-color: rgba(0,0,0,0.12); color: #666; }
@@ -3729,6 +3804,10 @@ window.icHtml = function (t) {
         <span class="mob-nav-icon"><svg class="ic ic-hammer" aria-hidden="true"><use href="#i-hammer"/></svg></span>
         <span class="mob-nav-label">製作</span>
     </button>
+    <button type="button" class="mob-nav-item" id="mobNavSeamap" data-on-click="a163">
+        <span class="mob-nav-icon"><svg class="ic ic-map" aria-hidden="true"><use href="#i-map"/></svg></span>
+        <span class="mob-nav-label">海圖</span>
+    </button>
     <button type="button" class="mob-nav-item" id="mobNavTools" data-on-click="a10">
         <span class="mob-nav-icon"><svg class="ic ic-wrench" aria-hidden="true"><use href="#i-wrench"/></svg></span>
         <span class="mob-nav-label">工具</span>
@@ -4188,6 +4267,7 @@ window.icHtml = function (t) {
             <button type="button" class="rp-panel-tab" id="tabRoute" role="tab" aria-controls="panelRoute" aria-selected="false" data-on-click="a38"><svg class="ic ic-compass" aria-hidden="true"><use href="#i-compass"/></svg> 路線規劃</button>
             <button type="button" class="rp-panel-tab" id="tabGear" role="tab" aria-controls="panelGear" aria-selected="false" data-on-click="a39"><svg class="ic ic-settings" aria-hidden="true"><use href="#i-settings"/></svg> 配件規劃</button>
             <button type="button" class="rp-panel-tab" id="tabCraft" role="tab" aria-controls="panelCraft" aria-selected="false" data-on-click="a40"><svg class="ic ic-hammer" aria-hidden="true"><use href="#i-hammer"/></svg> 配件製作</button>
+            <button type="button" class="rp-panel-tab" id="tabSeamap" role="tab" aria-controls="panelSeamap" aria-selected="false" data-on-click="a162"><svg class="ic ic-map" aria-hidden="true"><use href="#i-map"/></svg> 海圖設定</button>
         </div>
 
         <!-- 艦隊分頁 -->
@@ -4555,6 +4635,34 @@ window.icHtml = function (t) {
         </div>
 
         <!-- 配件製作分頁 -->
+        <div id="panelSeamap" role="tabpanel" aria-labelledby="tabSeamap" style="display:none;">
+            <div class="sm-groups" id="smGroups"></div>
+            <div class="sm-grid">
+                <div class="sm-col">
+                    <div class="sm-card sm-o2">
+                        <div class="sm-card-head"><h3 id="smMapTitle">海圖</h3><button type="button" class="sm-mini-btn" data-on-click="a161" data-all="1">全選</button><button type="button" class="sm-mini-btn" data-on-click="a161" data-all="0">全清</button></div>
+                        <div id="smRoomHint"></div>
+                        <svg class="sm-map-svg" id="smMapSvg" role="img" aria-label="海圖"></svg>
+                        <div class="sm-legend"><span><i style="background:var(--accent-color)"></i>已開</span><span><i style="background:#59606e"></i>未開</span><span><i style="background:#e9b949;border-radius:2px"></i>出發點</span><span>虛線：探索後解鎖的地點</span></div>
+                    </div>
+                    <div class="sm-card sm-o3">
+                        <div class="sm-card-head"><h3>海點<span class="sm-sub">點一下切換已開／未開</span></h3></div>
+                        <div class="sm-nodes" id="smNodes"></div>
+                    </div>
+                </div>
+                <div class="sm-col">
+                    <div class="sm-card sm-o1">
+                        <div class="sm-card-head"><h3>海圖</h3></div>
+                        <div class="sm-maps" id="smMaps"></div>
+                    </div>
+                    <div class="sm-card sm-o4">
+                        <div class="sm-card-head"><h3>可撈到的物品<span class="sm-sub" id="smLootSub"></span></h3></div>
+                        <div class="sm-cat-tabs" id="smCats" style="margin-bottom:10px"></div>
+                        <div class="sm-loot" id="smLoot"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
         <div id="panelCraft" role="tabpanel" aria-labelledby="tabCraft" style="display:none;">
             <div class="rp-body u45">
 
@@ -7684,6 +7792,8 @@ window.showConfirm = showConfirm;
     }
 
     window.renderMapNodes = function renderMapNodes() {
+        const _smPanel = document.getElementById('panelSeamap');
+        if (_smPanel && _smPanel.style.display !== 'none' && window.renderSeaMap) setTimeout(() => window.renderSeaMap(), 0);
         const block = document.getElementById('mapNodeBlock');
         if (!block) return;
         block.innerHTML = '';
@@ -7796,6 +7906,116 @@ window.showConfirm = showConfirm;
         loadMapNodeState();
         renderMapNodes();
     }
+
+    // ══ 海圖設定分頁：群組標籤＋大地圖＋海點＋掉落物 ══════════════════════
+    const SUB_XY = {"0":[483,927],"1":[640,880],"2":[570,750],"3":[740,700],"4":[400,850],"5":[650,610],"6":[850,850],"7":[260,760],"8":[120,840],"9":[380,660],"10":[900,600],"11":[520,550],"12":[260,570],"13":[90,630],"14":[800,550],"15":[630,490],"16":[290,365],"17":[115,350],"18":[150,540],"19":[320,230],"20":[130,180],"21":[465,330],"22":[555,225],"23":[710,370],"24":[900,355],"25":[210,90],"26":[430,100],"27":[830,210],"28":[750,90],"29":[895,100],"30":[595,100],"31":[483,927],"32":[290,750],"33":[150,840],"34":[280,570],"35":[430,660],"36":[590,750],"37":[180,440],"38":[350,480],"39":[340,330],"40":[500,580],"41":[460,420],"42":[140,310],"43":[440,200],"44":[820,550],"45":[870,400],"46":[760,660],"47":[584,195],"48":[761,885],"49":[818,145],"50":[680,285],"51":[168,140],"52":[64,591],"53":[199,455],"54":[246,703],"55":[261,289],"56":[101,203],"57":[474,89],"58":[214,98],"59":[689,253],"60":[676,76],"61":[842,186],"62":[723,387],"63":[855,96],"64":[889,305],"65":[659,637],"66":[626,805],"67":[938,188],"68":[481,918],"69":[889,445],"70":[736,764],"71":[852,617],"72":[832,888],"73":[177,927],"74":[201,748],"75":[427,704],"76":[340,532],"77":[447,253],"78":[583,593],"79":[687,644],"80":[66,383],"81":[352,118],"82":[557,183],"83":[738,555],"84":[802,436],"85":[620,806],"86":[136,138],"87":[533,68],"88":[885,400],"89":[502,899],"90":[873,106],"91":[678,289],"92":[937,651],"93":[747,901],"94":[49,928],"95":[177,858],"96":[189,713],"97":[494,744],"98":[90,514],"99":[545,898],"100":[366,534],"101":[741,797],"102":[901,898],"103":[174,394],"104":[533,457],"105":[646,677],"106":[562,320],"107":[806,570],"108":[690,212],"109":[737,433],"110":[62,88],"111":[374,296],"112":[922,340],"113":[804,64],"114":[485,62],"115":[934,60],"116":[822,159],"117":[661,378],"118":[624,168],"119":[907,517],"120":[431,86],"121":[480,438],"122":[393,257],"123":[286,364],"124":[508,600],"125":[85,93],"126":[76,316],"127":[728,764],"128":[331,660],"129":[206,650],"130":[895,919],"131":[86,494],"132":[461,816],"133":[196,810],"134":[520,926],"135":[88,927],"136":[933,940],"137":[883,870],"138":[907,579],"139":[803,779],"140":[727,634],"141":[850,360],"142":[551,645],"143":[472,432],"144":[354,580],"145":[641,313],"146":[495,156],"147":[400,821],"148":[659,149],"149":[326,383],"150":[0,0],"151":[0,0],"152":[0,0],"153":[0,0],"154":[0,0],"155":[0,0],"156":[0,0],"157":[0,0],"158":[0,0],"159":[0,0]}; // 遊戲內各地點座標（SubmarineExploration X/Y）
+    let smMapId = 1, smCat = 'all';
+    const SM_CAT_LABEL = { rare: '稀有', workshop: '工坊', other: '其他' };
+    const SM_CAT_RANK = { rare: 0, workshop: 1, other: 2 };
+    function smSectors(mapId) { return SUB_SECTORS.filter(s => s[1] === mapId); }
+    function smGroupHasAny() { const g = mapNodeState[activeMapGroup] || {}; return Object.values(g).some(a => Array.isArray(a) && a.length); }
+    // 這個群組還沒設定過＝全部視為已開：先把「全開」寫進去，之後的切換才不會整組失效
+    function smMaterialize() {
+        if (smGroupHasAny()) return;
+        if (!mapNodeState[activeMapGroup]) mapNodeState[activeMapGroup] = {};
+        MAP_DATA.forEach(m => { mapNodeState[activeMapGroup][m.id] = [...m.nodes]; });
+    }
+    function smToggle(letter) {
+        const node = document.querySelector(`#smNodes .sm-node[data-l="${letter}"]`) || document.createElement('i');
+        smMaterialize();
+        toggleMapNode(smMapId, letter, node);
+        renderMapNodes();
+    }
+    function smSetAll(on) { smMaterialize(); setAllMapNodes(smMapId, on); }
+    window.renderSeaMap = function renderSeaMap() {
+        const panel = document.getElementById('panelSeamap'); if (!panel) return;
+        const allGroups = allGroupNames();
+        if (!allGroups.includes(activeMapGroup)) activeMapGroup = DEFAULT_GROUP;
+        // 群組標籤
+        const gWrap = document.getElementById('smGroups');
+        gWrap.innerHTML = '<span class="sm-groups-lbl">群組</span>' + allGroups.map(g => `<button type="button" class="map-group-tab${g === activeMapGroup ? ' active' : ''}" data-g="${escapeHtml(g)}">${escapeHtml(g)}</button>`).join('');
+        gWrap.querySelectorAll('[data-g]').forEach(b => b.onclick = () => { activeMapGroup = b.dataset.g; renderMapNodes(); });
+        // 房間提示
+        const room = mapRoom();
+        const hintEl = document.getElementById('smRoomHint');
+        let hint = '';
+        if (room) hint = `<div class="sm-hint">正在設定「${escapeHtml(room.name || '共同艦隊')}」的海圖${room.perm === 'view' ? '（房主設定為只能看）' : '，修改會同步給房主'}</div>`;
+        else if (!smGroupHasAny()) hint = `<div class="sm-hint">「${escapeHtml(activeMapGroup)}」還沒設定海圖，目前全部視為已開。點地點就會開始記錄。</div>`;
+        hintEl.innerHTML = hint;
+        // 海圖標籤
+        const mapsEl = document.getElementById('smMaps');
+        mapsEl.innerHTML = MAP_DATA.map(m => {
+            const on = m.nodes.filter(n => isNodeOn(m.id, n)).length;
+            return `<button type="button" class="map-group-tab${m.id === smMapId ? ' active' : ''}" data-m="${m.id}">${escapeHtml(MAP_NAMES[m.id])}<small>${on}/${m.nodes.length}</small></button>`;
+        }).join('');
+        mapsEl.querySelectorAll('[data-m]').forEach(b => b.onclick = () => { smMapId = +b.dataset.m; renderSeaMap(); });
+        const secs = smSectors(smMapId);
+        const onOf = s => isNodeOn(smMapId, s[2]);
+        const onCount = secs.filter(onOf).length;
+        document.getElementById('smMapTitle').innerHTML = `${escapeHtml(MAP_NAMES[smMapId])}<span class="sm-sub">已開 ${onCount}/${secs.length}</span>`;
+        // 大地圖（SVG）
+        const homeId = SUB_HOMES[smMapId];
+        const pts = secs.map(s => SUB_XY[s[0]]).concat(SUB_XY[homeId] ? [SUB_XY[homeId]] : []).filter(Boolean);
+        const xs = pts.map(p => p[0]), ys = pts.map(p => p[1]);
+        const pad = 60, minX = Math.min(...xs) - pad, minY = Math.min(...ys) - pad;
+        const w = Math.max(...xs) - minX + pad, h = Math.max(...ys) - minY + pad + 18;
+        const svg = document.getElementById('smMapSvg');
+        svg.setAttribute('viewBox', `${minX} ${minY} ${w} ${h}`);
+        let g = '<g class="grid">';
+        for (let x = Math.ceil(minX / 50) * 50; x < minX + w; x += 50) g += `<line x1="${x}" y1="${minY}" x2="${x}" y2="${minY + h}"/>`;
+        for (let y = Math.ceil(minY / 50) * 50; y < minY + h; y += 50) g += `<line x1="${minX}" y1="${y}" x2="${minX + w}" y2="${y}"/>`;
+        g += '</g>';
+        const idSet = new Set(secs.map(s => s[0]));
+        secs.forEach(s => ((SUB_DATA.SUB_UNLOCK || {})[s[0]] || []).forEach(src => {
+            if (!idSet.has(src) || !SUB_XY[src] || !SUB_XY[s[0]]) return;
+            const [x1, y1] = SUB_XY[src], [x2, y2] = SUB_XY[s[0]];
+            const srcSec = secs.find(t => t[0] === src);
+            g += `<line class="lk${srcSec && onOf(srcSec) ? ' on' : ''}" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"/>`;
+        }));
+        if (SUB_XY[homeId]) { const [hx, hy] = SUB_XY[homeId]; g += `<g class="home"><rect x="${hx - 9}" y="${hy - 9}" width="18" height="18" rx="3" transform="rotate(45 ${hx} ${hy})"/><text x="${hx}" y="${hy + 30}">出發點</text></g>`; }
+        secs.forEach(s => {
+            const p = SUB_XY[s[0]]; if (!p) return;
+            g += `<g class="nd${onOf(s) ? ' on' : ''}" data-l="${s[2]}" tabindex="0" role="button" aria-label="${s[2]} ${escapeHtml(s[4])}"><title>${s[2]} ${escapeHtml(s[4])}（需要 Lv${s[5]}）</title><circle cx="${p[0]}" cy="${p[1]}" r="18"/><text class="l" x="${p[0]}" y="${p[1]}">${s[2]}</text><text class="n" x="${p[0]}" y="${p[1] + 36}">${escapeHtml(s[4])}</text></g>`;
+        });
+        svg.innerHTML = g;
+        svg.querySelectorAll('.nd').forEach(n => {
+            n.onclick = () => smToggle(n.dataset.l);
+            n.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); smToggle(n.dataset.l); } };
+            n.onmouseenter = () => document.querySelector(`#smNodes [data-l="${n.dataset.l}"]`)?.classList.add('hl');
+            n.onmouseleave = () => document.querySelector(`#smNodes [data-l="${n.dataset.l}"]`)?.classList.remove('hl');
+        });
+        // 海點清單
+        const nodesEl = document.getElementById('smNodes');
+        nodesEl.innerHTML = secs.map(s => `<button type="button" class="sm-node${onOf(s) ? ' on' : ''}" data-l="${s[2]}" aria-pressed="${onOf(s)}"><b>${s[2]}</b><span>${escapeHtml(s[4])}<small>需要 Lv${s[5]}</small></span></button>`).join('');
+        nodesEl.querySelectorAll('.sm-node').forEach(b => {
+            b.onclick = () => smToggle(b.dataset.l);
+            b.onmouseenter = () => svg.querySelector(`.nd[data-l="${b.dataset.l}"]`)?.classList.add('hl');
+            b.onmouseleave = () => svg.querySelector(`.nd[data-l="${b.dataset.l}"]`)?.classList.remove('hl');
+        });
+        // 掉落物：依稀有度（稀有→工坊→其他），同類再依最低機率排序
+        const probs = SUB_DATA.GP_ITEM_PROB || {};
+        const items = {};
+        secs.forEach(s => {
+            const tiers = SUB_LOOT_TIER[s[0]] || {};
+            Object.keys(tiers).forEach(tr => (tiers[tr] || []).forEach(id => {
+                const p = (((probs[s[0]] || {})[tr] || {})[id] || {}).t;
+                (items[id] = items[id] || []).push({ l: s[2], tr: +tr, p: p == null ? null : p, on: onOf(s) });
+            }));
+        });
+        const list = Object.keys(items).map(Number).filter(id => ITEM_DB[id]).map(id => {
+            const where = items[id].sort((a, b) => a.l.localeCompare(b.l));
+            const ps = where.map(w => w.p).filter(v => v != null);
+            return { id, name: ITEM_DB[id], cat: itemCategoryOf(id), where, best: ps.length ? Math.max(...ps) : 999, maxTier: Math.max(...where.map(w => w.tr)) };
+        }).sort((a, b) => SM_CAT_RANK[a.cat] - SM_CAT_RANK[b.cat] || b.maxTier - a.maxTier || a.best - b.best || a.name.localeCompare(b.name, 'zh-Hant'));
+        const counts = { all: list.length, rare: 0, workshop: 0, other: 0 }; list.forEach(x => counts[x.cat]++);
+        const catsEl = document.getElementById('smCats');
+        catsEl.innerHTML = ['all', 'rare', 'workshop', 'other'].map(c => `<button type="button" class="map-group-tab${c === smCat ? ' active' : ''}" data-c="${c}">${c === 'all' ? '全部' : SM_CAT_LABEL[c]}<small style="margin-left:4px;opacity:.75">${counts[c]}</small></button>`).join('');
+        catsEl.querySelectorAll('[data-c]').forEach(b => b.onclick = () => { smCat = b.dataset.c; renderSeaMap(); });
+        document.getElementById('smLootSub').textContent = '依稀有度排序';
+        const shown = list.filter(x => smCat === 'all' || x.cat === smCat);
+        document.getElementById('smLoot').innerHTML = shown.length ? shown.map(x => `<div class="sm-item ${x.cat}"><div class="sm-item-main"><div class="sm-item-name">${escapeHtml(x.name)}<span class="sm-item-cat">${SM_CAT_LABEL[x.cat]}</span></div><div class="sm-item-where">${x.where.map(w => `<span class="sm-where${w.on ? '' : ' off'}" title="${w.l} 點・T${w.tr}${w.p != null ? '・約 ' + w.p + '%' : ''}${w.on ? '' : '（未開）'}">${w.l}・T${w.tr}${w.p != null ? ' ' + w.p + '%' : ''}</span>`).join('')}</div></div></div>`).join('') : '<div class="sm-empty">這個分類沒有物品</div>';
+    };
+
 
     // ══ 配件規劃 (Gear Planner) ══════════════════════════════════
 
@@ -8406,7 +8626,7 @@ const SECTOR_LOOT=SUB_DATA.SECTOR_LOOT;
 
     // ══ 右側分頁切換 ══════════════════════════════════════════════
 
-    const RP_TABS = ['fleet', 'route', 'gear', 'craft'];
+    const RP_TABS = ['fleet', 'route', 'gear', 'craft', 'seamap'];
     function switchRpTab(tab) {
         if (!RP_TABS.includes(tab)) tab = 'fleet';
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -8422,6 +8642,7 @@ const SECTOR_LOOT=SUB_DATA.SECTOR_LOOT;
         });
         if (tab === 'gear') gpRefreshShipList();
         else if (tab === 'craft') initCraftPlanner();
+        else if (tab === 'seamap') renderSeaMap();
         const toolBtn = document.getElementById('mobNavTools');
         if (toolBtn) toolBtn.classList.remove('active');
     }
@@ -11377,7 +11598,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') window.close
     }
 
     window.switchMobileTab = function(tab) {
-        ['fleet','route','gear','craft','tools'].forEach(t => {
+        ['fleet','route','gear','craft','seamap','tools'].forEach(t => {
             const id = 'mobNav' + t.charAt(0).toUpperCase() + t.slice(1);
             const btn = document.getElementById(id);
             if (btn) { btn.classList.toggle('active', t === tab); if (t === tab) btn.setAttribute('aria-current', 'page'); else btn.removeAttribute('aria-current'); }
