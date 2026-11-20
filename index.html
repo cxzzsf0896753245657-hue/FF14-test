@@ -1348,36 +1348,22 @@ window.UI_ACTIONS = {
         .sm-mini-btn { font-size: 12px; padding: 4px 10px; border-radius: 7px; cursor: pointer; background: transparent; color: var(--text-color); border: 1px solid rgba(255,255,255,0.15); }
         .sm-mini-btn:hover { border-color: var(--accent-color); color: var(--accent-color); }
         body.light-mode .sm-mini-btn { border-color: rgba(0,0,0,0.15); }
-        .sm-map-svg { width: 100%; height: auto; display: block; border-radius: 10px; background: radial-gradient(ellipse at 50% 40%, rgba(var(--accent-rgb),0.10), rgba(0,0,0,0) 70%), #10161d; }
-        body.light-mode .sm-map-svg { background: radial-gradient(ellipse at 50% 40%, rgba(var(--accent-rgb),0.10), rgba(0,0,0,0) 70%), #eaf1f6; }
-        .sm-map-svg .grid line { stroke: rgba(255,255,255,0.05); }
-        body.light-mode .sm-map-svg .grid line { stroke: rgba(0,0,0,0.06); }
-        .sm-map-svg .lk { stroke: rgba(255,255,255,0.22); stroke-width: 2; stroke-dasharray: 5 6; fill: none; }
-        body.light-mode .sm-map-svg .lk { stroke: rgba(0,0,0,0.22); }
-        .sm-map-svg .lk.on { stroke: rgba(var(--accent-rgb),0.6); }
-        .sm-map-svg .nd { cursor: pointer; }
-        .sm-map-svg .nd circle { fill: #2b2f38; stroke: #59606e; stroke-width: 2.5; transition: fill .15s; }
-        body.light-mode .sm-map-svg .nd circle { fill: #fff; stroke: #9aa3b2; }
-        .sm-map-svg .nd.on circle { fill: var(--accent-color); stroke: #fff; }
-        .sm-map-svg .nd:hover circle, .sm-map-svg .nd.hl circle { stroke: #ffd36b; stroke-width: 4; }
-        .sm-map-svg .nd text.l { font-weight: 900; font-size: 19px; fill: #9aa3b2; text-anchor: middle; dominant-baseline: central; pointer-events: none; }
-        .sm-map-svg .nd.on text.l { fill: #fff; }
-        .sm-map-svg .nd text.n { font-size: 13px; fill: #c9ced8; text-anchor: middle; pointer-events: none; paint-order: stroke; stroke: #10161d; stroke-width: 4px; }
-        body.light-mode .sm-map-svg .nd text.n { fill: #333; stroke: #eaf1f6; }
-        .sm-map-svg .home rect { fill: #e9b949; }
-        .sm-map-svg .home text { font-size: 12px; font-weight: 700; fill: #e9b949; text-anchor: middle; paint-order: stroke; stroke: #10161d; stroke-width: 4px; }
-        body.light-mode .sm-map-svg .home text { stroke: #eaf1f6; fill: #a77b12; }
-        .sm-legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12px; color: #888; margin-top: 8px; }
-        .sm-legend i { display: inline-block; width: 11px; height: 11px; border-radius: 50%; margin-right: 5px; vertical-align: -1px; }
+        /* 大地圖：高度跟著視窗，地圖＋下方海點一個畫面看得完 */
+        .sm-mapbox { position: relative; margin: 0 auto; aspect-ratio: 685 / 705; width: min(100%, max(320px, calc((100vh - 385px) * 685 / 705))); border-radius: 10px; overflow: hidden; background: #141418; }
+        .sm-mapbox img { display: block; width: 100%; height: 100%; object-fit: cover; user-select: none; -webkit-user-drag: none; }
+        .sm-pin { position: absolute; transform: translate(-50%, -50%); min-width: 26px; height: 26px; padding: 0 4px; box-sizing: border-box; border-radius: 999px; border: 2px solid rgba(255,255,255,.85); background: rgba(22,26,34,.78); color: #d9dee7; font: 800 12px/1 inherit; font-family: inherit; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 1px 4px rgba(0,0,0,.6); transition: transform .12s, background .12s; }
+        .sm-pin.on { background: var(--accent-color); color: #fff; border-color: #fff; }
+        .sm-pin:hover, .sm-pin.hl { transform: translate(-50%, -50%) scale(1.22); border-color: #ffd36b; z-index: 2; }
+        .sm-home { position: absolute; width: 13px; height: 13px; transform: translate(-50%, -50%) rotate(45deg); background: #e9b949; border: 2px solid #fff; border-radius: 2px; box-shadow: 0 1px 4px rgba(0,0,0,.6); }
+        .sm-nodes-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 12px 0 8px; font-size: 12px; color: #888; }
+        .sm-nodes-head b { font-size: 14px; color: var(--text-color); }
+        .sm-legend { display: inline-flex; gap: 12px; flex-wrap: wrap; margin-left: auto; }
+        .sm-legend i { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 4px; vertical-align: -1px; }
         .sm-hint { font-size: 12.5px; color: #e0a84a; background: rgba(224,168,74,0.1); border: 1px solid rgba(224,168,74,0.3); border-radius: 8px; padding: 7px 10px; margin-bottom: 10px; }
-        .sm-nodes { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px; }
-        .sm-node { display: flex; align-items: center; gap: 8px; padding: 6px 9px; border-radius: 8px; cursor: pointer; text-align: left; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.02); color: var(--text-color); font: inherit; }
-        body.light-mode .sm-node { border-color: rgba(0,0,0,0.1); background: rgba(0,0,0,0.015); }
-        .sm-node b { flex: none; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; background: rgba(255,255,255,0.08); color: #9aa3b2; }
-        .sm-node span { flex: 1; min-width: 0; font-size: 13px; line-height: 1.25; }
-        .sm-node small { display: block; font-size: 11px; color: #888; }
-        .sm-node.on { border-color: rgba(var(--accent-rgb),0.55); background: rgba(var(--accent-rgb),0.12); }
-        .sm-node.on b { background: var(--accent-color); color: #fff; }
+        .sm-nodes { display: flex; flex-wrap: wrap; gap: 5px; }
+        .sm-node { min-width: 34px; height: 30px; padding: 0 6px; border-radius: 7px; cursor: pointer; border: 1px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.03); color: #9aa3b2; font: inherit; font-size: 13px; font-weight: 800; }
+        body.light-mode .sm-node { border-color: rgba(0,0,0,0.12); background: rgba(0,0,0,0.02); color: #777; }
+        .sm-node.on { border-color: var(--accent-color); background: var(--accent-color); color: #fff; }
         .sm-node:hover, .sm-node.hl { border-color: #ffd36b; }
         .sm-maps { display: flex; flex-wrap: wrap; gap: 6px; }
         .sm-maps .map-group-tab small { font-size: 11px; opacity: .75; margin-left: 4px; }
@@ -1400,9 +1386,9 @@ window.UI_ACTIONS = {
         body.light-mode .sm-where { background: rgba(0,0,0,0.05); color: #444; }
         .sm-where.off { opacity: .4; text-decoration: line-through; }
         .sm-empty { font-size: 13px; color: #888; padding: 14px 4px; text-align: center; }
-        @media (max-width: 900px) { .sm-grid { display: flex; flex-direction: column; gap: 14px; } .sm-col { display: contents; } .sm-card + .sm-card { margin-top: 0; } .sm-o1 { order: 1; } .sm-o2 { order: 2; } .sm-o3 { order: 3; } .sm-o4 { order: 4; } .sm-loot { max-height: none; } }
+        @media (max-width: 900px) { .sm-grid { display: flex; flex-direction: column; gap: 14px; } .sm-col { display: contents; } .sm-card + .sm-card { margin-top: 0; } .sm-o1 { order: 1; } .sm-o2 { order: 2; } .sm-o4 { order: 4; } .sm-loot { max-height: none; } }
         @media (max-width: 640px) { #panelSeamap { padding: 0 10px 16px; } }
-        @media (max-width: 640px) { .sm-map-svg .nd text.n { display: none; } .sm-nodes { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); } }
+        @media (max-width: 640px) { .sm-mapbox { width: 100%; } .sm-pin { min-width: 22px; height: 22px; font-size: 10.5px; border-width: 1.5px; } .sm-legend { margin-left: 0; } }
         .map-group-tab:hover { border-color: rgba(var(--accent-rgb),0.4); color: var(--accent-color); }
         .map-group-tab.active { background: var(--accent-color); color: #fff; border-color: var(--accent-color); }
         body.light-mode .map-group-tab { border-color: rgba(0,0,0,0.12); color: #666; }
@@ -4648,11 +4634,8 @@ window.icHtml = function (t) {
                     <div class="sm-card sm-o2">
                         <div class="sm-card-head"><h3 id="smMapTitle">海圖</h3><button type="button" class="sm-mini-btn" data-on-click="a161" data-all="1">全選</button><button type="button" class="sm-mini-btn" data-on-click="a161" data-all="0">全清</button></div>
                         <div id="smRoomHint"></div>
-                        <svg class="sm-map-svg" id="smMapSvg" role="img" aria-label="海圖"></svg>
-                        <div class="sm-legend"><span><i style="background:var(--accent-color)"></i>已開</span><span><i style="background:#59606e"></i>未開</span><span><i style="background:#e9b949;border-radius:2px"></i>出發點</span><span>虛線：探索後解鎖的地點</span></div>
-                    </div>
-                    <div class="sm-card sm-o3">
-                        <div class="sm-card-head"><h3>海點<span class="sm-sub">點一下切換已開／未開</span></h3></div>
+                        <div class="sm-mapbox" id="smMapBox"><img id="smMapImg" alt="" decoding="async"></div>
+                        <div class="sm-nodes-head"><b>海點</b><span>點地圖上或下方的編號，切換已開／未開</span><span class="sm-legend"><span><i style="background:var(--accent-color)"></i>已開</span><span><i style="background:#3a3f4a"></i>未開</span><span><i style="background:#e9b949;border-radius:2px;transform:rotate(45deg)"></i>出發點</span></span></div>
                         <div class="sm-nodes" id="smNodes"></div>
                     </div>
                 </div>
@@ -7966,44 +7949,34 @@ window.showConfirm = showConfirm;
         const onOf = s => isNodeOn(smMapId, s[2]);
         const onCount = secs.filter(onOf).length;
         document.getElementById('smMapTitle').innerHTML = `${escapeHtml(MAP_NAMES[smMapId])}<span class="sm-sub">已開 ${onCount}/${secs.length}</span>`;
-        // 大地圖（SVG）
-        const homeId = SUB_HOMES[smMapId];
-        const pts = secs.map(s => SUB_XY[s[0]]).concat(SUB_XY[homeId] ? [SUB_XY[homeId]] : []).filter(Boolean);
-        const xs = pts.map(p => p[0]), ys = pts.map(p => p[1]);
-        const pad = 60, minX = Math.min(...xs) - pad, minY = Math.min(...ys) - pad;
-        const w = Math.max(...xs) - minX + pad, h = Math.max(...ys) - minY + pad + 18;
-        const svg = document.getElementById('smMapSvg');
-        svg.setAttribute('viewBox', `${minX} ${minY} ${w} ${h}`);
-        let g = '<g class="grid">';
-        for (let x = Math.ceil(minX / 50) * 50; x < minX + w; x += 50) g += `<line x1="${x}" y1="${minY}" x2="${x}" y2="${minY + h}"/>`;
-        for (let y = Math.ceil(minY / 50) * 50; y < minY + h; y += 50) g += `<line x1="${minX}" y1="${y}" x2="${minX + w}" y2="${y}"/>`;
-        g += '</g>';
-        const idSet = new Set(secs.map(s => s[0]));
-        secs.forEach(s => ((SUB_DATA.SUB_UNLOCK || {})[s[0]] || []).forEach(src => {
-            if (!idSet.has(src) || !SUB_XY[src] || !SUB_XY[s[0]]) return;
-            const [x1, y1] = SUB_XY[src], [x2, y2] = SUB_XY[s[0]];
-            const srcSec = secs.find(t => t[0] === src);
-            g += `<line class="lk${srcSec && onOf(srcSec) ? ' on' : ''}" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"/>`;
-        }));
-        if (SUB_XY[homeId]) { const [hx, hy] = SUB_XY[homeId]; g += `<g class="home"><rect x="${hx - 9}" y="${hy - 9}" width="18" height="18" rx="3" transform="rotate(45 ${hx} ${hy})"/><text x="${hx}" y="${hy + 30}">出發點</text></g>`; }
+        // 大地圖：遊戲海圖圖片＋可點的海點按鈕（座標換算成圖片百分比）
+        const box = document.getElementById('smMapBox');
+        const img = document.getElementById('smMapImg');
+        const src = `data/maps/${smMapId}.jpg`;
+        if (img.getAttribute('src') !== src) { img.setAttribute('src', src); img.alt = `${MAP_NAMES[smMapId]}海圖`; }
+        const pos = id => { const p = SUB_XY[id]; return p ? [(40 + p[0] * 0.602) / 685 * 100, (52 + p[1] * 0.603) / 705 * 100] : null; };
+        box.querySelectorAll('.sm-pin, .sm-home').forEach(e => e.remove());
+        const homeId = SUB_HOMES[smMapId], hp = pos(homeId);
+        if (hp) { const h = document.createElement('span'); h.className = 'sm-home'; h.title = '出發點'; h.style.left = hp[0] + '%'; h.style.top = hp[1] + '%'; box.appendChild(h); }
         secs.forEach(s => {
-            const p = SUB_XY[s[0]]; if (!p) return;
-            g += `<g class="nd${onOf(s) ? ' on' : ''}" data-l="${s[2]}" tabindex="0" role="button" aria-label="${s[2]} ${escapeHtml(s[4])}"><title>${s[2]} ${escapeHtml(s[4])}（需要 Lv${s[5]}）</title><circle cx="${p[0]}" cy="${p[1]}" r="18"/><text class="l" x="${p[0]}" y="${p[1]}">${s[2]}</text><text class="n" x="${p[0]}" y="${p[1] + 36}">${escapeHtml(s[4])}</text></g>`;
+            const p = pos(s[0]); if (!p) return;
+            const b = document.createElement('button');
+            b.type = 'button'; b.className = 'sm-pin' + (onOf(s) ? ' on' : ''); b.dataset.l = s[2];
+            b.textContent = s[2]; b.title = `${s[2]} ${s[4]}（需要 Lv${s[5]}）`;
+            b.setAttribute('aria-pressed', String(onOf(s)));
+            b.style.left = p[0] + '%'; b.style.top = p[1] + '%';
+            b.onclick = () => smToggle(s[2]);
+            b.onmouseenter = () => document.querySelector(`#smNodes [data-l="${s[2]}"]`)?.classList.add('hl');
+            b.onmouseleave = () => document.querySelector(`#smNodes [data-l="${s[2]}"]`)?.classList.remove('hl');
+            box.appendChild(b);
         });
-        svg.innerHTML = g;
-        svg.querySelectorAll('.nd').forEach(n => {
-            n.onclick = () => smToggle(n.dataset.l);
-            n.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); smToggle(n.dataset.l); } };
-            n.onmouseenter = () => document.querySelector(`#smNodes [data-l="${n.dataset.l}"]`)?.classList.add('hl');
-            n.onmouseleave = () => document.querySelector(`#smNodes [data-l="${n.dataset.l}"]`)?.classList.remove('hl');
-        });
-        // 海點清單
+        // 海點：只顯示英文編號
         const nodesEl = document.getElementById('smNodes');
-        nodesEl.innerHTML = secs.map(s => `<button type="button" class="sm-node${onOf(s) ? ' on' : ''}" data-l="${s[2]}" aria-pressed="${onOf(s)}"><b>${s[2]}</b><span>${escapeHtml(s[4])}<small>需要 Lv${s[5]}</small></span></button>`).join('');
+        nodesEl.innerHTML = secs.map(s => `<button type="button" class="sm-node${onOf(s) ? ' on' : ''}" data-l="${s[2]}" aria-pressed="${onOf(s)}" title="${s[2]} ${escapeHtml(s[4])}（需要 Lv${s[5]}）">${s[2]}</button>`).join('');
         nodesEl.querySelectorAll('.sm-node').forEach(b => {
             b.onclick = () => smToggle(b.dataset.l);
-            b.onmouseenter = () => svg.querySelector(`.nd[data-l="${b.dataset.l}"]`)?.classList.add('hl');
-            b.onmouseleave = () => svg.querySelector(`.nd[data-l="${b.dataset.l}"]`)?.classList.remove('hl');
+            b.onmouseenter = () => box.querySelector(`.sm-pin[data-l="${b.dataset.l}"]`)?.classList.add('hl');
+            b.onmouseleave = () => box.querySelector(`.sm-pin[data-l="${b.dataset.l}"]`)?.classList.remove('hl');
         });
         // 掉落物：依稀有度（稀有→工坊→其他），同類再依最低機率排序
         const probs = SUB_DATA.GP_ITEM_PROB || {};
