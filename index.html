@@ -1358,13 +1358,13 @@ window.UI_ACTIONS = {
         /* 大地圖：高度跟著視窗，地圖＋下方海點一個畫面看得完 */
         .sm-mapbox { position: relative; margin: 0 auto; aspect-ratio: 685 / 705; width: min(100%, max(320px, calc((100vh - 385px) * 685 / 705))); border-radius: 10px; overflow: hidden; background: #141418; }
         .sm-mapbox img { display: block; width: 100%; height: 100%; object-fit: cover; user-select: none; -webkit-user-drag: none; }
-        .sm-pin { position: absolute; transform: translate(-50%, -50%); min-width: 26px; height: 26px; padding: 0 4px; box-sizing: border-box; border-radius: 999px; border: 2px solid rgba(255,255,255,.85); background: rgba(22,26,34,.78); color: #d9dee7; font: 800 12px/1 inherit; font-family: inherit; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 1px 4px rgba(0,0,0,.6); transition: transform .12s, background .12s; }
+        .sm-pin { position: absolute; transform: translate(-50%, -50%); min-width: 39px; height: 39px; padding: 0 5px; box-sizing: border-box; border-radius: 999px; border: 2.5px solid rgba(255,255,255,.85); background: rgba(22,26,34,.78); color: #d9dee7; font: 800 16px/1 inherit; font-family: inherit; font-size: 16px; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 1px 4px rgba(0,0,0,.6); transition: transform .12s, background .12s; }
         .sm-pin.on { background: var(--accent-color); color: #fff; border-color: #fff; }
-        .sm-pin:hover, .sm-pin.hl { transform: translate(-50%, -50%) scale(1.22); border-color: #ffd36b; z-index: 2; }
+        .sm-pin:hover, .sm-pin.hl { transform: translate(-50%, -50%) scale(1.15); border-color: #ffd36b; z-index: 2; }
         .sm-links { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
         .sm-links line { stroke: rgba(255,255,255,.75); stroke-width: 2; stroke-dasharray: 5 4; stroke-linecap: round; filter: drop-shadow(0 0 1.5px rgba(0,0,0,.9)); }
         .sm-links line.on { stroke: var(--accent-color); stroke-dasharray: none; stroke-width: 2.5; }
-        .sm-home { position: absolute; width: 13px; height: 13px; transform: translate(-50%, -50%) rotate(45deg); background: #e9b949; border: 2px solid #fff; border-radius: 2px; box-shadow: 0 1px 4px rgba(0,0,0,.6); }
+        .sm-home { position: absolute; width: 18px; height: 18px; transform: translate(-50%, -50%) rotate(45deg); background: #e9b949; border: 2px solid #fff; border-radius: 2px; box-shadow: 0 1px 4px rgba(0,0,0,.6); }
         .sm-nodes-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 12px 0 8px; font-size: 12px; color: #888; }
         .sm-nodes-head b { font-size: 14px; color: var(--text-color); }
         .sm-legend { display: inline-flex; gap: 12px; flex-wrap: wrap; margin-left: auto; }
@@ -1398,7 +1398,7 @@ window.UI_ACTIONS = {
         .sm-empty { font-size: 13px; color: #888; padding: 14px 4px; text-align: center; }
         @media (max-width: 900px) { .sm-grid { display: flex; flex-direction: column; gap: 14px; } .sm-col { display: contents; } .sm-card + .sm-card { margin-top: 0; } .sm-o1 { order: 1; } .sm-o2 { order: 2; } .sm-o4 { order: 4; } .sm-loot { max-height: none; } }
         @media (max-width: 640px) { #panelSeamap { padding: 0 10px 16px; } }
-        @media (max-width: 640px) { .sm-mapbox { width: 100%; } .sm-pin { min-width: 22px; height: 22px; font-size: 10.5px; border-width: 1.5px; } .sm-legend { margin-left: 0; } }
+        @media (max-width: 640px) { .sm-mapbox { width: 100%; } .sm-pin { min-width: 30px; height: 30px; font-size: 13px; border-width: 2px; } .sm-legend { margin-left: 0; } }
         .map-group-tab:hover { border-color: rgba(var(--accent-rgb),0.4); color: var(--accent-color); }
         .map-group-tab.active { background: var(--accent-color); color: #fff; border-color: var(--accent-color); }
         body.light-mode .map-group-tab { border-color: rgba(0,0,0,0.12); color: #666; }
@@ -7983,6 +7983,14 @@ window.showConfirm = showConfirm;
             const on = srcSec && onOf(srcSec) && onOf(s);
             lines += `<line class="${on ? 'on' : ''}" x1="${a[0].toFixed(1)}" y1="${a[1].toFixed(1)}" x2="${b[0].toFixed(1)}" y2="${b[1].toFixed(1)}"/>`;
         }));
+        // 這張海圖的起點（沒有同圖解鎖來源的點，例如 A、B）：從出發點連過去
+        const hpx = px(SUB_HOMES[smMapId]);
+        if (hpx) secs.forEach(s => {
+            const srcs = ((SUB_DATA.SUB_UNLOCK || {})[s[0]] || []).filter(id => secIds.has(id));
+            if (srcs.length) return;
+            const b = px(s[0]); if (!b) return;
+            lines += `<line class="${onOf(s) ? 'on' : ''}" x1="${hpx[0].toFixed(1)}" y1="${hpx[1].toFixed(1)}" x2="${b[0].toFixed(1)}" y2="${b[1].toFixed(1)}"/>`;
+        });
         box.insertAdjacentHTML('beforeend', `<svg class="sm-links" viewBox="0 0 685 705" preserveAspectRatio="none" aria-hidden="true">${lines}</svg>`);
         const homeId = SUB_HOMES[smMapId], hp = pos(homeId);
         if (hp) { const h = document.createElement('span'); h.className = 'sm-home'; h.title = '出發點'; h.style.left = hp[0] + '%'; h.style.top = hp[1] + '%'; box.appendChild(h); }
