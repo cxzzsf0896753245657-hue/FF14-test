@@ -8091,7 +8091,7 @@ window.showConfirm = showConfirm;
             const where = items[id].sort((a, b) => a.l.localeCompare(b.l));
             const ps = where.map(w => w.p).filter(v => v != null);
             return { id, name: ITEM_DB[id], cat: itemCategoryOf(id), where, best: ps.length ? Math.max(...ps) : 999, maxTier: Math.max(...where.map(w => w.tr)) };
-        }).sort((a, b) => SM_CAT_RANK[a.cat] - SM_CAT_RANK[b.cat] || b.maxTier - a.maxTier || a.best - b.best || a.name.localeCompare(b.name, 'zh-Hant'));
+        }).sort((a, b) => SM_CAT_RANK[a.cat] - SM_CAT_RANK[b.cat] || a.name.localeCompare(b.name, 'zh-Hant-TW-u-co-stroke'));   // 同類依名稱（筆畫）排序
         const avail = x => x.where.some(w => w.on);
         const cats = ['rare', 'workshop', 'other', 'all'];
         const cnt = {}; cats.forEach(c => { const xs = list.filter(x => c === 'all' || x.cat === c); cnt[c] = [xs.filter(avail).length, xs.length]; });
