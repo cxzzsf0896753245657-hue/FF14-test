@@ -8256,7 +8256,7 @@ window.showConfirm = showConfirm;
             w.st = 'ok'; w.why = '';
         }));
         const avail = x => x.where.some(w => w.st === 'ok');
-        // 物品後方的狀態：已開點／未開點／性能不足／等級不足＋獲得機率
+        // 物品後方的狀態：已開點／未開點／探索不足／等級不足＋獲得機率
         const smStatusHtml = x => {
             const pick = st => x.where.filter(w => w.st === st);
             const bestD = ws => { const d = ws.filter(w => w.d != null).map(w => w.d); return d.length ? Math.max(...d) : null; };
@@ -8264,7 +8264,7 @@ window.showConfirm = showConfirm;
             if ((ws = pick('ok')).length) { cls = 'ok'; txt = '已開點'; }
             else if ((ws = pick('ex')).length) {
                 const gap = Math.min(...ws.map(w => parseInt((w.why.split('差 ')[1] || '0'), 10) || 0));
-                cls = 'ex'; txt = `性能不足 差${gap}`;
+                cls = 'ex'; txt = `探索不足 差${gap}`;
             } else if ((ws = pick('lv')).length) {
                 const need = Math.min(...ws.map(w => parseInt((w.why.match(/Lv(\d+)/) || [])[1], 10) || 0));
                 cls = 'lv'; txt = `等級不足 Lv${need}`;
