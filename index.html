@@ -761,6 +761,18 @@ window.UI_ACTIONS = {
         .lp-icon-btn:hover { background: rgba(255,255,255,0.1); }
         body.light-mode .lp-icon-btn { background: rgba(0,0,0,0.04); border-color: rgba(0,0,0,0.1); }
 
+        /* 推播開關列 */
+        .lp-push-row { order: -1; flex-basis: 100%; display: flex; align-items: center; gap: 10px; padding: 2px 0 8px; margin-bottom: 4px; border-bottom: 1px solid rgba(255,255,255,0.07); }
+        body.light-mode .lp-push-row { border-bottom-color: rgba(0,0,0,0.07); }
+        .lp-push-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+        .lp-push-txt b { font-size: 13px; font-weight: 700; display: inline-flex; align-items: center; gap: 5px; }
+        .lp-push-txt span { font-size: 11px; color: #888; }
+        .lp-switch { flex-shrink: 0; width: 40px; height: 22px; border-radius: 999px; border: 0; padding: 0; cursor: pointer; background: rgba(255,255,255,0.18); position: relative; transition: background .15s; }
+        body.light-mode .lp-switch { background: rgba(0,0,0,0.18); }
+        .lp-switch span { position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%; background: #fff; transition: transform .15s; }
+        .lp-switch[aria-checked="true"] { background: #4caf50; }
+        .lp-switch[aria-checked="true"] span { transform: translateX(18px); }
+        .lp-sound-label .ic { vertical-align: -2px; }
         /* 音效控制組：移除多餘框線，直接在 lp-controls 內平排 */
         .lp-sound-group {
             display: flex; align-items: center; gap: 5px; flex: 1; min-width: 0;
@@ -3334,9 +3346,9 @@ window.UI_ACTIONS = {
             .rail-btn:hover { background: rgba(var(--accent-rgb),0.12); color: var(--text-color); }
             .rail-btn:hover .rail-ico { filter: none; transform: translateY(-1px); }
             .rail-ico { position: relative; }
+            #notifBtn:not(.notif-on) .notif-dot { display: none; }
             .notif-dot { position: absolute; top: -1px; right: -3px; width: 8px; height: 8px; border-radius: 50%; background: #8a8a8a; }
             #notifBtn.notif-on .notif-dot { background: #4caf50; }
-            #notifBtn:not(.notif-on) .rail-ico { opacity: .55; }
             .rail-btn.active { background: rgba(var(--accent-rgb),0.2); color: var(--accent-color); }
             .rail-btn.active .rail-ico { filter: none; }
             .rail-btn.active::before {
@@ -3686,7 +3698,6 @@ window.icHtml = function (t) {
     <div class="mob-header-right">
         <a class="mob-icon-btn mob-link-btn report" href="https://forum.gamer.com.tw/C.php?bsn=17608&snA=30749&page=1&gothis=146463#146463" target="_blank" rel="noopener" title="回報問題" aria-label="回報問題"><svg class="ic ic-megaphone" aria-hidden="true"><use href="#i-megaphone"/></svg></a>
         <button type="button" class="mob-icon-btn mob-link-btn sponsor" data-on-click="a159" title="贊助貓罐頭" aria-label="贊助貓罐頭" aria-haspopup="dialog" aria-controls="sponsorPop"><svg class="ic ic-fish" aria-hidden="true"><use href="#i-fish"/></svg></button>
-        <button type="button" class="mob-icon-btn" data-on-click="a4" title="啟用通知" aria-label="啟用通知"><svg class="ic ic-bell" aria-hidden="true"><use href="#i-bell"/></svg></button>
     </div>
 </div>
 
@@ -3724,9 +3735,9 @@ window.icHtml = function (t) {
 <nav id="deskRail" aria-label="工具與設定">
     <button type="button" class="rail-btn" data-on-click="a11" title="使用說明"><span class="rail-ico" aria-hidden="true"><svg class="ic ic-book-open" aria-hidden="true"><use href="#i-book-open"/></svg></span><span class="rail-lbl">說明</span></button>
     <button type="button" class="rail-btn" data-view="content_palette" data-title="主題" data-desc="32 種低飽和主題，眼睛舒服、適合長時間使用"><span class="rail-ico" aria-hidden="true"><svg class="ic ic-palette" aria-hidden="true"><use href="#i-palette"/></svg></span><span class="rail-lbl">主題</span></button>
-    <button type="button" class="rail-btn" id="notifBtn" data-on-click="a4" title="回港通知：關閉（按一下開啟）" aria-pressed="false"><span class="rail-ico" aria-hidden="true"><svg class="ic ic-bell" aria-hidden="true"><use href="#i-bell-off"/></svg><span class="notif-dot"></span></span><span class="rail-lbl">通知</span></button>
+    
     <div class="rail-sep" aria-hidden="true"></div>
-    <button type="button" class="rail-btn" data-view="sound" data-title="鬧鐘音效" data-desc="船艇回港時播放的提示音與音量"><span class="rail-ico" aria-hidden="true"><svg class="ic ic-volume-2" aria-hidden="true"><use href="#i-volume-2"/></svg></span><span class="rail-lbl">音效</span></button>
+    <button type="button" class="rail-btn" id="notifBtn" data-view="sound" data-title="通知" data-desc="回港時的推播與音效" title="通知：推播、音效"><span class="rail-ico" aria-hidden="true"><svg class="ic ic-bell" aria-hidden="true"><use href="#i-bell"/></svg><span class="notif-dot"></span></span><span class="rail-lbl">通知</span></button>
     <button type="button" class="rail-btn" data-view="upload" data-title="截圖辨識" data-desc="上傳或貼上遊戲截圖，自動辨識船名、等級與剩餘時間"><span class="rail-ico" aria-hidden="true"><svg class="ic ic-camera" aria-hidden="true"><use href="#i-camera"/></svg></span><span class="rail-lbl">截圖</span></button>
     <button type="button" class="rail-btn" data-view="content1" data-title="練級表" data-desc="各等級建議的練級路線"><span class="rail-ico" aria-hidden="true"><svg class="ic ic-trending-up" aria-hidden="true"><use href="#i-trending-up"/></svg></span><span class="rail-lbl">練級表</span></button>
     <button type="button" class="rail-btn" data-view="content2" data-title="海圖" data-desc="各海域地圖，並記錄每個標籤已開放的海點"><span class="rail-ico" aria-hidden="true"><svg class="ic ic-map" aria-hidden="true"><use href="#i-map"/></svg></span><span class="rail-lbl">海圖</span></button>
@@ -3750,9 +3761,12 @@ window.icHtml = function (t) {
             <!-- 控制列 -->
             <div class="lp-controls">
                 <button type="button" class="lp-icon-btn u1" data-on-click="a11" title="使用說明" aria-label="使用說明"><svg class="ic ic-book-open" aria-hidden="true"><use href="#i-book-open"/></svg></button>
-                <button type="button" class="lp-icon-btn" data-on-click="a4" title="啟用通知" aria-label="啟用通知"><svg class="ic ic-bell" aria-hidden="true"><use href="#i-bell"/></svg></button>
+                <div class="lp-push-row">
+                    <div class="lp-push-txt"><b><svg class="ic ic-bell" aria-hidden="true"><use href="#i-bell"/></svg> 推播</b><span id="pushStateTxt">回港時跳出瀏覽器通知</span></div>
+                    <button type="button" class="lp-switch" id="pushToggle" role="switch" aria-checked="false" aria-label="推播" data-on-click="a4"><span></span></button>
+                </div>
                 <div class="lp-sound-group">
-                    <span class="lp-sound-label"><svg class="ic ic-volume-2" aria-hidden="true"><use href="#i-volume-2"/></svg></span>
+                    <span class="lp-sound-label"><svg class="ic ic-volume-2" aria-hidden="true"><use href="#i-volume-2"/></svg> 音效</span>
                     <select id="alarmSelect" data-on-change="a12">
                         <option value="off">關閉</option>
                         <option value="soft">01 柔和</option>
@@ -5258,7 +5272,7 @@ window.showConfirm = showConfirm;
     document.getElementById('alarmSelect').value = alarmMode;
     document.getElementById('volumeSlider').value = volume;
 
-    // 回港通知開關（每台裝置各自記；沒設定過時沿用瀏覽器權限）
+    // 推播開關（每台裝置各自記；沒設定過時沿用瀏覽器權限）
     const NOTIF_KEY = 'sub_notify_on';
     function notifSupported() { return "Notification" in window; }
     function notifEnabled() {
@@ -5267,22 +5281,23 @@ window.showConfirm = showConfirm;
         return v === null ? true : v === '1';
     }
     function renderNotifBtn() {
-        const btn = document.getElementById('notifBtn'); if (!btn) return;
         const on = notifEnabled();
+        const btn = document.getElementById('notifBtn') || document.createElement('i');
         btn.classList.toggle('notif-on', on);
-        btn.setAttribute('aria-pressed', String(on));
-        const use = btn.querySelector('use'); if (use) use.setAttribute('href', on ? '#i-bell' : '#i-bell-off');
-        btn.title = !notifSupported() ? '這個瀏覽器不支援通知' : (on ? '回港通知：開啟（按一下關閉）' : '回港通知：關閉（按一下開啟）');
+        btn.title = on ? '通知：推播已開啟' : '通知：推播、音效';
+        const sw = document.getElementById('pushToggle'); if (sw) sw.setAttribute('aria-checked', String(on));
+        const tx = document.getElementById('pushStateTxt');
+        if (tx) tx.textContent = !notifSupported() ? '這個瀏覽器不支援推播' : (Notification.permission === 'denied' ? '已被瀏覽器封鎖，需到網址列改成允許' : (on ? '已開啟：回港時跳出瀏覽器通知' : '回港時跳出瀏覽器通知'));
     }
     function requestNotificationPermission() {
-        if (!notifSupported()) { showAlert('這個瀏覽器不支援通知，回港時仍會播放音效。'); return; }
+        if (!notifSupported()) { showAlert('這個瀏覽器不支援推播，回港時仍會播放音效。'); return; }
         if (notifEnabled()) {
             try { localStorage.setItem(NOTIF_KEY, '0'); } catch (e) {}
-            renderNotifBtn(); showAlert('已關閉回港通知（音效不受影響）。'); return;
+            renderNotifBtn(); showAlert('已關閉推播（音效不受影響）。'); return;
         }
-        if (Notification.permission === 'denied') { showAlert('通知被瀏覽器封鎖了。請點網址列左邊的圖示，把「通知」改成允許，再按一次「通知」。'); return; }
+        if (Notification.permission === 'denied') { showAlert('推播被瀏覽器封鎖了。請點網址列左邊的圖示，把「通知」改成允許，再開一次推播。'); renderNotifBtn(); return; }
         Notification.requestPermission().then(permission => {
-            if (permission === 'granted') { try { localStorage.setItem(NOTIF_KEY, '1'); } catch (e) {} showAlert('已開啟回港通知！'); }
+            if (permission === 'granted') { try { localStorage.setItem(NOTIF_KEY, '1'); } catch (e) {} showAlert('已開啟推播！'); }
             renderNotifBtn();
         });
     }
