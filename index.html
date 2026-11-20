@@ -161,7 +161,42 @@
     <script>
 /* 頁面上按鈕／欄位的事件處理（原本寫在 HTML 標籤的 onclick 等屬性，改為集中在這裡）。
  * 標籤上的 data-on-click="a12" 代表點擊時執行 UI_ACTIONS.a12；this 為該元素、event 為事件，與原本寫法相同。 */
+// HTML 屬性用的跳脫（data-* 裡放名稱）
+function escAttr(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
 window.UI_ACTIONS = {
+    a164: function (event) { changeCardGroup(this.dataset.tid, this.value) },
+    a165: function (event) { sendCardToRoutePlanner(this.dataset.tid) },
+    a166: function (event) { openSubConfigModal(this.dataset.tid) },
+    a167: function (event) { deleteTimer(this.dataset.tid) },
+    a168: function (event) { DTPicker.pickDay(+this.dataset.y, +this.dataset.m, +this.dataset.d) },
+    a169: function (event) { DTPicker.pickHour(+this.dataset.h) },
+    a170: function (event) { DTPicker.pickMinute(+this.dataset.mn) },
+    a171: function (event) { onLinkHandlePointerDown(event, this.dataset.lid) },
+    a172: function (event) { event.stopPropagation(); setAllMapNodes(+this.dataset.map, this.dataset.all === '1') },
+    a173: function (event) { gpToggleSectorChk(+this.dataset.secid, this.checked) },
+    a174: function (event) { gpRemoveItem(+this.dataset.iid) },
+    a175: function (event) { gpSendToRoutePlanner() },
+    a176: function (event) { gpAddItemById(+this.dataset.iid, this.dataset.name); document.getElementById('gpItemSearch').value = ''; document.getElementById('gpSuggestBox').style.display = 'none'; },
+    a177: function (event) { craftSelectCell2(+this.dataset.cls, +this.dataset.sort) },
+    a179: function (event) { craftSetPartQty(this.dataset.name, this.value) },
+    a180: function (event) { event.stopPropagation() },
+    a181: function (event) { craftSpinnerStep(this.dataset.name, +this.dataset.step) },
+    a182: function (event) { craftCopyName(this.dataset.name, this) },
+    a183: function (event) { craftToggleDone(this.dataset.name, this.checked, +this.dataset.needed); event.stopPropagation(); },
+    a184: function (event) { craftSaveOwned(this.dataset.name, this.value) },
+    a185: function (event) { craftMobTab(this, +this.dataset.tab) },
+    a186: function (event) { rpRemoveMap(this.dataset.mode, +this.dataset.id) },
+    a187: function (event) { SectorPicker.toggle(this, +this.dataset.id) },
+    a188: function (event) { rpRemoveSector(this.dataset.mode, +this.dataset.id) },
+    a189: function (event) { rpAddItemById(+this.dataset.iid, this.dataset.name); document.getElementById('rpItemSearch').value = ''; document.getElementById('rpSuggestBox').style.display = 'none'; },
+    a190: function (event) { rpRemoveItem(+this.dataset.iid) },
+    a191: function (event) { subRedepart(this.dataset.tid) },
+    a192: function (event) { rpSortBy(this.dataset.mode) },
+    a193: function (event) { rpToggleRow(this) },
+    a194: function (event) { event.stopPropagation(); applyRouteToCard(+this.dataset.mins, this.dataset.secs, +this.dataset.exp); },
+    a195: function (event) { cloudLeaveRoomById(event, this.dataset.rid) },
+    a196: function (event) { kickRoomMember(this.dataset.rid, this.dataset.uid) },
+    a197: function (event) { switchFleetView(this.dataset.rid); switchRpTab('fleet'); },
     a1: function (event) { document.getElementById('customAlertOverlay').classList.remove('visible') },
     a2: function (event) { closeUpdateNotice() },
     a4: function (event) { requestNotificationPermission() },
@@ -318,7 +353,7 @@ window.UI_ACTIONS = {
             if (e.cancelBubble || el === stopAt) return;
         }
     }
-    ['click', 'change', 'input', 'mouseover', 'keydown', 'mousedown'].forEach(t => document.addEventListener(t, e => run(t, e)));
+    ['click', 'change', 'input', 'mouseover', 'keydown', 'mousedown', 'pointerdown'].forEach(t => document.addEventListener(t, e => run(t, e)));
     ['focus', 'blur'].forEach(t => document.addEventListener(t, e => {
         const el = e.target; if (!el || el.nodeType !== 1) return;
         const id = el.getAttribute('data-on-' + t); if (id && UI_ACTIONS[id]) UI_ACTIONS[id].call(el, e);
@@ -453,13 +488,13 @@ window.UI_ACTIONS = {
             document.write('<script src="data/' + f + '.js?v=' + encodeURIComponent(window.SUB_DATA_VERSION) + '"><\/script>'));
     </script>
     <script>
-        /* 數據檔沒有載入成功時（例如直接雙擊開檔、或檔案路徑錯誤），顯示提示而不是一片空白 */
+        /* 數據檔沒有載入成功時（例如 data 資料夾沒有一起放上去、或檔案路徑錯誤），顯示提示而不是一片空白 */
         if (!window.SUB_DATA || !window.SUB_DATA.SUB_SECTORS || !window.SUB_DATA.ITEM_DB || !window.SUB_DATA.CRAFT_PARTS) {
             document.addEventListener('DOMContentLoaded', () => {
                 const b = document.createElement('div');
                 b.setAttribute('role', 'alert');
                 b.style.cssText = 'position:fixed;inset:0 0 auto 0;z-index:100000;background:#c0392b;color:#fff;padding:12px 16px;font-size:14px;';
-                b.textContent = '數據檔載入失敗：請確認 data 資料夾和 index.html 放在一起，並透過網站伺服器開啟（不能直接雙擊開檔）。';
+                b.textContent = '數據檔載入失敗：請確認 data 資料夾和 index.html 放在一起。';
                 document.body.prepend(b);
             });
         }
@@ -5519,7 +5554,14 @@ window.showConfirm = showConfirm;
     const statusText = document.getElementById('statusText');
     const timerList = document.getElementById('timerList');
     let savedTimers = [];
-    const _timerIntervals = new Map(); // 追蹤每個 timer 的 interval，避免重複建立
+    // 每艘船的倒數：id → { tick }。全部共用一個每秒執行一次的計時器，每艘船仍用自己的回港時間計算
+    const _timerIntervals = new Map();
+    let _timerTicker = null;
+    function _tickAllTimers() {
+        if (!_timerIntervals.size) { clearInterval(_timerTicker); _timerTicker = null; return; }
+        for (const e of [..._timerIntervals.values()]) { try { e.tick(); } catch (err) { console.error(err); } }
+    }
+    function _ensureTimerTicker() { if (!_timerTicker) _timerTicker = setInterval(_tickAllTimers, 1000); }
     let _timerIdCounter = 0;
     let worker = null;
     let workerInitPromise = null;
@@ -6069,7 +6111,7 @@ window.showConfirm = showConfirm;
                 if (c.other) cls += ' dt-day-other';
                 if (isToday) cls += ' dt-day-today';
                 if (isSel) cls += ' dt-day-selected';
-                return `<button type="button" class="${cls}" onclick="DTPicker.pickDay(${c.date.getFullYear()},${c.date.getMonth()},${c.date.getDate()})">${c.day}</button>`;
+                return `<button type="button" class="${cls}" data-y="${c.date.getFullYear()}" data-m="${c.date.getMonth()}" data-d="${c.date.getDate()}" data-on-click="a168">${c.day}</button>`;
             }).join('');
             // 同步時間欄高度與月曆格子高度
             requestAnimationFrame(() => {
@@ -6095,10 +6137,10 @@ window.showConfirm = showConfirm;
             const mm = this.selMinute ?? 0;
 
             hourCol.innerHTML = Array.from({ length: 24 }, (_, i) => i).map(h =>
-                `<div class="dt-time-item ${h === hh ? 'active' : ''}" onclick="DTPicker.pickHour(${h})">${String(h).padStart(2, '0')}</div>`
+                `<div class="dt-time-item ${h === hh ? 'active' : ''}" data-h="${h}" data-on-click="a169">${String(h).padStart(2, '0')}</div>`
             ).join('');
             minCol.innerHTML = Array.from({ length: 60 }, (_, i) => i).map(mn =>
-                `<div class="dt-time-item ${mn === mm ? 'active' : ''}" onclick="DTPicker.pickMinute(${mn})">${String(mn).padStart(2, '0')}</div>`
+                `<div class="dt-time-item ${mn === mm ? 'active' : ''}" data-mn="${mn}" data-on-click="a170">${String(mn).padStart(2, '0')}</div>`
             ).join('');
 
             requestAnimationFrame(() => {
@@ -6310,7 +6352,7 @@ window.showConfirm = showConfirm;
                 const host = linkHost(link.url);
                 const ico = escapeHtml((link.name || host).trim().charAt(0).toUpperCase());
                 return `<div class="link-item" data-link-id="${link.id}">
-                    <span class="link-drag-handle" onpointerdown="onLinkHandlePointerDown(event, '${link.id}')" title="按住拖曳排序" aria-hidden="true">⠿</span>
+                    <span class="link-drag-handle" data-lid="${link.id}" data-on-pointerdown="a171" title="按住拖曳排序" aria-hidden="true">⠿</span>
                     <a class="link-main" href="${escapeHtml(link.url)}" target="_blank" rel="noopener noreferrer" title="${escapeHtml(link.url)}">
                         <span class="link-ico" aria-hidden="true">${ico}</span>
                         <span class="link-text"><span class="link-name">${escapeHtml(link.name)}</span><span class="link-host">${escapeHtml(host)}</span></span>
@@ -7243,9 +7285,9 @@ window.showConfirm = showConfirm;
         const card = document.createElement('div'); 
         card.className = 'timer-card'; 
         card.id = `card-${timer.id}`; 
-        card.innerHTML = `<div class="timer-header" id="header-${timer.id}"><span class="timer-name"><span id="name-${timer.id}">${escapeHtml(String(timer.name||''))}</span> <span class="timer-level" id="level-${timer.id}">${timer.level ? `[${escapeHtml(String(timer.level))}]` : ''}</span><span class="list-parts-in" id="lpartsin-${timer.id}"></span></span><span class="timer-countdown" id="count-${timer.id}">計算中...</span></div><div class="progress-bar-bg" id="bg-${timer.id}"><div class="progress-bar" id="bar-${timer.id}" style="width: 100%"></div></div><div class="timer-footer"><span>出航：<span class="time-highlight">${formatDateTime(timer.startTime)}</span></span><span>回港：<span class="time-highlight target">${formatDateTime(timer.endTime)}</span></span></div><div class="sub-config-summary" id="config-summary-${timer.id}"></div><div class="sub-route-line" id="route-line-${timer.id}"></div><div class="sub-an-line" id="an-line-${timer.id}"></div><div class="delete-btn-wrapper"><select class="card-group-select" id="group-select-${timer.id}" onchange="changeCardGroup('${timer.id}', this.value)">${groupSelectOptionsHtml(timer.group || DEFAULT_GROUP)}</select><div class="card-action-btns"><button class="card-icon-btn btn-route" onclick="sendCardToRoutePlanner('${timer.id}')">路線規劃</button><button class="card-icon-btn btn-config" onclick="openSubConfigModal('${timer.id}')">船艇設定</button><button class="card-icon-btn btn-delete" onclick="deleteTimer('${timer.id}')" aria-label="刪除 ${escapeHtml(String(timer.name||''))}"><span aria-hidden="true"><svg class="ic ic-trash-2" aria-hidden="true"><use href="#i-trash-2"/></svg></span> 刪除</button></div></div>`; 
+        card.innerHTML = `<div class="timer-header" id="header-${timer.id}"><span class="timer-name"><span id="name-${timer.id}">${escapeHtml(String(timer.name||''))}</span> <span class="timer-level" id="level-${timer.id}">${timer.level ? `[${escapeHtml(String(timer.level))}]` : ''}</span><span class="list-parts-in" id="lpartsin-${timer.id}"></span></span><span class="timer-countdown" id="count-${timer.id}">計算中...</span></div><div class="progress-bar-bg" id="bg-${timer.id}"><div class="progress-bar" id="bar-${timer.id}" style="width: 100%"></div></div><div class="timer-footer"><span>出航：<span class="time-highlight">${formatDateTime(timer.startTime)}</span></span><span>回港：<span class="time-highlight target">${formatDateTime(timer.endTime)}</span></span></div><div class="sub-config-summary" id="config-summary-${timer.id}"></div><div class="sub-route-line" id="route-line-${timer.id}"></div><div class="sub-an-line" id="an-line-${timer.id}"></div><div class="delete-btn-wrapper"><select class="card-group-select" id="group-select-${timer.id}" data-tid="${timer.id}" data-on-change="a164">${groupSelectOptionsHtml(timer.group || DEFAULT_GROUP)}</select><div class="card-action-btns"><button class="card-icon-btn btn-route" data-tid="${timer.id}" data-on-click="a165">路線規劃</button><button class="card-icon-btn btn-config" data-tid="${timer.id}" data-on-click="a166">船艇設定</button><button class="card-icon-btn btn-delete" data-tid="${timer.id}" data-on-click="a167" aria-label="刪除 ${escapeHtml(String(timer.name||''))}"><span aria-hidden="true"><svg class="ic ic-trash-2" aria-hidden="true"><use href="#i-trash-2"/></svg></span> 刪除</button></div></div>`; 
         // 先停掉這艘船舊卡片的倒數，避免舊計時器把舊卡片又塞回清單（造成重複卡片）
-        if (_timerIntervals.has(timer.id)) { clearInterval(_timerIntervals.get(timer.id)); _timerIntervals.delete(timer.id); }
+        _timerIntervals.delete(timer.id);
         timerList.appendChild(card); 
         updateConfigSummary(timer.id);
         updateRouteLine(timer.id);
@@ -7260,31 +7302,27 @@ window.showConfirm = showConfirm;
             return;
         }
 
-        // 清除舊 interval，避免同一張卡片同時跑多個倒數
-        if (_timerIntervals.has(timer.id)) {
-            clearInterval(_timerIntervals.get(timer.id));
-            _timerIntervals.delete(timer.id);
-        }
-        const interval = setInterval(() => { 
-            if (document.getElementById(`card-${timer.id}`) !== card) { clearInterval(interval); if (_timerIntervals.get(timer.id) === interval) _timerIntervals.delete(timer.id); return; } 
-            const remaining = timer.endTime - Date.now(); 
-            if (remaining <= 0) { 
-                document.getElementById(`count-${timer.id}`).innerHTML = IC('sparkles') + " 已回港！"; 
-                document.getElementById(`bg-${timer.id}`).classList.add('finished'); 
-                document.getElementById(`bar-${timer.id}`).classList.add('finished'); 
+        const entry = {};
+        entry.tick = () => {
+            if (document.getElementById(`card-${timer.id}`) !== card) { if (_timerIntervals.get(timer.id) === entry) _timerIntervals.delete(timer.id); return; }
+            const remaining = timer.endTime - Date.now();
+            if (remaining <= 0) {
+                document.getElementById(`count-${timer.id}`).innerHTML = IC('sparkles') + " 已回港！";
+                document.getElementById(`bg-${timer.id}`).classList.add('finished');
+                document.getElementById(`bar-${timer.id}`).classList.add('finished');
                 if (timerList.firstChild !== card) { timerList.prepend(card); }
                 updateRouteLine(timer.id);
-                playSound(); 
-                showNotification(timer.name); 
-                clearInterval(interval); 
                 _timerIntervals.delete(timer.id);
-                return; 
-            } 
-            const h = Math.floor(remaining / 3600000), m = Math.floor((remaining % 3600000) / 60000), s = Math.floor((remaining % 60000) / 1000); 
-            document.getElementById(`count-${timer.id}`).innerText = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`; 
-            document.getElementById(`bar-${timer.id}`).style.width = `${(remaining / (timer.totalSeconds * 1000)) * 100}%`; 
-        }, 1000);
-        _timerIntervals.set(timer.id, interval); 
+                playSound();
+                showNotification(timer.name);
+                return;
+            }
+            const h = Math.floor(remaining / 3600000), m = Math.floor((remaining % 3600000) / 60000), s = Math.floor((remaining % 60000) / 1000);
+            document.getElementById(`count-${timer.id}`).innerText = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+            document.getElementById(`bar-${timer.id}`).style.width = `${(remaining / (timer.totalSeconds * 1000)) * 100}%`;
+        };
+        _timerIntervals.set(timer.id, entry);
+        _ensureTimerTicker();
     }
     
     // ── 從船艇小卡送往路線規劃 ──
@@ -7630,8 +7668,8 @@ window.showConfirm = showConfirm;
         setActiveTimers(arr);
         saveActiveTimers();
         document.getElementById(`card-${id}`)?.remove();
-        // 清除對應的 interval
-        if (_timerIntervals.has(id)) { clearInterval(_timerIntervals.get(id)); _timerIntervals.delete(id); }
+        // 停掉這艘船的倒數
+        _timerIntervals.delete(id);
         AUTO_NAV_CACHE.delete(id);   // 自動導航的暫存也一起清掉
         updateFleetCount();
     }
@@ -7736,7 +7774,6 @@ window.showConfirm = showConfirm;
             if (sel) sel.value = savedSort;
         }
         // 清空舊卡片與所有 interval，避免重複渲染
-        _timerIntervals.forEach(iv => clearInterval(iv));
         _timerIntervals.clear();
         const list = document.getElementById('timerList');
         if (list) list.innerHTML = '';
@@ -7910,10 +7947,11 @@ window.showConfirm = showConfirm;
                     ${map.name} <span id="map-count-${map.id}" style="font-size:11px; color:#888; font-weight:normal;">(${count}/${total})</span>
                 </span>
                 <div class="map-entry-actions">
-                    <button class="map-node-btn" onclick="event.stopPropagation();setAllMapNodes(${map.id}, true)">全選</button>
-                    <button class="map-node-btn" onclick="event.stopPropagation();setAllMapNodes(${map.id}, false)">全清</button>
+                    <button class="map-node-btn" data-map="${map.id}" data-all="1" data-on-click="a172">全選</button>
+                    <button class="map-node-btn" data-map="${map.id}" data-all="0" data-on-click="a172">全清</button>
                 </div>`;
-            header.onclick = () => {
+            header.onclick = (e) => {
+                if (e.target.closest('.map-node-btn')) return;   // 全選／全清 不要順便收合
                 const wrap = document.getElementById(`map-nodes-${map.id}`);
                 const arrowEl = header.querySelector('.map-collapse-arrow');
                 if (_mapCollapsed.has(map.id)) {
@@ -8499,7 +8537,7 @@ window.showConfirm = showConfirm;
                     const lockedCls = locked ? ' gp-node-locked' : '';
                     const secId = l.sec[0];
                     const chkd = gpCheckedSectors.has(secId) ? 'checked' : '';
-                    const chkTd = `<td class="gp-tbl-chk-td"><input type="checkbox" class="gp-sector-chk" ${chkd} data-secid="${secId}" onchange="gpToggleSectorChk(${secId}, this.checked)"></td>`;
+                    const chkTd = `<td class="gp-tbl-chk-td"><input type="checkbox" class="gp-sector-chk" ${chkd} data-secid="${secId}" data-on-change="a173"></td>`;
                     return `<tr class="gp-tbl-spot-row${lockedCls}">${chkTd}<td class="gp-tbl-name"><span class="gp-tbl-letter">${l.letter}</span>${l.name}</td>${cells}</tr>`;
                 }).join('');
                 return mapRow + spotRows;
@@ -8540,7 +8578,7 @@ window.showConfirm = showConfirm;
             <div class="gp-item-card ${r.met ? 'met' : 'unmet'}">
                 <div class="gp-item-card-head">
                     <span class="gp-item-name">${r.item.name}</span>
-                    <span class="gp-item-remove" onclick="gpRemoveItem(${r.item.id})" title="移除"><svg class="ic ic-x" aria-hidden="true"><use href="#i-x"/></svg></span>
+                    <span class="gp-item-remove" data-iid="${r.item.id}" data-on-click="a174" title="移除"><svg class="ic ic-x" aria-hidden="true"><use href="#i-x"/></svg></span>
                 </div>
                 <div class="gp-gap-row">${r.gapHtml}</div>
                 <div class="gp-locs">${r.locHtml}</div>
@@ -8551,7 +8589,7 @@ window.showConfirm = showConfirm;
         const sendBar = `
             <div class="gp-send-bar">
                 <button class="gp-send-btn" id="gpSendRouteBtn"
-                    onclick="gpSendToRoutePlanner()"
+                    data-on-click="a175"
                     ${checkedCount === 0 ? 'disabled' : ''}>
                     <svg class="ic ic-compass" aria-hidden="true"><use href="#i-compass"/></svg> 前往路線規劃
                 </button>
@@ -8640,7 +8678,7 @@ window.showConfirm = showConfirm;
             box.innerHTML = `<div class="rp-suggest-empty">無符合結果</div>`;
         } else {
             box.innerHTML = itemsGroupedHtml(filtered.slice(0, 500), x =>
-                `<div class="rp-suggest-item" onmousedown="gpAddItemById(${x.id},'${x.name.replace(/'/g,"\\'")}'); document.getElementById('gpItemSearch').value=''; document.getElementById('gpSuggestBox').style.display='none';">${x.name}</div>`, 'rp-suggest-group');
+                `<div class="rp-suggest-item" data-iid="${x.id}" data-name="${escAttr(x.name)}" data-on-mousedown="a176">${x.name}</div>`, 'rp-suggest-group');
         }
         box.style.display = 'block';
     }
@@ -8664,7 +8702,7 @@ window.showConfirm = showConfirm;
         const el = document.getElementById('gpItemChips');
         if (!el) return;
         el.innerHTML = gpSelectedItems.map(x =>
-            `<span class="rp-chip">${x.name}<span class="rp-chip-x" onclick="gpRemoveItem(${x.id})"><svg class="ic ic-x" aria-hidden="true"><use href="#i-x"/></svg></span></span>`
+            `<span class="rp-chip">${x.name}<span class="rp-chip-x" data-iid="${x.id}" data-on-click="a174"><svg class="ic ic-x" aria-hidden="true"><use href="#i-x"/></svg></span></span>`
         ).join('');
     }
 
@@ -8960,7 +8998,7 @@ const CRAFT_BASE = SUB_DATA.CRAFT_BASE;
                 const p = CRAFT_PARTS[partKey];
                 return `<td class="craft-grid-cell${cls === 6 ? ' craft-mod-start' : ''}" role="button" tabindex="0"
                     data-cls="${cls}" data-sort="${sort}" title="${p.className} ${p.part}：點一下 +1"
-                    onclick="craftSelectCell2(${cls},${sort})"><span class="craft-lbl">${craftGradeLabel(cls)}</span></td>`;
+                    data-on-click="a177"><span class="craft-lbl">${craftGradeLabel(cls)}</span></td>`;
             }).join('');
             return `<tr><th class="craft-row-head">${partName}</th>${cells}</tr>`;
         }).join('');
@@ -9040,14 +9078,6 @@ const CRAFT_BASE = SUB_DATA.CRAFT_BASE;
         craftRenderResult();
     }
 
-    function craftRemovePart(name) {
-        craftSelectedParts = craftSelectedParts.filter(x => x.name !== name);
-        craftRenderChips();
-        craftRenderResult();
-        craftPersist();
-    }
-
-
     function craftSetPartQty(name, val) {
         const v = parseInt(val, 10);
         const existing = craftSelectedParts.find(x => x.name === name);
@@ -9072,28 +9102,10 @@ const CRAFT_BASE = SUB_DATA.CRAFT_BASE;
     }
 
     function craftRenderChips() {
+        // 數量已直接顯示在上方表格，這裡只更新表格的選取標示
         craftRefreshGridHighlight();
         const el = document.getElementById('craftChips');
-        if (!el) return;
-        el.innerHTML = '';
-        if (true) return;   // 數量已直接顯示在上方表格
-        if (craftSelectedParts.length === 0) {
-            el.innerHTML = '';
-            return;
-        }
-        const CHIP_SORT = { '船體': 1, '船尾': 2, '船首': 3, '艦橋': 4 };
-        el.innerHTML = [...craftSelectedParts]
-            .sort((a, b) => {
-                const pa = CRAFT_PARTS[a.name], pb = CRAFT_PARTS[b.name];
-                const sa = pa ? (CHIP_SORT[pa.part] || 9) * 100 + (pa.class || 0) : 999;
-                const sb = pb ? (CHIP_SORT[pb.part] || 9) * 100 + (pb.class || 0) : 999;
-                return sa - sb;
-            })
-            .map(x => {
-            const p = CRAFT_PARTS[x.name];
-            const label = p ? `${p.part} ${p.className} ×${x.qty}` : `${x.name} ×${x.qty}`;
-            return `<span class="rp-chip">${label}<span class="rp-chip-x" onclick="craftRemovePart('${x.name.replace(/'/g, "\\'")}')"><svg class="ic ic-x" aria-hidden="true"><use href="#i-x"/></svg></span></span>`;
-        }).join('');
+        if (el) el.innerHTML = '';
     }
 
     // 遞迴展開單一材料的所有需求，累加進 leafTotals（原礦/基礎素材）與 midTotals（半成品／中間素材）
@@ -9285,7 +9297,7 @@ const CRAFT_BASE = SUB_DATA.CRAFT_BASE;
         // 半成品（isTransition）仍需顯示製作數量，shortage 永遠計算
         const shortage = Math.max(0, needed - owned);
         const isDone = owned >= needed && needed > 0;
-        const safeName = name.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+        const attrName = escAttr(name);
         const label = displayLabel || name;
 
         // 目標欄顯示值：優先用 displayTarget（直接需求量），沒有就用 needed
@@ -9299,12 +9311,10 @@ const CRAFT_BASE = SUB_DATA.CRAFT_BASE;
                 <div class="num-spinner" style="border-radius:5px;">
                     <input type="text" class="craft-inv-owned craft-part-qty-input" style="width:32px; padding:2px 2px; font-size:13px;"
                         value="${needed}"
-                        onchange="craftSetPartQty('${safeName}', this.value)"
-                        oninput="craftSetPartQty('${safeName}', this.value)"
-                        onclick="event.stopPropagation()">
-                    <div class="num-spinner-btns" onclick="event.stopPropagation()">
-                        <button onclick="craftSpinnerStep('${safeName}', 1)" title="增加">▲</button>
-                        <button onclick="craftSpinnerStep('${safeName}', -1)" title="減少">▼</button>
+                        data-name="${attrName}" data-on-change="a179" data-on-input="a179" data-on-click="a180">
+                    <div class="num-spinner-btns" data-on-click="a180">
+                        <button data-name="${attrName}" data-step="1" data-on-click="a181" title="增加">▲</button>
+                        <button data-name="${attrName}" data-step="-1" data-on-click="a181" title="減少">▼</button>
                     </div>
                 </div>
                </td>`
@@ -9321,19 +9331,17 @@ const CRAFT_BASE = SUB_DATA.CRAFT_BASE;
         }
 
         return `<tr class="craft-inv-row${isDone ? ' craft-inv-row-done' : ''}"
-                    data-mat="${safeName}" data-needed="${needed}" data-transition="${isTransition ? 1 : 0}">
-            <td class="craft-inv-name" onclick="craftCopyName('${safeName}', this)" title="${label}（點擊複製）">${label}</td>
+                    data-mat="${attrName}" data-needed="${needed}" data-transition="${isTransition ? 1 : 0}">
+            <td class="craft-inv-name" data-name="${attrName}" data-on-click="a182" title="${label}（點擊複製）">${label}</td>
             <td class="craft-inv-check-cell">
                 <input type="checkbox" class="craft-inv-check" ${isDone ? 'checked' : ''}
                     title="標記全部完成"
-                    onchange="craftToggleDone('${safeName}', this.checked, ${needed}); event.stopPropagation()"
-                    onclick="event.stopPropagation()">
+                    data-name="${attrName}" data-needed="${needed}" data-on-change="a183" data-on-click="a180">
             </td>
             <td class="craft-inv-owned-cell">
                 <input type="number" min="0" class="craft-inv-owned"
                     value="${owned > 0 ? owned : ''}" placeholder="0"
-                    oninput="craftSaveOwned('${safeName}', this.value)"
-                    onclick="event.stopPropagation()">
+                    data-name="${attrName}" data-on-input="a184" data-on-click="a180">
             </td>
             ${targetCell}
             <td class="craft-inv-short ${shortClass}">${shortText}</td>
@@ -9479,10 +9487,10 @@ const CRAFT_BASE = SUB_DATA.CRAFT_BASE;
             </div>
             <div class="craft-mat-cols-wrap">
             <div class="craft-mob-tabs" style="display:none;">
-                <button class="craft-mob-tab active" onclick="craftMobTab(this,0)">配件</button>
-                <button class="craft-mob-tab" onclick="craftMobTab(this,1)">成品素材</button>
-                <button class="craft-mob-tab" onclick="craftMobTab(this,2)">半成品</button>
-                <button class="craft-mob-tab" onclick="craftMobTab(this,3)">基礎素材</button>
+                <button class="craft-mob-tab active" data-tab="0" data-on-click="a185">配件</button>
+                <button class="craft-mob-tab" data-tab="1" data-on-click="a185">成品素材</button>
+                <button class="craft-mob-tab" data-tab="2" data-on-click="a185">半成品</button>
+                <button class="craft-mob-tab" data-tab="3" data-on-click="a185">基礎素材</button>
             </div>
             <div class="craft-mat-cols">
                 <div class="craft-mat-col mob-col-active">
@@ -9722,7 +9730,7 @@ const CRAFT_BASE = SUB_DATA.CRAFT_BASE;
     function rpRenderMapChips(mode) {
         const chipsEl = document.getElementById(mode === 'inc' ? 'rpMapIncChips' : 'rpMapExclChips');
         chipsEl.innerHTML = [...rpMapSel[mode]].map(id =>
-            `<span class="rp-chip ${mode}">${id} - ${MAP_NAMES[id]}<span class="rp-chip-x" onclick="rpRemoveMap('${mode}',${id})"><svg class="ic ic-x" aria-hidden="true"><use href="#i-x"/></svg></span></span>`
+            `<span class="rp-chip ${mode}">${id} - ${MAP_NAMES[id]}<span class="rp-chip-x" data-mode="${mode}" data-id="${id}" data-on-click="a186"><svg class="ic ic-x" aria-hidden="true"><use href="#i-x"/></svg></span></span>`
         ).join('');
     }
 
@@ -9778,7 +9786,7 @@ const CRAFT_BASE = SUB_DATA.CRAFT_BASE;
                 const secs = SUB_SECTORS.filter(s => s[1] === id).sort((a, b) => a[0] - b[0]);
                 const items = secs.map(s => {
                     const selected = rpSectorSel[mode].has(s[0]);
-                    return `<div class="sector-item${selected ? ' selected' : ''}" data-id="${s[0]}" onclick="SectorPicker.toggle(this, ${s[0]})">
+                    return `<div class="sector-item${selected ? ' selected' : ''}" data-id="${s[0]}" data-on-click="a187">
                         <span class="sector-item-check">${selected ? '✓' : ''}</span>
                         <span>${s[2]} ${s[4]}（Lv${s[5] ?? '?'}${SUB_PATCH[s[0]] ? '・' + SUB_PATCH[s[0]] : ''}）</span>
                     </div>`;
@@ -9816,7 +9824,7 @@ const CRAFT_BASE = SUB_DATA.CRAFT_BASE;
         chipsEl.innerHTML = [...rpSectorSel[mode]].map(id => {
             const s = SUB_SECTORS.find(x => x[0] === id);
             const label = s ? `${s[2]} ${s[4]}` : id;
-            return `<span class="rp-chip ${mode}">${label}<span class="rp-chip-x" onclick="rpRemoveSector('${mode}',${id})"><svg class="ic ic-x" aria-hidden="true"><use href="#i-x"/></svg></span></span>`;
+            return `<span class="rp-chip ${mode}">${label}<span class="rp-chip-x" data-mode="${mode}" data-id="${id}" data-on-click="a188"><svg class="ic ic-x" aria-hidden="true"><use href="#i-x"/></svg></span></span>`;
         }).join('');
     }
 
@@ -9857,7 +9865,7 @@ const CRAFT_BASE = SUB_DATA.CRAFT_BASE;
             box.innerHTML = `<div class="rp-suggest-empty">無符合結果</div>`;
         } else {
             box.innerHTML = filtered.slice(0, 500).map(x =>
-                `<div class="rp-suggest-item" onmousedown="rpAddItemById(${x.id},'${x.name.replace(/'/g,"\\'")}'); document.getElementById('rpItemSearch').value=''; document.getElementById('rpSuggestBox').style.display='none';">${x.name}</div>`
+                `<div class="rp-suggest-item" data-iid="${x.id}" data-name="${escAttr(x.name)}" data-on-mousedown="a189">${x.name}</div>`
             ).join('');
         }
         box.style.display = 'block';
@@ -9955,7 +9963,7 @@ const CRAFT_BASE = SUB_DATA.CRAFT_BASE;
             const tooltipHtml = maps.length
                 ? `<span class="rp-chip-tooltip"><svg class="ic ic-map-pin" aria-hidden="true"><use href="#i-map-pin"/></svg> ${maps.join('・')}</span>`
                 : '';
-            return `<span class="rp-chip" style="position:relative">${i.name}${tooltipHtml}<span class="rp-chip-x" onclick="rpRemoveItem(${i.id})"><svg class="ic ic-x" aria-hidden="true"><use href="#i-x"/></svg></span></span>`;
+            return `<span class="rp-chip" style="position:relative">${i.name}${tooltipHtml}<span class="rp-chip-x" data-iid="${i.id}" data-on-click="a190"><svg class="ic ic-x" aria-hidden="true"><use href="#i-x"/></svg></span></span>`;
         }).join('');
     }
 
@@ -10990,7 +10998,7 @@ const CRAFT_BASE = SUB_DATA.CRAFT_BASE;
             : (lvTxt ? `<span class="route-line-txt">${lvTxt.replace(' · ', '')}</span>` : '');
         updateAnLine(t, plan);
         el.innerHTML = `<div class="route-line-info">${lastTxt}${nextTxt}</div>`
-            + `<button type="button" class="card-icon-btn btn-redepart${returned ? ' ready' : ''}" onclick="subRedepart('${t.id}')">再出發</button>`;
+            + `<button type="button" class="card-icon-btn btn-redepart${returned ? ' ready' : ''}" data-tid="${t.id}" data-on-click="a191">再出發</button>`;
         el.style.display = 'flex';
         subRefreshGroupRedepart();
     }
@@ -11303,7 +11311,7 @@ const CRAFT_BASE = SUB_DATA.CRAFT_BASE;
         const th = (label, mode, cls) => {
             const on = sortMode === mode || (mode === 'eta' && sortMode.startsWith('eta'));
             const arrow = on ? (sortMode === 'eta_asc' ? ' ▲' : ' ▼') : '';
-            return mode ? `<button type="button" class="rp-th ${cls}${on ? ' on' : ''}" onclick="rpSortBy('${mode}')">${label}${arrow}</button>`
+            return mode ? `<button type="button" class="rp-th ${cls}${on ? ' on' : ''}" data-mode="${mode}" data-on-click="a192">${label}${arrow}</button>`
                         : `<span class="rp-th ${cls}">${label}</span>`;
         };
         const headHtml = `<div class="rp-list-title"><span class="rp-list-map">${mapTitle}</span><span class="rp-list-sub">${list.length} 條 · 依 ${sortLbl} 排序 · 點一行展開／收起掉落物</span></div>
@@ -11394,7 +11402,7 @@ const CRAFT_BASE = SUB_DATA.CRAFT_BASE;
             }).join('');
             const mapTag = multiMap ? `<span class="rp-li-map">${mapNameOnly}</span>` : '';
             return `<div class="rp-li${idx === 0 ? ' rp-li-top' : ''}">
-                <div class="rp-li-row" role="button" tabindex="0" aria-expanded="false" onclick="rpToggleRow(this)" title="點一下展開或收起掉落物">
+                <div class="rp-li-row" role="button" tabindex="0" aria-expanded="false" data-on-click="a193" title="點一下展開或收起掉落物">
                     <span class="rp-li-rank">${idx + 1}</span>
                     <span class="rp-li-route">${mapTag}${routeHtml}</span>
                     <span class="rp-li-epm">${r.epm.toLocaleString()}<span class="rp-li-unit">EXP/分</span></span>
@@ -11405,7 +11413,7 @@ const CRAFT_BASE = SUB_DATA.CRAFT_BASE;
                     <span class="rp-li-cnt">${r.secCount}</span>
                     <span class="rp-li-rank-req">≥ ${r.minRank}</span>
                     <span class="rp-li-meta">${r.timeStr} · 回港 ${etaStr} · 航距 ${r.range}</span>
-                    <span class="rp-li-act"><button type="button" class="rp-use-route-btn" onclick="event.stopPropagation();applyRouteToCard(${r.timeMins},'${r.secIds.join(',')}',${r.exp})">使用</button></span>
+                    <span class="rp-li-act"><button type="button" class="rp-use-route-btn" data-mins="${r.timeMins}" data-secs="${r.secIds.join(',')}" data-exp="${r.exp}" data-on-click="a194">使用</button></span>
                 </div>
                 <div class="rp-li-detail rp-result-loot rp-tiered-loot">${tieredLootHtml}</div>
             </div>`;
@@ -11787,7 +11795,6 @@ window.toggleUploadZone = function(btn) {
         const list = document.getElementById('timerList');
         if (!list) return;
         // 清空 interval 再清空卡片
-        _timerIntervals.forEach(iv => clearInterval(iv));
         _timerIntervals.clear();
         list.innerHTML = '';
 
@@ -11879,8 +11886,8 @@ window.toggleUploadZone = function(btn) {
         const btn = document.createElement('button');
         btn.className = 'fleet-view-tab';
         btn.dataset.view = roomId;
-        btn.innerHTML = `${roomName}<span class="fleet-view-badge">即時</span><span class="fleet-view-close" onclick="cloudLeaveRoomById(event,'${roomId}')"><svg class="ic ic-x" aria-hidden="true"><use href="#i-x"/></svg></span>`;
-        btn.onclick = () => switchFleetView(roomId);
+        btn.innerHTML = `${roomName}<span class="fleet-view-badge">即時</span><span class="fleet-view-close" data-rid="${roomId}" data-on-click="a195"><svg class="ic ic-x" aria-hidden="true"><use href="#i-x"/></svg></span>`;
+        btn.onclick = (e) => { if (e.target.closest('.fleet-view-close')) return; switchFleetView(roomId); };   // 按 × 是離開房間，不要先切過去
         seg.appendChild(btn);
         const mineTab = document.getElementById('fleetTabMine');
         if (mineTab) mineTab.dataset.view = 'mine';
@@ -12058,7 +12065,7 @@ window.toggleUploadZone = function(btn) {
             members.map(([uuid, name]) =>
                 `<div style="display:flex; align-items:center; justify-content:space-between; padding:3px 0;">
                     <span style="font-size:12px; color:var(--text-color);">${name || uuid.slice(0,8)}</span>
-                    <button onclick="kickRoomMember('${roomId}','${uuid}')" style="background:transparent; border:1px solid rgba(255,83,112,0.3); color:#e06070; border-radius:5px; padding:2px 8px; font-size:11px; cursor:pointer;">移除</button>
+                    <button data-rid="${roomId}" data-uid="${uuid}" data-on-click="a196" style="background:transparent; border:1px solid rgba(255,83,112,0.3); color:#e06070; border-radius:5px; padding:2px 8px; font-size:11px; cursor:pointer;">移除</button>
                 </div>`
             ).join('');
     };
@@ -12195,8 +12202,8 @@ window.toggleUploadZone = function(btn) {
                     ${room.owner !== (window.CloudSync?.myUUID || '') ? `<br><strong>權限：</strong>${room.perm === 'view' ? '只能看' : '可以修改'}` : ''}
                 </div>
                 <div class="room-card-actions">
-                    ${room.owner !== (window.CloudSync?.myUUID || '') ? `<button class="room-card-btn enter" onclick="switchFleetView('${roomId}'); switchRpTab('fleet');">切換視圖</button>` : ''}
-                    <button class="room-card-btn leave" onclick="cloudLeaveRoomById(event,'${roomId}')">離開房間</button>
+                    ${room.owner !== (window.CloudSync?.myUUID || '') ? `<button class="room-card-btn enter" data-rid="${roomId}" data-on-click="a197">切換視圖</button>` : ''}
+                    <button class="room-card-btn leave" data-rid="${roomId}" data-on-click="a195">離開房間</button>
                 </div>`;
             wrap.appendChild(card);
         });
