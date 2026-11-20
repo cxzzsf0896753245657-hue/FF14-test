@@ -174,6 +174,7 @@ window.UI_ACTIONS = {
     a12: function (event) { changeAlarm(this.value) },
     a13: function (event) { testVolume(this.value) },
     a14: function (event) { testAlarm() },
+    a160: function (event) { toggleSound() },
     a15: function (event) { toggleUploadZone(this) },
     a16: function (event) { document.getElementById('fileInput').click() },
     a17: function (event) { toggleCollapse('content1', this) },
@@ -762,7 +763,7 @@ window.UI_ACTIONS = {
         body.light-mode .lp-icon-btn { background: rgba(0,0,0,0.04); border-color: rgba(0,0,0,0.1); }
 
         /* 推播開關列 */
-        .lp-push-row { order: -1; flex-basis: 100%; display: flex; align-items: center; gap: 10px; padding: 2px 0 8px; margin-bottom: 4px; border-bottom: 1px solid rgba(255,255,255,0.07); }
+        .lp-push-row { order: -2; flex-basis: 100%; display: flex; align-items: center; gap: 10px; padding: 2px 0 8px; margin-bottom: 4px; border-bottom: 1px solid rgba(255,255,255,0.07); }
         body.light-mode .lp-push-row { border-bottom-color: rgba(0,0,0,0.07); }
         .lp-push-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
         .lp-push-txt b { font-size: 13px; font-weight: 700; display: inline-flex; align-items: center; gap: 5px; }
@@ -772,7 +773,8 @@ window.UI_ACTIONS = {
         .lp-switch span { position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%; background: #fff; transition: transform .15s; }
         .lp-switch[aria-checked="true"] { background: #4caf50; }
         .lp-switch[aria-checked="true"] span { transform: translateX(18px); }
-        .lp-sound-label .ic { vertical-align: -2px; }
+        .lp-sound-head { order: -1; border-bottom: 0; padding-bottom: 2px; margin-bottom: 0; }
+        #soundOpts.off { opacity: .35; pointer-events: none; }
         /* 音效控制組：移除多餘框線，直接在 lp-controls 內平排 */
         .lp-sound-group {
             display: flex; align-items: center; gap: 5px; flex: 1; min-width: 0;
@@ -3765,15 +3767,18 @@ window.icHtml = function (t) {
                     <div class="lp-push-txt"><b><svg class="ic ic-bell" aria-hidden="true"><use href="#i-bell"/></svg> 推播</b><span id="pushStateTxt">回港時跳出瀏覽器通知</span></div>
                     <button type="button" class="lp-switch" id="pushToggle" role="switch" aria-checked="false" aria-label="推播" data-on-click="a4"><span></span></button>
                 </div>
-                <div class="lp-sound-group">
-                    <span class="lp-sound-label"><svg class="ic ic-volume-2" aria-hidden="true"><use href="#i-volume-2"/></svg> 音效</span>
-                    <select id="alarmSelect" data-on-change="a12">
-                        <option value="off">關閉</option>
+                <div class="lp-push-row lp-sound-head">
+                    <div class="lp-push-txt"><b><svg class="ic ic-volume-2" aria-hidden="true"><use href="#i-volume-2"/></svg> 音效</b><span>回港時播放提示音</span></div>
+                    <button type="button" class="lp-switch" id="soundToggle" role="switch" aria-checked="true" aria-label="音效" data-on-click="a160"><span></span></button>
+                </div>
+                <div class="lp-sound-group" id="soundOpts">
+                    <span class="lp-sound-label">聲音</span>
+                    <select id="alarmSelect" data-on-change="a12" aria-label="提示音">
                         <option value="soft">01 柔和</option>
                         <option value="sharp">02 清脆</option>
                         <option value="ding">03 叮咚</option>
                     </select>
-                    <input type="range" id="volumeSlider" min="0" max="1" step="0.1" value="0.5" data-on-input="a13">
+                    <input type="range" id="volumeSlider" min="0" max="1" step="0.1" value="0.5" data-on-input="a13" aria-label="音量">
                     <button type="button" class="lp-test-btn" data-on-click="a14">測試</button>
                 </div>
             </div>
@@ -5269,8 +5274,22 @@ window.showConfirm = showConfirm;
     let _audioCtx = null; // 全域共用，避免每次音效都建立新的
     let currentSort = localStorage.getItem('sub_sort') || 'time_asc';
     let volume = parseFloat(localStorage.getItem('sub_volume') || '0.5');
-    document.getElementById('alarmSelect').value = alarmMode;
     document.getElementById('volumeSlider').value = volume;
+    // 音效開關：關閉時 alarmMode='off'，另外記住上次選的聲音
+    function renderSoundToggle() {
+        const on = alarmMode !== 'off';
+        const sw = document.getElementById('soundToggle'); if (sw) sw.setAttribute('aria-checked', String(on));
+        const box = document.getElementById('soundOpts');
+        if (box) { box.classList.toggle('off', !on); box.querySelectorAll('select,input,button').forEach(el => { el.disabled = !on; }); }
+        const sel = document.getElementById('alarmSelect');
+        if (sel) sel.value = on ? alarmMode : (localStorage.getItem('sub_alarm_last') || 'soft');
+    }
+    function toggleSound() {
+        if (alarmMode !== 'off') { try { localStorage.setItem('sub_alarm_last', alarmMode); } catch (e) {} changeAlarm('off'); }
+        else { changeAlarm(localStorage.getItem('sub_alarm_last') || 'soft'); }
+        renderSoundToggle();
+    }
+    renderSoundToggle();
 
     // 推播開關（每台裝置各自記；沒設定過時沿用瀏覽器權限）
     const NOTIF_KEY = 'sub_notify_on';
@@ -5307,7 +5326,7 @@ window.showConfirm = showConfirm;
     }
     document.addEventListener('DOMContentLoaded', renderNotifBtn);
     if (document.readyState !== 'loading') setTimeout(renderNotifBtn, 0);
-    function changeAlarm(val) { alarmMode = val; localStorage.setItem('sub_alarm_mode', val); if (val !== 'off') playSound(); }
+    function changeAlarm(val) { alarmMode = val; localStorage.setItem('sub_alarm_mode', val); if (val !== 'off') { try { localStorage.setItem('sub_alarm_last', val); } catch (e) {} playSound(); } }
     function testVolume(val) { volume = parseFloat(val); localStorage.setItem('sub_volume', val); playSound(); }
     function playSound() {
         if (alarmMode === 'off') return;
