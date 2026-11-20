@@ -1395,8 +1395,8 @@ window.UI_ACTIONS = {
         .sm-row.no .sm-st { border: 1.5px solid rgba(160,160,170,.45); }
         .sm-nm { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600; }
         .sm-row.no .sm-nm { color: #8a8f99; font-weight: 500; }
-        .sm-cat-rare .sm-row.ok .sm-nm, .sm-grp.rare ~ .sm-row.ok .sm-nm { color: #d7b8f5; }
-        body.light-mode .sm-cat-rare .sm-row.ok .sm-nm { color: #7a3fb5; }
+        .sm-row.ok.cat-rare .sm-nm { color: #d7b8f5; }
+        body.light-mode .sm-row.ok.cat-rare .sm-nm { color: #7a3fb5; }
         .sm-pts { flex: none; display: inline-flex; gap: 3px; flex-wrap: wrap; justify-content: flex-end; max-width: 46%; }
         .sm-pts i { font-style: normal; font-size: 11px; font-weight: 800; min-width: 18px; padding: 1px 4px; text-align: center; border-radius: 5px; color: #7d828c; background: rgba(255,255,255,0.05); }
         body.light-mode .sm-pts i { background: rgba(0,0,0,0.05); color: #999; }
@@ -1405,7 +1405,6 @@ window.UI_ACTIONS = {
         .sm-grp:first-child { padding-top: 2px; }
         .sm-grp small { font-weight: 600; margin-left: 6px; opacity: .7; letter-spacing: 0; }
         .sm-grp.rare { color: #c89fef; } .sm-grp.workshop { color: #5fb3e8; }
-        .sm-grp.rare ~ .sm-grp ~ .sm-row.ok .sm-nm { color: inherit; }
         .sm-maps { display: flex; flex-wrap: wrap; gap: 6px; }
         .sm-maps .map-group-tab small { font-size: 11px; opacity: .75; margin-left: 4px; }
         .sm-cat-tabs { display: flex; gap: 5px; flex-wrap: wrap; }
@@ -8044,6 +8043,23 @@ window.showConfirm = showConfirm;
         });
         sp.addEventListener('dblclick', () => { cur = set(DEF, true); });
     })();
+    // 物品類型：先看資料裡的分組，其餘依名稱判斷
+    const SM_TYPE_ORDER = ['沉船裝備', '樂譜', '家具・庭院', '寵物・坐騎', '眼鏡・傘', '海洋素材', '加工素材', '礦石・金屬', '寶石・石材', '木材', '布料・皮革', '食材', '藥品', '其他'];
+    const SM_TYPE_GROUP = (() => {
+        const map = { '沉船裝備': '沉船裝備', '樂譜': '樂譜', '家具 / 庭院裝飾': '家具・庭院', '寵物 / 坐騎零件': '寵物・坐騎', '傘 / 眼鏡 / 飾品': '眼鏡・傘', '海洋素材': '海洋素材' };
+        const m = {}; Object.entries(SUB_DATA.PRIORITY_LOOT_GROUPS || {}).forEach(([g, ids]) => { if (map[g]) ids.forEach(id => { m[id] = map[g]; }); }); return m;
+    })();
+    const SM_TYPE_RULES = [
+        ['樂譜', /樂譜/], ['家具・庭院', /頂燈|吊燈|地燈|彩燈|櫃$|戰場|貼紙|牆飾|磚石圈|地毯/], ['眼鏡・傘', /面部配飾|眼鏡|傘/],
+        ['加工素材', /合板|水晶板|天鵝絨布|玻璃|黏土|樹脂|樹汁|靈砂|明礬|木屑/],
+        ['礦石・金屬', /礦$|錠$|沙$|塊$|自然金/], ['寶石・石材', /石$|岩$|寶石|鑽石|原石|礫$|雲母|晶$|棱晶|粉$/],
+        ['木材', /原木|木材|樹枝|竹材|古樹|竹片|廢材/], ['布料・皮革', /棉|麻|絹|繭|布$|粗皮|革$|葛布|纖維/],
+        ['食材', /裸麥|糖漿|椰子|薯|茶葉|無花果|洋蔥|番茄|蒜|胡椒|豆子|鳳梨|玉米|鹽|樹液|油$/], ['藥品', /幻藥/]
+    ];
+    function smItemType(id, name) {
+        if (SM_TYPE_GROUP[id]) return SM_TYPE_GROUP[id];
+        const r = SM_TYPE_RULES.find(([, re]) => re.test(name)); return r ? r[0] : '其他';
+    }
     window.renderSeaMap = function renderSeaMap() {
         const panel = document.getElementById('panelSeamap'); if (!panel) return;
         const allGroups = allGroupNames();
@@ -8121,7 +8137,7 @@ window.showConfirm = showConfirm;
         const list = Object.keys(items).map(Number).filter(id => ITEM_DB[id] && !/魔晶石|之(碎晶|水晶|晶簇)$|黑暗物質|^無屬性水晶$|^深(色|紅|綠|藍)(水晶|晶簇)$/.test(ITEM_DB[id])).map(id => {
             const where = items[id].sort((a, b) => a.l.localeCompare(b.l));
             const ps = where.map(w => w.p).filter(v => v != null);
-            return { id, name: ITEM_DB[id], cat: itemCategoryOf(id), where, best: ps.length ? Math.max(...ps) : 999, maxTier: Math.max(...where.map(w => w.tr)) };
+            return { id, name: ITEM_DB[id], cat: itemCategoryOf(id), type: smItemType(id, ITEM_DB[id]), where, best: ps.length ? Math.max(...ps) : 999, maxTier: Math.max(...where.map(w => w.tr)) };
         }).sort((a, b) => SM_CAT_RANK[a.cat] - SM_CAT_RANK[b.cat] || a.name.localeCompare(b.name, 'zh-Hant-TW-u-co-stroke'));   // 同類依名稱（筆畫）排序
         const avail = x => x.where.some(w => w.on);
         const cats = ['rare', 'workshop', 'other', 'all'];
@@ -8136,13 +8152,18 @@ window.showConfirm = showConfirm;
         const rowHtml = x => {
             const ok = avail(x);
             const best = x.where.filter(w => w.p != null).reduce((m, w) => Math.max(m, w.p), 0);
-            return `<div class="sm-row ${ok ? 'ok' : 'no'}" title="${escapeHtml(x.name)}${best ? `・最高約 ${best}%` : ''}${ok ? '' : '・要先開海點'}"><span class="sm-st" aria-label="${ok ? '撈得到' : '還沒開'}">${ok ? '✓' : ''}</span><span class="sm-nm">${escapeHtml(x.name)}</span><span class="sm-pts">${x.where.map(w => `<i class="${w.on ? 'on' : ''}" title="${w.l} 點・T${w.tr}${w.p != null ? '・約 ' + w.p + '%' : ''}${w.on ? '' : '（未開）'}">${w.l}</i>`).join('')}</span></div>`;
+            return `<div class="sm-row ${ok ? 'ok' : 'no'} cat-${x.cat}" title="${escapeHtml(x.name)}${best ? `・最高約 ${best}%` : ''}${ok ? '' : '・要先開海點'}"><span class="sm-st" aria-label="${ok ? '撈得到' : '還沒開'}">${ok ? '✓' : ''}</span><span class="sm-nm">${escapeHtml(x.name)}</span><span class="sm-pts">${x.where.map(w => `<i class="${w.on ? 'on' : ''}" title="${w.l} 點・T${w.tr}${w.p != null ? '・約 ' + w.p + '%' : ''}${w.on ? '' : '（未開）'}">${w.l}</i>`).join('')}</span></div>`;
         };
         const pick = xs => smOnlyAvail ? xs.filter(avail) : xs;
+        // 依類型分段（沉船裝備、樂譜、家具…），每段標出撈得到／總數
         let html = '';
-        if (smCat === 'all') {
-            ['rare', 'workshop', 'other'].forEach(c => { const xs = pick(list.filter(x => x.cat === c)); if (xs.length) html += `<div class="sm-grp ${c}">${SM_CAT_LABEL[c]}<small>${cnt[c][0]}/${cnt[c][1]}</small></div>` + xs.map(rowHtml).join(''); });
-        } else html = pick(list.filter(x => x.cat === smCat)).map(rowHtml).join('');
+        const inCat = list.filter(x => smCat === 'all' || x.cat === smCat);
+        SM_TYPE_ORDER.forEach(t => {
+            const all = inCat.filter(x => x.type === t); if (!all.length) return;
+            const xs = pick(all); if (!xs.length) return;
+            const c = all[0].cat;
+            html += `<div class="sm-grp ${c}">${t}<small>${all.filter(avail).length}/${all.length}</small></div>` + xs.map(rowHtml).join('');
+        });
         const lootEl = document.getElementById('smLoot');
         lootEl.className = 'sm-loot sm-cat-' + smCat;
         lootEl.innerHTML = html || `<div class="sm-empty">${smOnlyAvail ? '目前開的海點撈不到這類物品' : '這個分類沒有物品'}</div>`;
