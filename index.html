@@ -1403,7 +1403,7 @@ window.UI_ACTIONS = {
         .sm-prob-k { font-style: normal; }
         /* 電腦版：和艦隊條列一樣，每一欄對齊 */
         @media (min-width: 641px) {
-            #smLoot .sm-row, #smLoot .sm-thead { display: grid; row-gap: 0; grid-template-columns: 18px minmax(96px, 1fr) 70px 100px 52px minmax(56px, 100px) 76px; column-gap: 12px; align-items: center; }
+            #smLoot .sm-row, #smLoot .sm-thead { display: grid; row-gap: 0; grid-template-columns: 18px minmax(82px, 1fr) 70px 100px 66px minmax(56px, 100px) 76px; column-gap: 12px; align-items: center; }
             #smLoot .sm-row { flex-wrap: nowrap; }
             #smLoot .sm-row .sm-nm { white-space: normal; max-width: none; flex-shrink: 1; line-height: 1.35; }
             #smLoot .sm-right { display: contents; }
@@ -1415,6 +1415,7 @@ window.UI_ACTIONS = {
             .sm-thead { position: sticky; top: 0; z-index: 2; background: var(--card-color); font-size: 11.5px; font-weight: 700; color: #888; padding: 4px 4px 6px; border-bottom: 1px solid rgba(255,255,255,0.12); }
             body.light-mode .sm-thead { border-bottom-color: rgba(0,0,0,0.12); }
             .sm-thead span:last-child { text-align: right; }
+            .sm-thead span { white-space: nowrap; }
         }
         .sm-right { margin-left: auto; display: inline-flex; align-items: center; flex: none; }
         .sm-right .sm-pts { margin-left: 0; }
