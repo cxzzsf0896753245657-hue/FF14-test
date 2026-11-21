@@ -3928,7 +3928,7 @@ window.icHtml = function (t) {
             <button type="button" class="drawer-close" id="drawerClose" aria-label="關閉面板" title="關閉（Esc）"><svg class="ic ic-x" aria-hidden="true"><use href="#i-x"/></svg></button>
         </div>
         <div class="header-wrapper">
-            <h1><svg class="ic ic-sub" aria-hidden="true"><use href="#i-sub"/></svg> FF14 潛水艇計時器2.4.4 <span>阿緋@鳳凰</span></h1>
+            <h1><svg class="ic ic-sub" aria-hidden="true"><use href="#i-sub"/></svg> FF14 潛水艇計時器2.4.5 <span>阿緋@鳳凰</span></h1>
             <!-- 控制列 -->
             <div class="lp-controls">
                 <button type="button" class="lp-icon-btn u1" data-on-click="a11" title="使用說明" aria-label="使用說明"><svg class="ic ic-book-open" aria-hidden="true"><use href="#i-book-open"/></svg></button>
@@ -4121,6 +4121,19 @@ window.icHtml = function (t) {
             <button type="button" class="collapsible-btn" data-on-click="a36" aria-expanded="false" aria-controls="content4"><span>+</span> 開發日記</button>
             <div id="content4" class="content">
                 <div class="u38" style="color: var(--text-color);">
+                   <div class="u39" style="color: var(--accent-color);"><svg class="ic ic-calendar-days" aria-hidden="true"><use href="#i-calendar-days"/></svg> 2026/11/21　v2.4.5</div>
+                    <ul class="u40">
+                        <li>新增「海圖設定」分頁：在遊戲海圖上點海點開關，連線顯示解鎖順序</li>
+                        <li>海圖設定：列出每張海圖撈得到的物品，含遊戲分類、能不能交易、獲得機率、繁中服近 7 天市場估算價格</li>
+                        <li>海圖設定：可指定一艘船，判斷等級和探索性能夠不夠撈</li>
+                        <li>通知與音效合併成「通知」工具，推播、音效各自開關；回港音效增加到 10 種</li>
+                        <li>看共同艦隊時，自己的船回港一樣會響鈴、推播</li>
+                        <li>艦隊條列在等級後面顯示配件</li>
+                        <li>頁面最下方加上資料來源與版權標示</li>
+                        <li>截圖辨識引擎改成第一次使用才下載，左側海圖參考圖改放在網站內，打開網頁更快</li>
+                        <li>修正：淺色配色下選中的標籤看不到字</li>
+                        <li>修正：配件規劃選「不套用」沒有還原配件；左側海圖點海點時，海圖設定沒有即時更新</li>
+                    </ul>
                    <div class="u39" style="color: var(--accent-color);"><svg class="ic ic-calendar-days" aria-hidden="true"><use href="#i-calendar-days"/></svg> 2026/11/16　v2.4.4</div>
                     <ul class="u40">
                         <li>船艇設定新增「再出發方式」：上一次航線，或固定的剩餘時間；群組再出發也會照各船的設定</li>
@@ -4347,7 +4360,7 @@ window.icHtml = function (t) {
 
     <!-- ══ RIGHT PANEL ══ -->
     <div class="right-panel">
-        <div class="desk-brand" aria-hidden="true"><svg class="ic ic-sub" aria-hidden="true"><use href="#i-sub"/></svg> FF14 潛水艇計時器 <span>2.4.4・阿緋@鳳凰</span></div>
+        <div class="desk-brand" aria-hidden="true"><svg class="ic ic-sub" aria-hidden="true"><use href="#i-sub"/></svg> FF14 潛水艇計時器 <span>2.4.5・阿緋@鳳凰</span></div>
         <!-- 分頁切換列 -->
         <div class="rp-panel-tabs" id="rpPanelTabs" role="tablist" aria-label="主要功能">
             <button type="button" class="rp-panel-tab active" id="tabFleet" role="tab" aria-controls="panelFleet" aria-selected="true" data-on-click="a37"><svg class="ic ic-sub" aria-hidden="true"><use href="#i-sub"/></svg> 潛水艇艦隊 <span class="u43" id="fleetCount" style="background: rgba(var(--accent-rgb),0.2); color: var(--accent-color); border: 1px solid #555; border-radius: 6px; display: inline-block; min-width: 36px;">0 艘</span></button>
@@ -5591,26 +5604,30 @@ window.showConfirm = showConfirm;
     // ── 更新內容通知（每位使用者、每個瀏覽器只顯示一次）──
     // 之後要再通知：改 id 與 items，所有人就會再看到一次
     const UPDATE_NOTICE = {
-        id: '2.4.4',
-        title: '🆕 2.4.4 更新',
-        date: '2026/11/16',
+        id: '2.4.5',
+        title: '🆕 2.4.5 更新',
+        date: '2026/11/21',
         pages: [
-            { tab: '再出發方式', icon: 'refresh-cw', title: '再出發可以用固定時間',
-              lead: '船艇設定 →「再出發方式」',
-              items: ['上一次航線：照航線重算時間（預設）',
-                      '剩餘時間：填天、時、分，按「再出發」就從現在開始倒數',
-                      '群組再出發會照每艘船各自的設定',
-                      '有開自動導航時，以自動導航為準'] },
-            { tab: '開圖', icon: 'map', title: '開圖只撞開得了的點',
-              lead: '船艇設定 → 自動導航 → 開圖',
-              items: ['預設只走撞得出新地點的點，航程短、能多撞幾次',
-                      '想順便多撞或衝經驗：勾「順路撞點」「順路衝經驗」',
-                      '守回港時段撞不到時，會改走撞得到的路線並提醒'] },
-            { tab: '修正', icon: 'sparkles', title: '設定裡和船卡的航線一致了',
+            { tab: '海圖設定', icon: 'map', title: '新增「海圖設定」分頁',
+              lead: '上方分頁「潛水艇艦隊」旁邊（手機在底部「海圖」）',
+              items: ['在遊戲海圖上直接點海點開關，連線顯示解鎖順序',
+                      '右側列出這張海圖撈得到的物品：遊戲分類、能不能交易、獲得機率',
+                      '選「指定船」就知道等級、探索性能夠不夠撈',
+                      '顯示繁中服近 7 天市場估算價格，可依價格排序'] },
+            { tab: '通知', icon: 'bell', title: '通知與音效合併',
+              lead: '左側工具列 →「通知」',
+              items: ['推播、音效各自一個開關，關掉音效就不會響',
+                      '回港音效增加到 10 種',
+                      '看共同艦隊時，自己的船回港一樣會提醒'] },
+            { tab: '其他', icon: 'sparkles', title: '其他改進',
               lead: '完整內容請看左側「日記」。',
-              items: ['船艇設定裡的自動導航預覽，改用和船卡相同的「回港後等級」規劃'] }
+              items: ['艦隊條列在等級後面顯示配件（例如 4改2改5改4改）',
+                      '截圖辨識引擎改成第一次用才下載，打開網頁更快',
+                      '淺色配色下看不清楚的文字已修正',
+                      '修正：配件規劃選「不套用」沒有還原配件、左側海圖和海圖設定不同步'] }
         ]
     };
+
     let _unPage = 0;
     function renderUpdateNotice() {
         const P = UPDATE_NOTICE.pages, n = P.length, pg = P[_unPage];
