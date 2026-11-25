@@ -8189,8 +8189,24 @@ window.showConfirm = showConfirm;
     let smMktWorld = (() => { try { return localStorage.getItem(SM_MKT_KEY) || '陸行鳥'; } catch (e) { return '陸行鳥'; } })();
     let smSort = 'name';
     let smShipId = (() => { try { return localStorage.getItem('sub_sm_ship') || ''; } catch (e) { return ''; } })();
-    const smPrice = {};   // `${world}|${id}` → { med, n, t } 或 { none: true }
+    const smPrice = {};   // `${world}|${id}` → { med, n, min, max, low? } 或 { none: true } 或 { err: true }
     const smPriceLoading = new Set();
+    // 價格存在本機 1 小時：重新整理、切換分頁都不用再等；超過 1 小時先顯示舊價格，同時在背景更新
+    const MKT_CACHE_KEY = 'sub_mkt_cache', MKT_FRESH = 3600e3, MKT_KEEP = 24 * 3600e3;
+    const smPriceAt = {};   // 同上的 key → 取得時間
+    try {
+        const c = JSON.parse(localStorage.getItem(MKT_CACHE_KEY) || '{}'), now = Date.now();
+        for (const [k, v] of Object.entries(c)) if (v && v[0] && now - v[0] < MKT_KEEP) { smPrice[k] = v[1]; smPriceAt[k] = v[0]; }
+    } catch (e) {}
+    let _mktSaveTimer = null;
+    function mktSaveCache() {
+        clearTimeout(_mktSaveTimer);
+        _mktSaveTimer = setTimeout(() => {
+            const now = Date.now(), out = {};
+            for (const [k, t] of Object.entries(smPriceAt)) if (now - t < MKT_KEEP && smPrice[k] && !smPrice[k].err) out[k] = [t, smPrice[k]];
+            try { localStorage.setItem(MKT_CACHE_KEY, JSON.stringify(out)); } catch (e) {}
+        }, 500);
+    }
     function smPriceOf(id) { return smPrice[smMktWorld + '|' + id]; }
     function smPriceHtml(id) {
         if (smTrade(id) !== 'market') return '<span class="sm-pr na" title="不能上市場板">—</span>';
@@ -8201,18 +8217,35 @@ window.showConfirm = showConfirm;
         const low = p.low ? `\n最便宜的伺服器：${p.low.w}（中位數 ${p.low.med.toLocaleString()} gil，${p.low.n} 筆；不算低於整體中位數一成的成交）` : '';
         return `<span class="sm-pr" data-pid="${id}" title="${smMktWorld === '陸行鳥' ? '繁中服' : smMktWorld}・最近 7 天成交 ${p.n} 筆，中位數單價 ${p.med.toLocaleString()} gil（最低 ${p.min.toLocaleString()}、最高 ${p.max.toLocaleString()}）${low}">${p.med.toLocaleString()}<small>${p.low ? escapeHtml(SM_WORLD_ABBR[p.low.w] || p.low.w) : p.n + '筆'}</small></span>`;
     }
+    // 價格更新後，海圖設定與配件製作都重畫價格
+    function mktAfterPrices(world) {
+        if (world === smMktWorld) {
+            if (smSort === 'price' && document.getElementById('panelSeamap')?.style.display !== 'none') renderSeaMap();
+            else document.querySelectorAll('#smLoot [data-pid]').forEach(el => { el.outerHTML = smPriceHtml(+el.dataset.pid); });
+        }
+        if (typeof craftMktRefresh === 'function' && world === craftMktWorld) craftMktRefresh();
+    }
+    // 一次查 25 項、最多同時 4 個請求；每批回來就先畫上去
     async function smLoadPrices(ids, world = smMktWorld) {
-        const need = ids.filter(id => smTrade(id) === 'market' && !smPrice[world + '|' + id] && !smPriceLoading.has(world + '|' + id));
+        const now = Date.now();
+        const need = [...new Set(ids)].filter(id => {
+            const k = world + '|' + id;
+            if (smTrade(id) !== 'market' || smPriceLoading.has(k)) return false;
+            const p = smPrice[k];
+            return !p || p.err || !smPriceAt[k] || now - smPriceAt[k] >= MKT_FRESH;
+        });
         if (!need.length) return;
         need.forEach(id => smPriceLoading.add(world + '|' + id));
-        for (let i = 0; i < need.length; i += 100) {
-            const chunk = need.slice(i, i + 100);
+        const chunks = [];
+        for (let i = 0; i < need.length; i += 25) chunks.push(need.slice(i, i + 25));
+        const median = a => a[Math.floor((a.length - 1) / 2)];
+        const runChunk = async chunk => {
             try {
                 const r = await fetch(`https://universalis.app/api/v2/history/${encodeURIComponent(world)}/${chunk.join(',')}?entriesWithin=604800&entriesToReturn=999`);
                 if (!r.ok) throw new Error(r.status);
                 const d = await r.json();
                 const items = d.items || (d.itemID ? { [d.itemID]: d } : {});
-                const median = a => a[Math.floor((a.length - 1) / 2)];
+                const at = Date.now();
                 chunk.forEach(id => {
                     const raw = ((items[id] || {}).entries || []).filter(x => x.pricePerUnit > 0);
                     const e = raw.map(x => x.pricePerUnit).sort((a, b) => a - b);
@@ -8227,15 +8260,19 @@ window.showConfirm = showConfirm;
                         if (best) p.low = best;
                     }
                     smPrice[world + '|' + id] = p;
+                    smPriceAt[world + '|' + id] = at;
                 });
-            } catch (err) { chunk.forEach(id => { smPrice[world + '|' + id] = { err: true }; }); }
+                mktSaveCache();
+            } catch (err) {
+                // 讀取失敗：有舊價格就繼續用舊的
+                chunk.forEach(id => { const k = world + '|' + id; if (!smPrice[k] || smPrice[k].err) smPrice[k] = { err: true }; });
+            }
             chunk.forEach(id => smPriceLoading.delete(world + '|' + id));
-        }
-        if (world === smMktWorld) {
-            if (smSort === 'price' && document.getElementById('panelSeamap')?.style.display !== 'none') renderSeaMap();
-            else document.querySelectorAll('#smLoot [data-pid]').forEach(el => { el.outerHTML = smPriceHtml(+el.dataset.pid); });
-        }
-        if (typeof craftMktRefresh === 'function' && world === craftMktWorld) craftMktRefresh();
+            mktAfterPrices(world);
+        };
+        let next = 0;
+        const worker = async () => { while (next < chunks.length) await runChunk(chunks[next++]); };
+        await Promise.all(Array.from({ length: Math.min(4, chunks.length) }, worker));
     }
     window.renderSeaMap = function renderSeaMap() {
         const panel = document.getElementById('panelSeamap'); if (!panel) return;
@@ -8400,8 +8437,17 @@ window.showConfirm = showConfirm;
             if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(done).catch(() => {});
             else { const ta = document.createElement('textarea'); ta.value = t; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); done(); } catch (er) {} ta.remove(); }
         });
-        smLoadPrices(list.map(x => x.id));
+        // 先載這張海圖的價格，再在背景預先載入其他海圖的掉落物，切換海圖時就不用等
+        smLoadPrices(list.map(x => x.id)).then(() => smPrefetchAll(smMktWorld));
     };
+    const _smPrefetched = new Set();
+    function smPrefetchAll(world) {
+        if (_smPrefetched.has(world)) return;
+        _smPrefetched.add(world);
+        const ids = new Set();
+        Object.values(SUB_LOOT).forEach(arr => arr.forEach(id => ids.add(id)));
+        smLoadPrices([...ids], world);
+    }
 
 
     // ══ 配件規劃 (Gear Planner) ══════════════════════════════════
