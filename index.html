@@ -2928,20 +2928,12 @@ window.UI_ACTIONS = {
         body.light-mode .craft-mkt select { border-color: rgba(0,0,0,0.15); }
         .craft-mkt select option { background: #26252c; color: #f2f2f2; } body.light-mode .craft-mkt select option { background: #fff; color: #222; }
         .craft-mkt-note { font-size: 12px; color: #999; } body.light-mode .craft-mkt-note { color: #666; }
-        .craft-inv-price { display: flex; margin-top: 1px; font-size: 12px; font-weight: 700; color: #e9c46a; font-variant-numeric: tabular-nums; text-decoration: none; white-space: nowrap; }
-        .craft-inv-price .cp-u, .craft-inv-price .cp-t { flex: 1 1 0; min-width: 0; text-align: right; overflow: hidden; text-overflow: ellipsis; }
-        .craft-inv-price .cp-u { padding-right: 8px; }
-        .craft-inv-price .cp-t { color: inherit; opacity: .8; }
-        .craft-inv-price.na .cp-u { text-align: left; }
-        .craft-inv-price.cp-head { color: #999; font-size: 11px; font-weight: 600; margin-top: 0; }
-        .craft-inv-price.cp-head .cp-t { opacity: 1; }
-        body.light-mode .craft-inv-price.cp-head { color: #777; }
-        /* 劃線只劃名稱，不劃價格；配件欄名稱開價格時固定寬度，價格才會上下對齊 */
-        .craft-mat-col:first-child .craft-inv-name:has(.craft-inv-price) { width: 128px; }
-        .craft-mat-col:first-child .craft-inv-name .cin-l { display: block; overflow: hidden; text-overflow: ellipsis; }
-        .craft-mat-col:first-child .craft-inv-th-name .cp-head { width: 118px; margin-left: -2px; }
-        body.light-mode .craft-inv-price { color: #9a6200; }
-        .craft-inv-price.na { color: #888; font-weight: 500; } body.light-mode .craft-inv-price.na { color: #888; }
+        .craft-inv-pu, .craft-inv-pt { text-align: right; white-space: nowrap; font-size: 12px; font-weight: 700; color: #e9c46a; font-variant-numeric: tabular-nums; padding-left: 4px !important; padding-right: 2px !important; }
+        .craft-inv-pt { opacity: .85; }
+        body.light-mode .craft-inv-pu, body.light-mode .craft-inv-pt { color: #9a6200; }
+        .craft-inv-pu.na, .craft-inv-pt.na, body.light-mode .craft-inv-pu.na, body.light-mode .craft-inv-pt.na { color: #888; font-weight: 500; font-size: 11.5px; }
+        .craft-inv-th-pu, .craft-inv-th-pt { text-align: right !important; font-size: 11px !important; padding-left: 4px !important; padding-right: 2px !important; }
+        .craft-mkt-on .craft-mat-col:first-child .craft-inv-name { max-width: 92px; }
         .craft-mat-col-cost { display: block; margin-top: 2px; font-size: 12px; font-weight: 700; color: #e9c46a; letter-spacing: 0; }
         body.light-mode .craft-mat-col-cost { color: #9a6200; }
         .craft-mat-col-cost:empty { display: none; }
@@ -2990,7 +2982,7 @@ window.UI_ACTIONS = {
         .craft-inv-row:hover td { background: rgba(var(--accent-rgb),0.06); }
         body.light-mode .craft-inv-row:hover td { background: rgba(var(--accent-rgb),0.04); }
         .craft-inv-row-done td { opacity: 0.42; }
-        .craft-inv-row-done .craft-inv-name .cin-l { text-decoration: line-through; }
+        .craft-inv-row-done .craft-inv-name { text-decoration: line-through; }
 
         /* 計算隊列行（稍微不同底色） */
 
@@ -9409,7 +9401,7 @@ const CRAFT_BASE = SUB_DATA.CRAFT_BASE;
 
         return `<tr class="craft-inv-row${isDone ? ' craft-inv-row-done' : ''}"
                     data-mat="${attrName}" data-needed="${needed}" data-transition="${isTransition ? 1 : 0}">
-            <td class="craft-inv-name" data-name="${attrName}" data-on-click="a182" title="${label}（點擊複製）"><span class="cin-l">${label}</span>${craftPriceHtml(name, shortage)}</td>
+            <td class="craft-inv-name" data-name="${attrName}" data-on-click="a182" title="${label}（點擊複製）">${label}</td>${craftPriceHtml(name, shortage)}
             <td class="craft-inv-check-cell">
                 <input type="checkbox" class="craft-inv-check" ${isDone ? 'checked' : ''}
                     title="標記全部完成"
@@ -9488,7 +9480,7 @@ const CRAFT_BASE = SUB_DATA.CRAFT_BASE;
         // 「目標」＝直接交給工房的數量；只是用來做其他素材的顯示 -；「缺少」以總需求計算
 
         function craftCatRow(cat) {
-            return `<tr class="craft-inv-cat-row" data-cat="${escAttr(cat)}"><td colspan="5"><span class="craft-cat-arrow">－</span><span class="craft-cat-label">${cat}</span><span class="craft-cat-count"></span></td></tr>`;
+            return `<tr class="craft-inv-cat-row" data-cat="${escAttr(cat)}"><td colspan="7"><span class="craft-cat-arrow">－</span><span class="craft-cat-label">${cat}</span><span class="craft-cat-count"></span></td></tr>`;
         }
 
         const groupSort = (a, b) => {
@@ -9541,14 +9533,14 @@ const CRAFT_BASE = SUB_DATA.CRAFT_BASE;
         }).join('');
 
         const tableHead = `<thead><tr>
-            <th class="craft-inv-th-name">${craftMktOn ? `<span class="craft-inv-price cp-head"><span class="cp-u">單價</span><span class="cp-t">缺少×單價</span></span>` : ''}</th>
+            <th class="craft-inv-th-name"></th>${craftMktOn ? `<th class="craft-inv-th-pu">單價</th><th class="craft-inv-th-pt" title="缺少數量 × 單價">缺少×單價</th>` : ''}
             <th class="craft-inv-th-check" title="全部完成">✓</th>
             <th class="craft-inv-th-owned">數量</th>
             <th class="craft-inv-th-target">目標</th>
             <th class="craft-inv-th-short">缺少</th>
         </tr></thead>`;
         const tableHead4 = `<thead><tr>
-            <th class="craft-inv-th-name">${craftMktOn ? `<span class="craft-inv-price cp-head"><span class="cp-u">單價</span><span class="cp-t">缺少×單價</span></span>` : ''}</th>
+            <th class="craft-inv-th-name"></th>${craftMktOn ? `<th class="craft-inv-th-pu">單價</th><th class="craft-inv-th-pt" title="缺少數量 × 單價">缺少×單價</th>` : ''}
             <th class="craft-inv-th-check" title="全部完成">✓</th>
             <th class="craft-inv-th-owned">數量</th>
             <th class="craft-inv-th-short">缺少</th>
@@ -9574,7 +9566,7 @@ const CRAFT_BASE = SUB_DATA.CRAFT_BASE;
                 <button class="craft-mob-tab" data-tab="2" data-on-click="a185">半成品</button>
                 <button class="craft-mob-tab" data-tab="3" data-on-click="a185">基礎素材</button>
             </div>
-            <div class="craft-mat-cols">
+            <div class="craft-mat-cols${craftMktOn ? ' craft-mkt-on' : ''}">
                 <div class="craft-mat-col mob-col-active" data-cost-col="col1">
                     <div class="craft-mat-col-header">配件<span class="craft-mat-col-cost"></span></div>
                     <div class="craft-mat-col-body">
@@ -9681,16 +9673,25 @@ const CRAFT_BASE = SUB_DATA.CRAFT_BASE;
     function craftPriceHtml(name, short) {
         if (!craftMktOn) return '';
         const id = craftItemId(name);
-        const line = (u, t, cls = '', title = '') => `<span class="craft-inv-price${cls}"${title ? ` title="${title}"` : ''}><span class="cp-u">${u}</span><span class="cp-t">${t}</span></span>`;
-        if (!id) return line('—', '', ' na', '沒有物品資料');
-        if (craftTradeOf(name) !== 'market') return line('不能上市場', '', ' na', '不能上市場板');
+        const cells = (u, t, na, title = '') => { const a = title ? ` title="${title}"` : ''; return `<td class="craft-inv-pu${na ? ' na' : ''}"${a}>${u}</td><td class="craft-inv-pt${na ? ' na' : ''}"${a}>${t}</td>`; };
+        if (!id) return cells('—', '', true, '沒有物品資料');
+        if (craftTradeOf(name) !== 'market') return cells('不上市', '', true, '不能上市場板');
         const p = smPrice[craftMktWorld + '|' + id];
-        if (!p) return line('…', '', ' na');
-        if (p.err) return line('?', '', ' na', '價格讀取失敗');
-        if (p.none) return line('無成交', '', ' na', '最近 7 天沒有成交');
+        if (!p) return cells('…', '', true);
+        if (p.err) return cells('?', '', true, '價格讀取失敗');
+        if (p.none) return cells('無成交', '', true, '最近 7 天沒有成交');
         const w = craftMktWorld === '陸行鳥' ? '繁中服' : craftMktWorld;
         const title = `${w}・最近 7 天成交 ${p.n} 筆，中位數單價 ${p.med.toLocaleString()} gil（最低 ${p.min.toLocaleString()}、最高 ${p.max.toLocaleString()}）${short ? `\n缺少 ${short} × ${p.med.toLocaleString()} ＝ ${(short * p.med).toLocaleString()} gil` : ''}`;
-        return line(p.med.toLocaleString(), short ? (short * p.med).toLocaleString() : '—', '', title);
+        return cells(p.med.toLocaleString(), short ? (short * p.med).toLocaleString() : '—', false, title);
+    }
+    // 把一列的兩個價格欄換成最新內容
+    function craftSetRowPrice(r, short) {
+        const pu = r.querySelector('.craft-inv-pu'); if (!pu) return;
+        const html = craftPriceHtml(r.dataset.mat, short);
+        const pt = pu.nextElementSibling;
+        if (pu.outerHTML + (pt ? pt.outerHTML : '') === html) return;
+        if (pt && pt.classList.contains('craft-inv-pt')) pt.remove();
+        pu.outerHTML = html;
     }
     function craftToggleMkt() {
         craftMktOn = !craftMktOn;
@@ -9716,8 +9717,7 @@ const CRAFT_BASE = SUB_DATA.CRAFT_BASE;
     function craftMktRefresh() {
         if (!craftMktOn) return;
         document.querySelectorAll('#craftResult .craft-inv-row').forEach(r => {
-            const el = r.querySelector('.craft-inv-name .craft-inv-price');
-            if (el) el.outerHTML = craftPriceHtml(r.dataset.mat, craftShortOf(r.dataset.mat, parseInt(r.dataset.needed, 10)));
+            craftSetRowPrice(r, craftShortOf(r.dataset.mat, parseInt(r.dataset.needed, 10)));
         });
         craftUpdateCostTotals();
     }
@@ -9733,8 +9733,7 @@ const CRAFT_BASE = SUB_DATA.CRAFT_BASE;
             col.querySelectorAll('.craft-inv-row').forEach(r => {
                 const n = r.dataset.mat;
                 const short = craftShortOf(n, parseInt(r.dataset.needed, 10));
-                const pe = r.querySelector('.craft-inv-name .craft-inv-price');
-                if (pe) { const html = craftPriceHtml(n, short); if (pe.outerHTML !== html) pe.outerHTML = html; }
+                craftSetRowPrice(r, short);
                 if (!short) return;
                 if (!craftItemId(n) || craftTradeOf(n) !== 'market') { miss++; return; }
                 const p = craftPriceOf(n);
