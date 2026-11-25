@@ -264,6 +264,8 @@ window.UI_ACTIONS = {
     a64: function (event) { gpRecalc() },
     a65: function (event) { numSpinnerStep('gpLevel',1,1,145,gpRecalc) },
     a66: function (event) { numSpinnerStep('gpLevel',-1,1,145,gpRecalc) },
+    a198: function (event) { numSpinnerStep('cfg-level',1,1,145) },
+    a199: function (event) { numSpinnerStep('cfg-level',-1,1,145) },
     a67: function (event) { gpApplyPreset(this.value); gpShowPresetHint(this.value); gpMyCloseForm(); gpMyRefreshBtns() },
     a68: function (event) { gpShowPresetHint(this.value) },
     a69: function (event) { gpOnCategoryChange() },
@@ -3175,6 +3177,11 @@ window.UI_ACTIONS = {
         body.light-mode .num-spinner { border-color: #ccc; }
         body.light-mode .num-spinner-btns { border-left-color: #ccc; }
         body.light-mode .num-spinner-btns button { border-bottom-color: #ccc; color: #444; }
+        /* 船艇設定的等級：高度和旁邊的輸入框一致 */
+        .cfg-lv-spin { height: 30px; box-sizing: border-box; }
+        .cfg-lv-spin:focus-within { border-color: var(--accent-color); }
+        .cfg-lv-spin input[type="text"] { width: 52px; font-size: 14px; font-weight: 400; padding: 0 4px; }
+        .cfg-lv-spin .num-spinner-btns button { padding: 0 7px; font-size: 9px; }
         .craft-clear-btn {
             display: inline-flex; align-items: center; gap: 4px;
             background: #3a2020; color: #ff7070;
@@ -4866,7 +4873,13 @@ window.icHtml = function (t) {
             </div>
             <div class="edit-group">
                 <span class="edit-label">等級</span>
-                <input type="text" class="edit-input" id="cfg-level" style="width:70px;">
+                <div class="num-spinner cfg-lv-spin">
+                    <input type="text" inputmode="numeric" id="cfg-level" aria-label="等級">
+                    <div class="num-spinner-btns">
+                        <button type="button" data-on-click="a198" title="增加" aria-label="等級加一">▲</button>
+                        <button type="button" data-on-click="a199" title="減少" aria-label="等級減一">▼</button>
+                    </div>
+                </div>
             </div>
             <div class="edit-group">
                 <span class="edit-label">本級經驗（選填）</span>
