@@ -8191,8 +8191,7 @@ window.showConfirm = showConfirm;
         if (p.none) return `<span class="sm-pr na" data-pid="${id}" title="最近 7 天沒有成交">無成交</span>`;
         return `<span class="sm-pr" data-pid="${id}" title="${smMktWorld === '陸行鳥' ? '繁中服' : smMktWorld}・最近 7 天成交 ${p.n} 筆，中位數單價 ${p.med.toLocaleString()} gil（最低 ${p.min.toLocaleString()}、最高 ${p.max.toLocaleString()}）">${p.med.toLocaleString()}<small>${p.n}筆</small></span>`;
     }
-    async function smLoadPrices(ids) {
-        const world = smMktWorld;
+    async function smLoadPrices(ids, world = smMktWorld) {
         const need = ids.filter(id => smTrade(id) === 'market' && !smPrice[world + '|' + id] && !smPriceLoading.has(world + '|' + id));
         if (!need.length) return;
         need.forEach(id => smPriceLoading.add(world + '|' + id));
@@ -8210,10 +8209,11 @@ window.showConfirm = showConfirm;
             } catch (err) { chunk.forEach(id => { smPrice[world + '|' + id] = { err: true }; }); }
             chunk.forEach(id => smPriceLoading.delete(world + '|' + id));
         }
-        if (world !== smMktWorld) return;
-        if (smSort === 'price' && document.getElementById('panelSeamap')?.style.display !== 'none') renderSeaMap();
-        else document.querySelectorAll('#smLoot [data-pid]').forEach(el => { el.outerHTML = smPriceHtml(+el.dataset.pid); });
-        if (typeof craftMktRefresh === 'function') craftMktRefresh();
+        if (world === smMktWorld) {
+            if (smSort === 'price' && document.getElementById('panelSeamap')?.style.display !== 'none') renderSeaMap();
+            else document.querySelectorAll('#smLoot [data-pid]').forEach(el => { el.outerHTML = smPriceHtml(+el.dataset.pid); });
+        }
+        if (typeof craftMktRefresh === 'function' && world === craftMktWorld) craftMktRefresh();
     }
     window.renderSeaMap = function renderSeaMap() {
         const panel = document.getElementById('panelSeamap'); if (!panel) return;
@@ -9550,7 +9550,7 @@ const CRAFT_BASE = SUB_DATA.CRAFT_BASE;
                 <div class="craft-mkt">
                     <span class="craft-group-label">市場估算價格</span>
                     <button type="button" class="lp-switch" role="switch" aria-checked="${craftMktOn}" aria-label="市場估算價格" data-on-click="a200"><span></span></button>
-                    ${craftMktOn ? `<select aria-label="市場伺服器" data-on-change="a201">${SM_MKT_WORLDS.map(w => `<option value="${w}"${w === smMktWorld ? ' selected' : ''}>${w === '陸行鳥' ? '繁中服' : w}</option>`).join('')}</select><span class="craft-mkt-note">最近 7 天成交中位數</span>` : ''}
+                    ${craftMktOn ? `<select aria-label="市場伺服器" data-on-change="a201">${SM_MKT_WORLDS.map(w => `<option value="${w}"${w === craftMktWorld ? ' selected' : ''}>${w === '陸行鳥' ? '繁中服' : w}</option>`).join('')}</select><span class="craft-mkt-note">最近 7 天成交中位數</span>` : ''}
                 </div>
                 <span class="craft-group-label">素材分類</span>
                 <div class="fleet-layout-toggle craft-group-toggle" role="group" aria-label="素材分類方式">
@@ -9660,22 +9660,23 @@ const CRAFT_BASE = SUB_DATA.CRAFT_BASE;
         craftUpdateCostTotals(box);
     }
 
-    // ── 配件製作：市場估算價格（Universalis 最近 7 天成交中位數，和海圖設定共用伺服器與快取）──
-    const CRAFT_MKT_KEY = 'sub_craft_mkt';
+    // ── 配件製作：市場估算價格（Universalis 最近 7 天成交中位數；伺服器自己選，和海圖設定分開，只共用價格快取）──
+    const CRAFT_MKT_KEY = 'sub_craft_mkt', CRAFT_MKT_WORLD_KEY = 'sub_craft_mkt_world';
+    var craftMktWorld = (() => { try { const w = localStorage.getItem(CRAFT_MKT_WORLD_KEY); return SM_MKT_WORLDS.includes(w) ? w : '陸行鳥'; } catch (e) { return '陸行鳥'; } })();
     let craftMktOn = (() => { try { return localStorage.getItem(CRAFT_MKT_KEY) === '1'; } catch (e) { return false; } })();
     function craftItemId(name) { return (SUB_DATA.CRAFT_ITEM_ID || {})[name]; }
     function craftTradeOf(name) { return (SUB_DATA.CRAFT_TRADE || {})[name] || 'market'; }
-    function craftPriceOf(name) { const id = craftItemId(name); return id ? smPrice[smMktWorld + '|' + id] : null; }
+    function craftPriceOf(name) { const id = craftItemId(name); return id ? smPrice[craftMktWorld + '|' + id] : null; }
     function craftPriceHtml(name) {
         if (!craftMktOn) return '';
         const id = craftItemId(name);
         if (!id) return '<span class="craft-inv-price na" title="沒有物品資料">—</span>';
         if (craftTradeOf(name) !== 'market') return '<span class="craft-inv-price na" title="不能上市場板">不能上市場</span>';
-        const p = smPrice[smMktWorld + '|' + id];
+        const p = smPrice[craftMktWorld + '|' + id];
         if (!p) return '<span class="craft-inv-price na">…</span>';
         if (p.err) return '<span class="craft-inv-price na" title="價格讀取失敗">?</span>';
         if (p.none) return '<span class="craft-inv-price na" title="最近 7 天沒有成交">無成交</span>';
-        const w = smMktWorld === '陸行鳥' ? '繁中服' : smMktWorld;
+        const w = craftMktWorld === '陸行鳥' ? '繁中服' : craftMktWorld;
         return `<span class="craft-inv-price" title="${w}・最近 7 天成交 ${p.n} 筆，中位數單價 ${p.med.toLocaleString()} gil（最低 ${p.min.toLocaleString()}、最高 ${p.max.toLocaleString()}）">${p.med.toLocaleString()}<small>gil・${p.n}筆</small></span>`;
     }
     function craftToggleMkt() {
@@ -9684,8 +9685,8 @@ const CRAFT_BASE = SUB_DATA.CRAFT_BASE;
         craftRenderResult();
     }
     function craftSetMktWorld(w) {
-        smMktWorld = w;
-        try { localStorage.setItem(SM_MKT_KEY, w); } catch (e) {}
+        craftMktWorld = w;
+        try { localStorage.setItem(CRAFT_MKT_WORLD_KEY, w); } catch (e) {}
         craftRenderResult();
     }
     // 載入目前表格裡所有素材的價格
@@ -9696,7 +9697,7 @@ const CRAFT_BASE = SUB_DATA.CRAFT_BASE;
             const n = r.dataset.mat, id = craftItemId(n);
             if (id && craftTradeOf(n) === 'market') ids.add(id);
         });
-        if (ids.size) smLoadPrices([...ids]);
+        if (ids.size) smLoadPrices([...ids], craftMktWorld);
     }
     // 價格載入後更新畫面
     function craftMktRefresh() {
