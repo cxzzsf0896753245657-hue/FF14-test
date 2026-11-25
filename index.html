@@ -2932,6 +2932,13 @@ window.UI_ACTIONS = {
         .craft-inv-pt { opacity: .85; }
         body.light-mode .craft-inv-pu, body.light-mode .craft-inv-pt { color: #9a6200; }
         .craft-inv-pu.na, .craft-inv-pt.na, body.light-mode .craft-inv-pu.na, body.light-mode .craft-inv-pt.na { color: #888; font-weight: 500; font-size: 11.5px; }
+        .craft-inv-pw { white-space: nowrap; font-size: 11.5px; color: #999; padding-left: 5px !important; padding-right: 0 !important; }
+        body.light-mode .craft-inv-pw { color: #666; }
+        .craft-inv-th-pw { text-align: left !important; font-size: 11px !important; padding-left: 6px !important; }
+        /* 繁中服多一欄「最低」：名稱太長時換行（價格仍在同一列），欄距縮小 */
+        .craft-mat-cols.craft-mkt-dc .craft-inv-name { white-space: normal; line-height: 1.25; }
+        .craft-mat-cols.craft-mkt-dc .craft-mat-col:first-child .craft-inv-name { width: 66px; max-width: 66px; word-break: keep-all; font-size: 13.5px; white-space: normal; overflow: visible; text-overflow: clip; }
+        .craft-mat-cols.craft-mkt-dc .craft-inv-pu, .craft-mat-cols.craft-mkt-dc .craft-inv-pt { padding-left: 2px !important; font-size: 11.5px; }
         .craft-inv-th-pu, .craft-inv-th-pt { text-align: right !important; font-size: 11px !important; padding-left: 4px !important; padding-right: 2px !important; }
         .craft-mkt-on .craft-mat-col:first-child .craft-inv-name { max-width: 92px; }
         .craft-mat-col-cost { display: block; margin-top: 2px; font-size: 12px; font-weight: 700; color: #e9c46a; letter-spacing: 0; }
@@ -8178,6 +8185,7 @@ window.showConfirm = showConfirm;
     // ── 市場價格：Universalis 最近 7 天成交（中位數單價、成交筆數）──
     const SM_MKT_KEY = 'sub_mkt_world';
     const SM_MKT_WORLDS = ['陸行鳥', '伊弗利特', '迦樓羅', '利維坦', '鳳凰', '奧汀', '巴哈姆特', '拉姆', '泰坦'];
+    const SM_WORLD_ABBR = { '伊弗利特': '伊弗', '迦樓羅': '迦樓', '利維坦': '利維', '巴哈姆特': '巴哈' };   // 表格空間小時用的簡稱
     let smMktWorld = (() => { try { return localStorage.getItem(SM_MKT_KEY) || '陸行鳥'; } catch (e) { return '陸行鳥'; } })();
     let smSort = 'name';
     let smShipId = (() => { try { return localStorage.getItem('sub_sm_ship') || ''; } catch (e) { return ''; } })();
@@ -8190,7 +8198,8 @@ window.showConfirm = showConfirm;
         if (!p) return `<span class="sm-pr ld" data-pid="${id}">…</span>`;
         if (p.err) return `<span class="sm-pr na" data-pid="${id}" title="價格讀取失敗">?</span>`;
         if (p.none) return `<span class="sm-pr na" data-pid="${id}" title="最近 7 天沒有成交">無成交</span>`;
-        return `<span class="sm-pr" data-pid="${id}" title="${smMktWorld === '陸行鳥' ? '繁中服' : smMktWorld}・最近 7 天成交 ${p.n} 筆，中位數單價 ${p.med.toLocaleString()} gil（最低 ${p.min.toLocaleString()}、最高 ${p.max.toLocaleString()}）">${p.med.toLocaleString()}<small>${p.n}筆</small></span>`;
+        const low = p.low ? `\n最便宜的伺服器：${p.low.w}（中位數 ${p.low.med.toLocaleString()} gil，${p.low.n} 筆；不算低於整體中位數一成的成交）` : '';
+        return `<span class="sm-pr" data-pid="${id}" title="${smMktWorld === '陸行鳥' ? '繁中服' : smMktWorld}・最近 7 天成交 ${p.n} 筆，中位數單價 ${p.med.toLocaleString()} gil（最低 ${p.min.toLocaleString()}、最高 ${p.max.toLocaleString()}）${low}">${p.med.toLocaleString()}<small>${p.low ? escapeHtml(SM_WORLD_ABBR[p.low.w] || p.low.w) : p.n + '筆'}</small></span>`;
     }
     async function smLoadPrices(ids, world = smMktWorld) {
         const need = ids.filter(id => smTrade(id) === 'market' && !smPrice[world + '|' + id] && !smPriceLoading.has(world + '|' + id));
@@ -8203,9 +8212,21 @@ window.showConfirm = showConfirm;
                 if (!r.ok) throw new Error(r.status);
                 const d = await r.json();
                 const items = d.items || (d.itemID ? { [d.itemID]: d } : {});
+                const median = a => a[Math.floor((a.length - 1) / 2)];
                 chunk.forEach(id => {
-                    const e = ((items[id] || {}).entries || []).map(x => x.pricePerUnit).filter(v => v > 0).sort((a, b) => a - b);
-                    smPrice[world + '|' + id] = e.length ? { med: e[Math.floor((e.length - 1) / 2)], n: e.length, min: e[0], max: e[e.length - 1] } : { none: true };
+                    const raw = ((items[id] || {}).entries || []).filter(x => x.pricePerUnit > 0);
+                    const e = raw.map(x => x.pricePerUnit).sort((a, b) => a - b);
+                    const p = e.length ? { med: median(e), n: e.length, min: e[0], max: e[e.length - 1] } : { none: true };
+                    // 繁中服：各伺服器 7 天成交中位數，取最便宜的伺服器
+                    if (e.length && world === '陸行鳥') {
+                        const byW = {};
+                        const floor = p.med / 10;   // 排除低於整體中位數一成的異常成交（例如 1 gil 的私下交易）
+                        raw.forEach(x => { if (x.worldName && x.pricePerUnit >= floor) (byW[x.worldName] = byW[x.worldName] || []).push(x.pricePerUnit); });
+                        let best = null;
+                        Object.entries(byW).forEach(([w, a]) => { a.sort((x, y) => x - y); const m = median(a); if (!best || m < best.med || (m === best.med && a.length > best.n)) best = { w, med: m, n: a.length }; });
+                        if (best) p.low = best;
+                    }
+                    smPrice[world + '|' + id] = p;
                 });
             } catch (err) { chunk.forEach(id => { smPrice[world + '|' + id] = { err: true }; }); }
             chunk.forEach(id => smPriceLoading.delete(world + '|' + id));
@@ -9480,7 +9501,7 @@ const CRAFT_BASE = SUB_DATA.CRAFT_BASE;
         // 「目標」＝直接交給工房的數量；只是用來做其他素材的顯示 -；「缺少」以總需求計算
 
         function craftCatRow(cat) {
-            return `<tr class="craft-inv-cat-row" data-cat="${escAttr(cat)}"><td colspan="7"><span class="craft-cat-arrow">－</span><span class="craft-cat-label">${cat}</span><span class="craft-cat-count"></span></td></tr>`;
+            return `<tr class="craft-inv-cat-row" data-cat="${escAttr(cat)}"><td colspan="8"><span class="craft-cat-arrow">－</span><span class="craft-cat-label">${cat}</span><span class="craft-cat-count"></span></td></tr>`;
         }
 
         const groupSort = (a, b) => {
@@ -9533,14 +9554,14 @@ const CRAFT_BASE = SUB_DATA.CRAFT_BASE;
         }).join('');
 
         const tableHead = `<thead><tr>
-            <th class="craft-inv-th-name"></th>${craftMktOn ? `<th class="craft-inv-th-pu">單價</th><th class="craft-inv-th-pt" title="缺少數量 × 單價">總價</th>` : ''}
+            <th class="craft-inv-th-name"></th>${craftMktOn ? `<th class="craft-inv-th-pu">單價</th><th class="craft-inv-th-pt" title="缺少數量 × 單價">總價</th>${craftMktWorld === '陸行鳥' ? '<th class="craft-inv-th-pw" title="繁中服各伺服器 7 天成交中位數最便宜的">最低</th>' : ''}` : ''}
             <th class="craft-inv-th-check" title="全部完成">✓</th>
             <th class="craft-inv-th-owned">數量</th>
             <th class="craft-inv-th-target">目標</th>
             <th class="craft-inv-th-short">缺少</th>
         </tr></thead>`;
         const tableHead4 = `<thead><tr>
-            <th class="craft-inv-th-name"></th>${craftMktOn ? `<th class="craft-inv-th-pu">單價</th><th class="craft-inv-th-pt" title="缺少數量 × 單價">總價</th>` : ''}
+            <th class="craft-inv-th-name"></th>${craftMktOn ? `<th class="craft-inv-th-pu">單價</th><th class="craft-inv-th-pt" title="缺少數量 × 單價">總價</th>${craftMktWorld === '陸行鳥' ? '<th class="craft-inv-th-pw" title="繁中服各伺服器 7 天成交中位數最便宜的">最低</th>' : ''}` : ''}
             <th class="craft-inv-th-check" title="全部完成">✓</th>
             <th class="craft-inv-th-owned">數量</th>
             <th class="craft-inv-th-short">缺少</th>
@@ -9566,7 +9587,7 @@ const CRAFT_BASE = SUB_DATA.CRAFT_BASE;
                 <button class="craft-mob-tab" data-tab="2" data-on-click="a185">半成品</button>
                 <button class="craft-mob-tab" data-tab="3" data-on-click="a185">基礎素材</button>
             </div>
-            <div class="craft-mat-cols${craftMktOn ? ' craft-mkt-on' : ''}">
+            <div class="craft-mat-cols${craftMktOn ? ' craft-mkt-on' : ''}${craftMktOn && craftMktWorld === '陸行鳥' ? ' craft-mkt-dc' : ''}">
                 <div class="craft-mat-col mob-col-active" data-cost-col="col1">
                     <div class="craft-mat-col-header">配件<span class="craft-mat-col-cost"></span></div>
                     <div class="craft-mat-col-body">
@@ -9673,7 +9694,9 @@ const CRAFT_BASE = SUB_DATA.CRAFT_BASE;
     function craftPriceHtml(name, short) {
         if (!craftMktOn) return '';
         const id = craftItemId(name);
-        const cells = (u, t, na, title = '') => { const a = title ? ` title="${title}"` : ''; return `<td class="craft-inv-pu${na ? ' na' : ''}"${a}>${u}</td><td class="craft-inv-pt${na ? ' na' : ''}"${a}>${t}</td>`; };
+        const dc = craftMktWorld === '陸行鳥';
+        const ab = w => SM_WORLD_ABBR[w] || w;
+        const cells = (u, t, na, title = '', w = '') => { const a = title ? ` title="${title}"` : ''; return `<td class="craft-inv-pu${na ? ' na' : ''}"${a}>${u}</td><td class="craft-inv-pt${na ? ' na' : ''}"${a}>${t}</td>${dc ? `<td class="craft-inv-pw"${a}>${w}</td>` : ''}`; };
         if (!id) return cells('—', '', true, '沒有物品資料');
         if (craftTradeOf(name) !== 'market') return cells('不上市', '', true, '不能上市場板');
         const p = smPrice[craftMktWorld + '|' + id];
@@ -9681,15 +9704,17 @@ const CRAFT_BASE = SUB_DATA.CRAFT_BASE;
         if (p.err) return cells('?', '', true, '價格讀取失敗');
         if (p.none) return cells('無成交', '', true, '最近 7 天沒有成交');
         const w = craftMktWorld === '陸行鳥' ? '繁中服' : craftMktWorld;
-        const title = `${w}・最近 7 天成交 ${p.n} 筆，中位數單價 ${p.med.toLocaleString()} gil（最低 ${p.min.toLocaleString()}、最高 ${p.max.toLocaleString()}）${short ? `\n缺少 ${short} × ${p.med.toLocaleString()} ＝ ${(short * p.med).toLocaleString()} gil` : ''}`;
-        return cells(p.med.toLocaleString(), short ? (short * p.med).toLocaleString() : '—', false, title);
+        const title = `${w}・最近 7 天成交 ${p.n} 筆，中位數單價 ${p.med.toLocaleString()} gil（最低 ${p.min.toLocaleString()}、最高 ${p.max.toLocaleString()}）${short ? `\n缺少 ${short} × ${p.med.toLocaleString()} ＝ ${(short * p.med).toLocaleString()} gil` : ''}${p.low ? `\n最便宜的伺服器：${p.low.w}（中位數 ${p.low.med.toLocaleString()} gil，${p.low.n} 筆；不算低於整體中位數一成的成交）` : ''}`;
+        return cells(p.med.toLocaleString(), short ? (short * p.med).toLocaleString() : '—', false, title, p.low ? escapeHtml(ab(p.low.w)) : '');
     }
     // 把一列的兩個價格欄換成最新內容
     function craftSetRowPrice(r, short) {
         const pu = r.querySelector('.craft-inv-pu'); if (!pu) return;
         const html = craftPriceHtml(r.dataset.mat, short);
         const pt = pu.nextElementSibling;
-        if (pu.outerHTML + (pt ? pt.outerHTML : '') === html) return;
+        const pw = pt && pt.nextElementSibling && pt.nextElementSibling.classList.contains('craft-inv-pw') ? pt.nextElementSibling : null;
+        if (pu.outerHTML + (pt ? pt.outerHTML : '') + (pw ? pw.outerHTML : '') === html) return;
+        if (pw) pw.remove();
         if (pt && pt.classList.contains('craft-inv-pt')) pt.remove();
         pu.outerHTML = html;
     }
