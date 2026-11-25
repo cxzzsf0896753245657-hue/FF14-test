@@ -7,7 +7,7 @@
     'loot.js': ['掉落物：層級、機率、數量', ['SUB_LOOT', 'SUB_LOOT_TIER', 'GP_TIER_PROC', 'GP_TIER_PROC_D', 'GP_ITEM_PROB', 'SECTOR_LOOT']],
     'items.js': ['物品名稱、分類、交易、高優先物品、常見材料', ['ITEM_DB', 'ITEM_DB_EN', 'ITEM_TYPE', 'ITEM_LOOT_CAT', 'ITEM_TRADE', 'PRIORITY_LOOT_GROUPS', 'COMMON_LOOT']],
     'presets.js': ['常用配件預設', ['GP_PRESETS', 'GP_PRESET_HINTS']],
-    'craft.js': ['配件製作配方', ['CRAFT_PARTS', 'CRAFT_MATS', 'CRAFT_BASE']],
+    'craft.js': ['配件製作配方、物品 ID', ['CRAFT_PARTS', 'CRAFT_MATS', 'CRAFT_BASE', 'CRAFT_ITEM_ID', 'CRAFT_TRADE']],
   };
   const PART_KEY = { '船體': 'hull', '船尾': 'stern', '船首': 'bow', '艦橋': 'bridge' };
 
@@ -216,9 +216,27 @@
     }
     for (const r of table('基礎素材', ['名稱', '分類'])) if (str(r['名稱'])) CRAFT_BASE[str(r['名稱'])] = str(r['分類']);
 
+    // 製作用到的物品 ID 與交易（配件製作的市場估算價格用）
+    const CRAFT_ITEM_ID = {}, CRAFT_TRADE = {};
+    if (wb.Sheets['製作物品']) {
+      const TRADE = { '不可上市場': 'trade', '不可交易': 'no' };
+      for (const r of table('製作物品', ['名稱', '物品ID'])) {
+        const n = str(r['名稱']); if (!n) continue;
+        const id = num(r['物品ID']);
+        if (id === null) { warn(`製作物品 第${r._row}列：「${n}」沒有物品ID`); continue; }
+        CRAFT_ITEM_ID[n] = id;
+        const tr = str(r['交易']);
+        if (tr) { if (TRADE[tr]) CRAFT_TRADE[n] = TRADE[tr]; else warn(`製作物品 第${r._row}列：交易「${tr}」只能是空白、不可上市場、不可交易`); }
+      }
+      const used = new Set([...Object.keys(CRAFT_PARTS), ...Object.keys(CRAFT_MATS), ...Object.keys(CRAFT_BASE)]);
+      for (const p of Object.values(CRAFT_PARTS)) { Object.keys(p.recipe).forEach(n => used.add(n)); if (p.frame) used.add(p.frame); }
+      for (const m of Object.values(CRAFT_MATS)) Object.keys(m.recipe).forEach(n => used.add(n));
+      for (const n of used) if (!(n in CRAFT_ITEM_ID)) warn(`製作物品：「${n}」沒有物品ID，配件製作不會顯示它的市場價格`);
+    } else warn('找不到「製作物品」分頁，配件製作不會顯示市場價格');
+
     const data = { MAP_NAMES, SUB_HOMES, SUB_SECTORS, SUB_PATCH, SUB_TANK, SUB_DIST, SUB_RANKS, SUB_CAP, PARTS, SUB_UNLOCK, SUB_MAP_XY,
       SUB_LOOT, SUB_LOOT_TIER, GP_TIER_PROC, GP_TIER_PROC_D, GP_ITEM_PROB, SECTOR_LOOT,
-      ITEM_DB, ITEM_DB_EN, ITEM_TYPE, ITEM_LOOT_CAT, ITEM_TRADE, PRIORITY_LOOT_GROUPS, COMMON_LOOT, GP_PRESETS, GP_PRESET_HINTS, CRAFT_PARTS, CRAFT_MATS, CRAFT_BASE };
+      ITEM_DB, ITEM_DB_EN, ITEM_TYPE, ITEM_LOOT_CAT, ITEM_TRADE, PRIORITY_LOOT_GROUPS, COMMON_LOOT, GP_PRESETS, GP_PRESET_HINTS, CRAFT_PARTS, CRAFT_MATS, CRAFT_BASE, CRAFT_ITEM_ID, CRAFT_TRADE };
 
     const now = new Date(); const pad = n => String(n).padStart(2, '0');
     const version = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}${pad(now.getHours())}${pad(now.getMinutes())}`;

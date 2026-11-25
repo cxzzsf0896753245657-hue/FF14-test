@@ -266,6 +266,8 @@ window.UI_ACTIONS = {
     a66: function (event) { numSpinnerStep('gpLevel',-1,1,145,gpRecalc) },
     a198: function (event) { numSpinnerStep('cfg-level',1,1,145) },
     a199: function (event) { numSpinnerStep('cfg-level',-1,1,145) },
+    a200: function (event) { craftToggleMkt() },
+    a201: function (event) { craftSetMktWorld(this.value) },
     a67: function (event) { gpApplyPreset(this.value); gpShowPresetHint(this.value); gpMyCloseForm(); gpMyRefreshBtns() },
     a68: function (event) { gpShowPresetHint(this.value) },
     a69: function (event) { gpOnCategoryChange() },
@@ -2919,7 +2921,22 @@ window.UI_ACTIONS = {
             user-select: none;
         }
         .craft-inv-cat-row:first-child td { border-top: none; }
-        .craft-group-bar { display: flex; align-items: center; justify-content: flex-end; gap: 8px; margin: 0 0 8px; }
+        .craft-group-bar { display: flex; align-items: center; justify-content: flex-end; gap: 8px; margin: 0 0 8px; flex-wrap: wrap; }
+        /* 配件製作：市場估算價格 */
+        .craft-mkt { display: inline-flex; align-items: center; gap: 8px; margin-right: auto; flex-wrap: wrap; }
+        .craft-mkt select { background: var(--card-color); color: var(--text-color); border: 1px solid rgba(255,255,255,0.15); border-radius: 7px; padding: 3px 6px; font: inherit; font-size: 12.5px; }
+        body.light-mode .craft-mkt select { border-color: rgba(0,0,0,0.15); }
+        .craft-mkt select option { background: #26252c; color: #f2f2f2; } body.light-mode .craft-mkt select option { background: #fff; color: #222; }
+        .craft-mkt-note { font-size: 12px; color: #999; } body.light-mode .craft-mkt-note { color: #666; }
+        .craft-inv-price { display: inline-block; width: 100%; margin-top: 1px; font-size: 12px; font-weight: 700; color: #e9c46a; font-variant-numeric: tabular-nums; text-decoration: none; }
+        body.light-mode .craft-inv-price { color: #9a6200; }
+        .craft-inv-price.na { color: #888; font-weight: 500; } body.light-mode .craft-inv-price.na { color: #888; }
+        .craft-inv-price small { font-size: 10.5px; font-weight: 500; color: #888; margin-left: 3px; }
+        .craft-inv-row-done .craft-inv-name .craft-inv-price { text-decoration: none; }
+        .craft-mat-col-cost { display: block; margin-top: 2px; font-size: 12px; font-weight: 700; color: #e9c46a; letter-spacing: 0; }
+        body.light-mode .craft-mat-col-cost { color: #9a6200; }
+        .craft-mat-col-cost:empty { display: none; }
+        .craft-mat-col-cost small { font-weight: 500; color: #888; margin-left: 3px; }
         .craft-group-label { font-size: 13px; opacity: .7; }
         body.light-mode .craft-inv-cat-row td {
             background: rgba(var(--accent-rgb),0.10);
@@ -8194,8 +8211,9 @@ window.showConfirm = showConfirm;
             chunk.forEach(id => smPriceLoading.delete(world + '|' + id));
         }
         if (world !== smMktWorld) return;
-        if (smSort === 'price') renderSeaMap();
+        if (smSort === 'price' && document.getElementById('panelSeamap')?.style.display !== 'none') renderSeaMap();
         else document.querySelectorAll('#smLoot [data-pid]').forEach(el => { el.outerHTML = smPriceHtml(+el.dataset.pid); });
+        if (typeof craftMktRefresh === 'function') craftMktRefresh();
     }
     window.renderSeaMap = function renderSeaMap() {
         const panel = document.getElementById('panelSeamap'); if (!panel) return;
@@ -9382,7 +9400,7 @@ const CRAFT_BASE = SUB_DATA.CRAFT_BASE;
 
         return `<tr class="craft-inv-row${isDone ? ' craft-inv-row-done' : ''}"
                     data-mat="${attrName}" data-needed="${needed}" data-transition="${isTransition ? 1 : 0}">
-            <td class="craft-inv-name" data-name="${attrName}" data-on-click="a182" title="${label}（點擊複製）">${label}</td>
+            <td class="craft-inv-name" data-name="${attrName}" data-on-click="a182" title="${label}（點擊複製）">${label}${craftPriceHtml(name)}</td>
             <td class="craft-inv-check-cell">
                 <input type="checkbox" class="craft-inv-check" ${isDone ? 'checked' : ''}
                     title="標記全部完成"
@@ -9461,7 +9479,7 @@ const CRAFT_BASE = SUB_DATA.CRAFT_BASE;
         // 「目標」＝直接交給工房的數量；只是用來做其他素材的顯示 -；「缺少」以總需求計算
 
         function craftCatRow(cat) {
-            return `<tr class="craft-inv-cat-row" data-cat="${cat.replace(/"/g,'&quot;')}"><td colspan="5"><span class="craft-cat-arrow">－</span><span class="craft-cat-label">${cat}</span><span class="craft-cat-count"></span></td></tr>`;
+            return `<tr class="craft-inv-cat-row" data-cat="${escAttr(cat)}"><td colspan="5"><span class="craft-cat-arrow">－</span><span class="craft-cat-label">${cat}</span><span class="craft-cat-count"></span></td></tr>`;
         }
 
         const groupSort = (a, b) => {
@@ -9529,6 +9547,11 @@ const CRAFT_BASE = SUB_DATA.CRAFT_BASE;
 
         box.innerHTML = `
             <div class="craft-group-bar">
+                <div class="craft-mkt">
+                    <span class="craft-group-label">市場估算價格</span>
+                    <button type="button" class="lp-switch" role="switch" aria-checked="${craftMktOn}" aria-label="市場估算價格" data-on-click="a200"><span></span></button>
+                    ${craftMktOn ? `<select aria-label="市場伺服器" data-on-change="a201">${SM_MKT_WORLDS.map(w => `<option value="${w}"${w === smMktWorld ? ' selected' : ''}>${w === '陸行鳥' ? '繁中服' : w}</option>`).join('')}</select><span class="craft-mkt-note">最近 7 天成交中位數</span>` : ''}
+                </div>
                 <span class="craft-group-label">素材分類</span>
                 <div class="fleet-layout-toggle craft-group-toggle" role="group" aria-label="素材分類方式">
                     <button type="button" data-group="cat" data-on-click="a132" aria-pressed="${craftGroupMode === 'cat'}">素材類別</button>
@@ -9543,26 +9566,26 @@ const CRAFT_BASE = SUB_DATA.CRAFT_BASE;
                 <button class="craft-mob-tab" data-tab="3" data-on-click="a185">基礎素材</button>
             </div>
             <div class="craft-mat-cols">
-                <div class="craft-mat-col mob-col-active">
-                    <div class="craft-mat-col-header">配件</div>
+                <div class="craft-mat-col mob-col-active" data-cost-col="col1">
+                    <div class="craft-mat-col-header">配件<span class="craft-mat-col-cost"></span></div>
                     <div class="craft-mat-col-body">
                         <table class="craft-inv-table">${tableHead}<tbody>${col1Rows}</tbody></table>
                     </div>
                 </div>
-                <div class="craft-mat-col" data-col-id="col2">
-                    <div class="craft-mat-col-header">成品素材<span class="craft-mat-col-count" data-col-count="col2"></span></div>
+                <div class="craft-mat-col" data-col-id="col2" data-cost-col="col2">
+                    <div class="craft-mat-col-header">成品素材<span class="craft-mat-col-count" data-col-count="col2"></span><span class="craft-mat-col-cost"></span></div>
                     <div class="craft-mat-col-body">
                         <table class="craft-inv-table">${tableHead}<tbody>${col2Rows}</tbody></table>
                     </div>
                 </div>
-                <div class="craft-mat-col" data-col-id="col3">
-                    <div class="craft-mat-col-header">半成品<span class="craft-mat-col-count" data-col-count="col3"></span></div>
+                <div class="craft-mat-col" data-col-id="col3" data-cost-col="col3">
+                    <div class="craft-mat-col-header">半成品<span class="craft-mat-col-count" data-col-count="col3"></span><span class="craft-mat-col-cost"></span></div>
                     <div class="craft-mat-col-body">
                         <table class="craft-inv-table">${tableHead}<tbody>${col3Rows}</tbody></table>
                     </div>
                 </div>
-                <div class="craft-mat-col" data-col-id="col4">
-                    <div class="craft-mat-col-header">基礎素材<span class="craft-mat-col-count" data-col-count="col4"></span></div>
+                <div class="craft-mat-col" data-col-id="col4" data-cost-col="col4">
+                    <div class="craft-mat-col-header">基礎素材<span class="craft-mat-col-count" data-col-count="col4"></span><span class="craft-mat-col-cost"></span></div>
                     <div class="craft-mat-col-body">
                         <table class="craft-inv-table">${tableHead4}<tbody>${col4Rows}</tbody></table>
                     </div>
@@ -9587,6 +9610,7 @@ const CRAFT_BASE = SUB_DATA.CRAFT_BASE;
 
         // ── 計算並更新分類/欄位計數 ──
         craftUpdateColCounts(box);
+        craftMktLoad();
     }
 
     // ── 手機版製作 Tab 切換 ──
@@ -9632,6 +9656,78 @@ const CRAFT_BASE = SUB_DATA.CRAFT_BASE;
                     catCountEl.classList.toggle('all-done', catTotal > 0 && catDone === catTotal);
                 }
             });
+        });
+        craftUpdateCostTotals(box);
+    }
+
+    // ── 配件製作：市場估算價格（Universalis 最近 7 天成交中位數，和海圖設定共用伺服器與快取）──
+    const CRAFT_MKT_KEY = 'sub_craft_mkt';
+    let craftMktOn = (() => { try { return localStorage.getItem(CRAFT_MKT_KEY) === '1'; } catch (e) { return false; } })();
+    function craftItemId(name) { return (SUB_DATA.CRAFT_ITEM_ID || {})[name]; }
+    function craftTradeOf(name) { return (SUB_DATA.CRAFT_TRADE || {})[name] || 'market'; }
+    function craftPriceOf(name) { const id = craftItemId(name); return id ? smPrice[smMktWorld + '|' + id] : null; }
+    function craftPriceHtml(name) {
+        if (!craftMktOn) return '';
+        const id = craftItemId(name);
+        if (!id) return '<span class="craft-inv-price na" title="沒有物品資料">—</span>';
+        if (craftTradeOf(name) !== 'market') return '<span class="craft-inv-price na" title="不能上市場板">不能上市場</span>';
+        const p = smPrice[smMktWorld + '|' + id];
+        if (!p) return '<span class="craft-inv-price na">…</span>';
+        if (p.err) return '<span class="craft-inv-price na" title="價格讀取失敗">?</span>';
+        if (p.none) return '<span class="craft-inv-price na" title="最近 7 天沒有成交">無成交</span>';
+        const w = smMktWorld === '陸行鳥' ? '繁中服' : smMktWorld;
+        return `<span class="craft-inv-price" title="${w}・最近 7 天成交 ${p.n} 筆，中位數單價 ${p.med.toLocaleString()} gil（最低 ${p.min.toLocaleString()}、最高 ${p.max.toLocaleString()}）">${p.med.toLocaleString()}<small>gil・${p.n}筆</small></span>`;
+    }
+    function craftToggleMkt() {
+        craftMktOn = !craftMktOn;
+        try { localStorage.setItem(CRAFT_MKT_KEY, craftMktOn ? '1' : '0'); } catch (e) {}
+        craftRenderResult();
+    }
+    function craftSetMktWorld(w) {
+        smMktWorld = w;
+        try { localStorage.setItem(SM_MKT_KEY, w); } catch (e) {}
+        craftRenderResult();
+    }
+    // 載入目前表格裡所有素材的價格
+    function craftMktLoad() {
+        if (!craftMktOn) return;
+        const ids = new Set();
+        document.querySelectorAll('#craftResult .craft-inv-row').forEach(r => {
+            const n = r.dataset.mat, id = craftItemId(n);
+            if (id && craftTradeOf(n) === 'market') ids.add(id);
+        });
+        if (ids.size) smLoadPrices([...ids]);
+    }
+    // 價格載入後更新畫面
+    function craftMktRefresh() {
+        if (!craftMktOn) return;
+        document.querySelectorAll('#craftResult .craft-inv-row').forEach(r => {
+            const el = r.querySelector('.craft-inv-name .craft-inv-price');
+            if (el) el.outerHTML = craftPriceHtml(r.dataset.mat);
+        });
+        craftUpdateCostTotals();
+    }
+    // 各欄標題：缺少的部分照市價買大約要多少
+    function craftUpdateCostTotals(box) {
+        if (!box) box = document.getElementById('craftResult');
+        if (!box) return;
+        box.querySelectorAll('[data-cost-col]').forEach(col => {
+            const out = col.querySelector('.craft-mat-col-cost');
+            if (!out) return;
+            if (!craftMktOn) { out.textContent = ''; return; }
+            let sum = 0, miss = 0, wait = 0;
+            col.querySelectorAll('.craft-inv-row').forEach(r => {
+                const n = r.dataset.mat;
+                const short = Math.max(0, (parseInt(r.dataset.needed, 10) || 0) - (craftOwnedMap[n] || 0));
+                if (!short) return;
+                if (!craftItemId(n) || craftTradeOf(n) !== 'market') { miss++; return; }
+                const p = craftPriceOf(n);
+                if (!p) { wait++; return; }
+                if (p.none || p.err) { miss++; return; }
+                sum += short * p.med;
+            });
+            out.title = '缺少的數量 × 最近 7 天成交中位數；不能上市場或沒有成交的不算';
+            out.innerHTML = wait ? '估價中…' : `缺少的部分約 ${sum.toLocaleString()} gil${miss ? `<small>（${miss} 項沒有價格）</small>` : ''}`;
         });
     }
 
