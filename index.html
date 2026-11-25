@@ -2928,11 +2928,20 @@ window.UI_ACTIONS = {
         body.light-mode .craft-mkt select { border-color: rgba(0,0,0,0.15); }
         .craft-mkt select option { background: #26252c; color: #f2f2f2; } body.light-mode .craft-mkt select option { background: #fff; color: #222; }
         .craft-mkt-note { font-size: 12px; color: #999; } body.light-mode .craft-mkt-note { color: #666; }
-        .craft-inv-price { display: inline-block; width: 100%; margin-top: 1px; font-size: 12px; font-weight: 700; color: #e9c46a; font-variant-numeric: tabular-nums; text-decoration: none; }
+        .craft-inv-price { display: flex; margin-top: 1px; font-size: 12px; font-weight: 700; color: #e9c46a; font-variant-numeric: tabular-nums; text-decoration: none; white-space: nowrap; }
+        .craft-inv-price .cp-u, .craft-inv-price .cp-t { flex: 1 1 0; min-width: 0; text-align: right; overflow: hidden; text-overflow: ellipsis; }
+        .craft-inv-price .cp-u { padding-right: 8px; }
+        .craft-inv-price .cp-t { color: inherit; opacity: .8; }
+        .craft-inv-price.na .cp-u { text-align: left; }
+        .craft-inv-price.cp-head { color: #999; font-size: 11px; font-weight: 600; margin-top: 0; }
+        .craft-inv-price.cp-head .cp-t { opacity: 1; }
+        body.light-mode .craft-inv-price.cp-head { color: #777; }
+        /* 劃線只劃名稱，不劃價格；配件欄名稱開價格時固定寬度，價格才會上下對齊 */
+        .craft-mat-col:first-child .craft-inv-name:has(.craft-inv-price) { width: 128px; }
+        .craft-mat-col:first-child .craft-inv-name .cin-l { display: block; overflow: hidden; text-overflow: ellipsis; }
+        .craft-mat-col:first-child .craft-inv-th-name .cp-head { width: 118px; margin-left: -2px; }
         body.light-mode .craft-inv-price { color: #9a6200; }
         .craft-inv-price.na { color: #888; font-weight: 500; } body.light-mode .craft-inv-price.na { color: #888; }
-        .craft-inv-price small { font-size: 10.5px; font-weight: 500; color: #888; margin-left: 3px; }
-        .craft-inv-row-done .craft-inv-name .craft-inv-price { text-decoration: none; }
         .craft-mat-col-cost { display: block; margin-top: 2px; font-size: 12px; font-weight: 700; color: #e9c46a; letter-spacing: 0; }
         body.light-mode .craft-mat-col-cost { color: #9a6200; }
         .craft-mat-col-cost:empty { display: none; }
@@ -2981,7 +2990,7 @@ window.UI_ACTIONS = {
         .craft-inv-row:hover td { background: rgba(var(--accent-rgb),0.06); }
         body.light-mode .craft-inv-row:hover td { background: rgba(var(--accent-rgb),0.04); }
         .craft-inv-row-done td { opacity: 0.42; }
-        .craft-inv-row-done .craft-inv-name { text-decoration: line-through; }
+        .craft-inv-row-done .craft-inv-name .cin-l { text-decoration: line-through; }
 
         /* 計算隊列行（稍微不同底色） */
 
@@ -9400,7 +9409,7 @@ const CRAFT_BASE = SUB_DATA.CRAFT_BASE;
 
         return `<tr class="craft-inv-row${isDone ? ' craft-inv-row-done' : ''}"
                     data-mat="${attrName}" data-needed="${needed}" data-transition="${isTransition ? 1 : 0}">
-            <td class="craft-inv-name" data-name="${attrName}" data-on-click="a182" title="${label}（點擊複製）">${label}${craftPriceHtml(name)}</td>
+            <td class="craft-inv-name" data-name="${attrName}" data-on-click="a182" title="${label}（點擊複製）"><span class="cin-l">${label}</span>${craftPriceHtml(name, shortage)}</td>
             <td class="craft-inv-check-cell">
                 <input type="checkbox" class="craft-inv-check" ${isDone ? 'checked' : ''}
                     title="標記全部完成"
@@ -9532,14 +9541,14 @@ const CRAFT_BASE = SUB_DATA.CRAFT_BASE;
         }).join('');
 
         const tableHead = `<thead><tr>
-            <th class="craft-inv-th-name"></th>
+            <th class="craft-inv-th-name">${craftMktOn ? `<span class="craft-inv-price cp-head"><span class="cp-u">單價</span><span class="cp-t">缺少×單價</span></span>` : ''}</th>
             <th class="craft-inv-th-check" title="全部完成">✓</th>
             <th class="craft-inv-th-owned">數量</th>
             <th class="craft-inv-th-target">目標</th>
             <th class="craft-inv-th-short">缺少</th>
         </tr></thead>`;
         const tableHead4 = `<thead><tr>
-            <th class="craft-inv-th-name"></th>
+            <th class="craft-inv-th-name">${craftMktOn ? `<span class="craft-inv-price cp-head"><span class="cp-u">單價</span><span class="cp-t">缺少×單價</span></span>` : ''}</th>
             <th class="craft-inv-th-check" title="全部完成">✓</th>
             <th class="craft-inv-th-owned">數量</th>
             <th class="craft-inv-th-short">缺少</th>
@@ -9667,17 +9676,21 @@ const CRAFT_BASE = SUB_DATA.CRAFT_BASE;
     function craftItemId(name) { return (SUB_DATA.CRAFT_ITEM_ID || {})[name]; }
     function craftTradeOf(name) { return (SUB_DATA.CRAFT_TRADE || {})[name] || 'market'; }
     function craftPriceOf(name) { const id = craftItemId(name); return id ? smPrice[craftMktWorld + '|' + id] : null; }
-    function craftPriceHtml(name) {
+    // 名稱下方的價格列：左＝單價、右＝缺少數量 × 單價（兩欄固定寬度、靠右對齊，上下對齊）
+    function craftShortOf(name, needed) { return Math.max(0, (needed || 0) - (craftOwnedMap[name] || 0)); }
+    function craftPriceHtml(name, short) {
         if (!craftMktOn) return '';
         const id = craftItemId(name);
-        if (!id) return '<span class="craft-inv-price na" title="沒有物品資料">—</span>';
-        if (craftTradeOf(name) !== 'market') return '<span class="craft-inv-price na" title="不能上市場板">不能上市場</span>';
+        const line = (u, t, cls = '', title = '') => `<span class="craft-inv-price${cls}"${title ? ` title="${title}"` : ''}><span class="cp-u">${u}</span><span class="cp-t">${t}</span></span>`;
+        if (!id) return line('—', '', ' na', '沒有物品資料');
+        if (craftTradeOf(name) !== 'market') return line('不能上市場', '', ' na', '不能上市場板');
         const p = smPrice[craftMktWorld + '|' + id];
-        if (!p) return '<span class="craft-inv-price na">…</span>';
-        if (p.err) return '<span class="craft-inv-price na" title="價格讀取失敗">?</span>';
-        if (p.none) return '<span class="craft-inv-price na" title="最近 7 天沒有成交">無成交</span>';
+        if (!p) return line('…', '', ' na');
+        if (p.err) return line('?', '', ' na', '價格讀取失敗');
+        if (p.none) return line('無成交', '', ' na', '最近 7 天沒有成交');
         const w = craftMktWorld === '陸行鳥' ? '繁中服' : craftMktWorld;
-        return `<span class="craft-inv-price" title="${w}・最近 7 天成交 ${p.n} 筆，中位數單價 ${p.med.toLocaleString()} gil（最低 ${p.min.toLocaleString()}、最高 ${p.max.toLocaleString()}）">${p.med.toLocaleString()}<small>gil・${p.n}筆</small></span>`;
+        const title = `${w}・最近 7 天成交 ${p.n} 筆，中位數單價 ${p.med.toLocaleString()} gil（最低 ${p.min.toLocaleString()}、最高 ${p.max.toLocaleString()}）${short ? `\n缺少 ${short} × ${p.med.toLocaleString()} ＝ ${(short * p.med).toLocaleString()} gil` : ''}`;
+        return line(p.med.toLocaleString(), short ? (short * p.med).toLocaleString() : '—', '', title);
     }
     function craftToggleMkt() {
         craftMktOn = !craftMktOn;
@@ -9704,7 +9717,7 @@ const CRAFT_BASE = SUB_DATA.CRAFT_BASE;
         if (!craftMktOn) return;
         document.querySelectorAll('#craftResult .craft-inv-row').forEach(r => {
             const el = r.querySelector('.craft-inv-name .craft-inv-price');
-            if (el) el.outerHTML = craftPriceHtml(r.dataset.mat);
+            if (el) el.outerHTML = craftPriceHtml(r.dataset.mat, craftShortOf(r.dataset.mat, parseInt(r.dataset.needed, 10)));
         });
         craftUpdateCostTotals();
     }
@@ -9719,7 +9732,9 @@ const CRAFT_BASE = SUB_DATA.CRAFT_BASE;
             let sum = 0, miss = 0, wait = 0;
             col.querySelectorAll('.craft-inv-row').forEach(r => {
                 const n = r.dataset.mat;
-                const short = Math.max(0, (parseInt(r.dataset.needed, 10) || 0) - (craftOwnedMap[n] || 0));
+                const short = craftShortOf(n, parseInt(r.dataset.needed, 10));
+                const pe = r.querySelector('.craft-inv-name .craft-inv-price');
+                if (pe) { const html = craftPriceHtml(n, short); if (pe.outerHTML !== html) pe.outerHTML = html; }
                 if (!short) return;
                 if (!craftItemId(n) || craftTradeOf(n) !== 'market') { miss++; return; }
                 const p = craftPriceOf(n);
