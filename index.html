@@ -2953,6 +2953,8 @@ window.UI_ACTIONS = {
         @keyframes mktIn { from { opacity: 0; transform: translateY(4px); filter: blur(2px); } to { opacity: 1; transform: none; filter: none; } }
         @keyframes mktWait { 0%, 100% { opacity: .3; } 50% { opacity: .9; } }
         .mk-in { animation: mktIn var(--duration-slow) var(--ease-smooth-out) both; }
+        @keyframes mktOut { to { opacity: 0; transform: translateY(-3px); filter: blur(2px); } }
+        .mk-out { animation: mktOut var(--duration-quick) var(--ease-smooth-out) both; pointer-events: none; }
         .craft-inv-pt.mk-in, .craft-inv-pw.mk-in { animation-delay: var(--duration-stagger); }
         .sm-pr.ld, .mk-wait { animation: mktWait 1.1s ease-in-out infinite; }
         @media (prefers-reduced-motion: reduce) { .mk-in, .sm-pr.ld, .mk-wait { animation: none; } }
@@ -9823,15 +9825,39 @@ const CRAFT_BASE = SUB_DATA.CRAFT_BASE;
         // 剛從「載入中」變成價格：淡入
         if (wasWait) r.querySelectorAll('.craft-inv-pu, .craft-inv-pt, .craft-inv-pw').forEach(c => { if (!c.classList.contains('mk-wait')) c.classList.add('mk-in'); });
     }
+    // 價格相關的欄位、標題、伺服器選單
+    const CRAFT_MKT_SEL = '#craftResult .craft-inv-pu, #craftResult .craft-inv-pt, #craftResult .craft-inv-pw, #craftResult .craft-inv-th-pu, #craftResult .craft-inv-th-pt, #craftResult .craft-inv-th-pw, #craftResult .craft-mat-col-cost, #craftResult .craft-mkt select, #craftResult .craft-mkt-note';
+    let _craftMktBusy = false;
+    // 開關、換伺服器：舊的價格先淡出，新的再淡入（每次都有，不只第一次）
+    function craftMktSwap(apply) {
+        if (_craftMktBusy) return;
+        const olds = [...document.querySelectorAll(CRAFT_MKT_SEL)];
+        const show = () => {
+            apply();
+            craftRenderResult();
+            document.querySelectorAll(CRAFT_MKT_SEL).forEach(el => { if (!el.classList.contains('mk-wait')) el.classList.add('mk-in'); });
+            _craftMktBusy = false;
+        };
+        if (!olds.length) { show(); return; }
+        _craftMktBusy = true;
+        olds.forEach(el => { el.classList.remove('mk-in'); el.classList.add('mk-out'); });
+        setTimeout(show, 150);
+    }
     function craftToggleMkt() {
-        craftMktOn = !craftMktOn;
-        try { localStorage.setItem(CRAFT_MKT_KEY, craftMktOn ? '1' : '0'); } catch (e) {}
-        craftRenderResult();
+        if (_craftMktBusy) return;
+        // 開關本身先滑過去
+        const sw = document.querySelector('#craftResult [data-on-click="a200"]');
+        if (sw) sw.setAttribute('aria-checked', String(!craftMktOn));
+        craftMktSwap(() => {
+            craftMktOn = !craftMktOn;
+            try { localStorage.setItem(CRAFT_MKT_KEY, craftMktOn ? '1' : '0'); } catch (e) {}
+        });
     }
     function craftSetMktWorld(w) {
-        craftMktWorld = w;
-        try { localStorage.setItem(CRAFT_MKT_WORLD_KEY, w); } catch (e) {}
-        craftRenderResult();
+        craftMktSwap(() => {
+            craftMktWorld = w;
+            try { localStorage.setItem(CRAFT_MKT_WORLD_KEY, w); } catch (e) {}
+        });
     }
     // 載入目前表格裡所有素材的價格
     function craftMktLoad() {
