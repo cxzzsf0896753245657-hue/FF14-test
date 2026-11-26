@@ -2953,6 +2953,11 @@ window.UI_ACTIONS = {
         @keyframes mktIn { from { opacity: 0; transform: translateY(4px); filter: blur(2px); } to { opacity: 1; transform: none; filter: none; } }
         @keyframes mktWait { 0%, 100% { opacity: .3; } 50% { opacity: .9; } }
         .mk-in { animation: mktIn var(--duration-slow) var(--ease-smooth-out) both; }
+        /* 配件製作：市場價格開關時，表格平滑變形 */
+        html.cm-vt #craftResult { view-transition-name: craft-result; }
+        html.cm-vt::view-transition-group(craft-result) { animation-duration: var(--duration-medium); animation-timing-function: var(--ease-smooth-out); overflow: clip; }
+        html.cm-vt::view-transition-old(craft-result), html.cm-vt::view-transition-new(craft-result) { height: 100%; width: 100%; object-fit: none; object-position: left top; animation-duration: var(--duration-medium); animation-timing-function: var(--ease-smooth-out); }
+        html.cm-vt::view-transition-old(root), html.cm-vt::view-transition-new(root) { animation: none; }
         @keyframes mktOut { to { opacity: 0; transform: translateY(-3px); filter: blur(2px); } }
         .mk-out { animation: mktOut var(--duration-quick) var(--ease-smooth-out) both; pointer-events: none; }
         .craft-inv-pt.mk-in, .craft-inv-pw.mk-in { animation-delay: var(--duration-stagger); }
@@ -2969,7 +2974,34 @@ window.UI_ACTIONS = {
         body.light-mode .craft-inv-pw { color: #666; }
         .craft-inv-th-pw { text-align: left !important; font-size: 11px !important; padding-left: 6px !important; }
         /* 繁中服多一欄「最低」：名稱太長時換行（價格仍在同一列），欄距縮小 */
-        .craft-mat-cols.craft-mkt-dc .craft-inv-name { white-space: normal; line-height: 1.25; }
+        .craft-mat-cols.craft-mkt-dc .craft-inv-name { white-space: normal; line-height: 1.25; word-break: keep-all; }
+        /* 欄寬不夠時（螢幕較窄）：先藏「最低」，再藏素材欄的「目標」（缺少已經算好），名稱不會被擠成直排 */
+        .craft-mkt-on .craft-mat-col { container-type: inline-size; }
+        @container (max-width: 359px) {
+            .craft-inv-pw, .craft-inv-th-pw { display: none; }
+            .craft-mat-cols.craft-mkt-dc .craft-mat-col:first-child .craft-inv-name { width: auto; max-width: 92px; }
+        }
+        @container (max-width: 329px) {
+            .craft-inv-target:not(.craft-inv-target-gear), .craft-mat-col:not(:first-child) .craft-inv-th-target { display: none; }
+        }
+        /* 開價格後四欄放不下時，改成兩欄兩列（上：配件、成品素材；下：半成品、基礎素材） */
+        .craft-mat-cols-wrap { container: craftwrap / inline-size; }
+        @container craftwrap (max-width: 1379px) {
+            .craft-mat-cols.craft-mkt-on { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; min-width: 0 !important; }
+        }
+        @container craftwrap (max-width: 1479px) {
+            .craft-mat-cols.craft-mkt-dc { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; min-width: 0 !important; }
+        }
+        @container craftwrap (min-width: 641px) and (max-width: 1479px) {
+            .craft-mat-cols.craft-mkt-dc .craft-mat-col:nth-child(-n+2) { border-bottom: 1px solid var(--edit-border); }
+            .craft-mat-cols.craft-mkt-dc .craft-mat-col:nth-child(2n) { border-right: none; }
+            .craft-mat-cols-wrap .craft-mat-cols.craft-mkt-dc .craft-mat-col:first-child .craft-inv-name { width: auto; max-width: 180px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: inherit; }
+        }
+        @container craftwrap (min-width: 641px) and (max-width: 1379px) {
+            .craft-mat-cols.craft-mkt-on .craft-mat-col:nth-child(-n+2) { border-bottom: 1px solid var(--edit-border); }
+            .craft-mat-cols.craft-mkt-on .craft-mat-col:nth-child(2n) { border-right: none; }
+            .craft-mat-cols.craft-mkt-on .craft-mat-col:first-child .craft-inv-name { max-width: 180px; }
+        }
         .craft-mat-cols.craft-mkt-dc .craft-mat-col:first-child .craft-inv-name { width: 66px; max-width: 66px; word-break: keep-all; font-size: 13.5px; white-space: normal; overflow: visible; text-overflow: clip; }
         .craft-mat-cols.craft-mkt-dc .craft-inv-pu, .craft-mat-cols.craft-mkt-dc .craft-inv-pt { padding-left: 2px !important; font-size: 11.5px; }
         .craft-inv-th-pu, .craft-inv-th-pt { text-align: right !important; font-size: 11px !important; padding-left: 4px !important; padding-right: 2px !important; }
@@ -9831,6 +9863,18 @@ const CRAFT_BASE = SUB_DATA.CRAFT_BASE;
     // 開關、換伺服器：舊的價格先淡出，新的再淡入（每次都有，不只第一次）
     function craftMktSwap(apply) {
         if (_craftMktBusy) return;
+        // 支援的瀏覽器：整個表格平滑變形（欄位收合／展開不會跳一下）
+        let reduce = false; try { reduce = matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
+        if (document.startViewTransition && !reduce) {
+            _craftMktBusy = true;
+            const root = document.documentElement;
+            root.classList.add('cm-vt');
+            let vt;
+            try { vt = document.startViewTransition(() => { apply(); craftRenderResult(); }); }
+            catch (e) { root.classList.remove('cm-vt'); _craftMktBusy = false; apply(); craftRenderResult(); return; }
+            vt.finished.finally(() => { root.classList.remove('cm-vt'); _craftMktBusy = false; });
+            return;
+        }
         const olds = [...document.querySelectorAll(CRAFT_MKT_SEL)];
         const show = () => {
             apply();
