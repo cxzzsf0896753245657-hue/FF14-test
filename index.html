@@ -2952,10 +2952,10 @@ window.UI_ACTIONS = {
         /* 市場價格：載入中閃爍，載入完成淡入 */
         @keyframes mktIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes mktWait { 0%, 100% { opacity: .3; } 50% { opacity: .9; } }
-        .mk-in { animation: mktIn var(--duration-fast) var(--ease-smooth-out) both; }
+        .mk-in { animation: mktIn var(--duration-very-slow) var(--ease-smooth-out) both; }
         /* 配件製作：市場價格開關時，表格平滑變形 */
         @keyframes mktOut { to { opacity: 0; } }
-        .mk-out { animation: mktOut var(--duration-quick) var(--ease-smooth-out) both; pointer-events: none; }
+        .mk-out { animation: mktOut var(--duration-medium) var(--ease-smooth-out) both; pointer-events: none; }
         .craft-inv-pt.mk-in, .craft-inv-pw.mk-in { animation-delay: var(--duration-stagger); }
         .sm-pr.ld, .mk-wait { animation: mktWait 1.1s ease-in-out infinite; }
         @media (prefers-reduced-motion: reduce) { .mk-in, .sm-pr.ld, .mk-wait { animation: none; } }
@@ -9869,7 +9869,7 @@ const CRAFT_BASE = SUB_DATA.CRAFT_BASE;
         if (!olds.length) { show(); return; }
         _craftMktBusy = true;
         olds.forEach(el => { el.classList.remove('mk-in'); el.classList.add('mk-out'); });
-        setTimeout(show, 150);
+        setTimeout(show, 300);
     }
     function craftToggleMkt() {
         if (_craftMktBusy) return;
