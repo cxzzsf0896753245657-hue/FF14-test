@@ -9857,12 +9857,30 @@ const CRAFT_BASE = SUB_DATA.CRAFT_BASE;
     const CRAFT_MKT_SEL = '#craftResult .craft-inv-pu, #craftResult .craft-inv-pt, #craftResult .craft-inv-pw, #craftResult .craft-inv-th-pu, #craftResult .craft-inv-th-pt, #craftResult .craft-inv-th-pw, #craftResult .craft-mat-col-cost, #craftResult .craft-mkt select, #craftResult .craft-mkt-note';
     let _craftMktBusy = false;
     // 開關、換伺服器：舊的價格先淡出，新的再淡入（每次都有，不只第一次）
+    // 內容增減時高度平滑過渡，而不是瞬間跳動
+    function craftSmoothHeight(box, h0) {
+        if (!box || !h0) return;
+        let reduce = false; try { reduce = matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
+        if (reduce) return;
+        if (box._hAnim) { box._hAnim.cancel(); box._hAnim = null; }
+        const h1 = box.getBoundingClientRect().height;
+        if (Math.abs(h1 - h0) < 2 || !box.animate) return;
+        const dur = Math.min(600, Math.max(300, Math.abs(h1 - h0) * 0.8));
+        box.style.overflow = 'hidden';
+        const a = box.animate([{ height: h0 + 'px' }, { height: h1 + 'px' }], { duration: dur, easing: 'cubic-bezier(0.22,1,0.36,1)' });
+        box._hAnim = a;
+        const done = () => { if (box._hAnim === a) { box._hAnim = null; box.style.overflow = ''; } };
+        a.onfinish = done; a.oncancel = done;
+    }
     function craftMktSwap(apply) {
         if (_craftMktBusy) return;
         const olds = [...document.querySelectorAll(CRAFT_MKT_SEL)];
         const show = () => {
+            const box = document.getElementById('craftResult');
+            const h0 = box ? box.getBoundingClientRect().height : 0;
             apply();
             craftRenderResult();
+            craftSmoothHeight(box, h0);
             document.querySelectorAll(CRAFT_MKT_SEL).forEach(el => { if (!el.classList.contains('mk-wait')) el.classList.add('mk-in'); });
             _craftMktBusy = false;
         };
