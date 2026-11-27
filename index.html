@@ -9857,6 +9857,20 @@ const CRAFT_BASE = SUB_DATA.CRAFT_BASE;
     const CRAFT_MKT_SEL = '#craftResult .craft-inv-pu, #craftResult .craft-inv-pt, #craftResult .craft-inv-pw, #craftResult .craft-inv-th-pu, #craftResult .craft-inv-th-pt, #craftResult .craft-inv-th-pw, #craftResult .craft-mat-col-cost, #craftResult .craft-mkt select, #craftResult .craft-mkt-note';
     let _craftMktBusy = false;
     // 開關、換伺服器：舊的價格先淡出，新的再淡入（每次都有，不只第一次）
+    // 欄位／列的位置變化：從舊位置滑到新位置（和高度、文字變化同時進行）
+    function craftFlipRows(pos0) {
+        let reduce = false; try { reduce = matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
+        if (reduce) return;
+        const els = [...document.querySelectorAll('#craftResult .craft-mat-col, #craftResult .craft-inv-row')];
+        if (els.length !== pos0.length) return;
+        els.forEach((el, i) => {
+            if (!el.animate) return;
+            const b = el.getBoundingClientRect();
+            const dx = pos0[i][0] - b.left, dy = pos0[i][1] - b.top;
+            if (Math.abs(dx) < 1 && Math.abs(dy) < 1) return;
+            el.animate([{ transform: `translate(${dx}px, ${dy}px)` }, { transform: 'none' }], { duration: 400, easing: 'cubic-bezier(0.22,1,0.36,1)' });
+        });
+    }
     // 內容增減時高度平滑過渡，而不是瞬間跳動
     function craftSmoothHeight(box, h0) {
         if (!box || !h0) return;
@@ -9878,9 +9892,11 @@ const CRAFT_BASE = SUB_DATA.CRAFT_BASE;
         const show = () => {
             const box = document.getElementById('craftResult');
             const h0 = box ? box.getBoundingClientRect().height : 0;
+            const rows0 = [...document.querySelectorAll('#craftResult .craft-mat-col, #craftResult .craft-inv-row')].map(r => { const b = r.getBoundingClientRect(); return [b.left, b.top]; });
             apply();
             craftRenderResult();
             craftSmoothHeight(box, h0);
+            craftFlipRows(rows0);
             document.querySelectorAll(CRAFT_MKT_SEL).forEach(el => { if (!el.classList.contains('mk-wait')) el.classList.add('mk-in'); });
             _craftMktBusy = false;
         };
