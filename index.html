@@ -9884,10 +9884,8 @@ const CRAFT_BASE = SUB_DATA.CRAFT_BASE;
             document.querySelectorAll(CRAFT_MKT_SEL).forEach(el => { if (!el.classList.contains('mk-wait')) el.classList.add('mk-in'); });
             _craftMktBusy = false;
         };
-        if (!olds.length) { show(); return; }
         _craftMktBusy = true;
-        olds.forEach(el => { el.classList.remove('mk-in'); el.classList.add('mk-out'); });
-        setTimeout(show, 300);
+        show();   // 文字與版面同時變化：不等舊價格淡出
     }
     function craftToggleMkt() {
         if (_craftMktBusy) return;
