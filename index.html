@@ -1479,7 +1479,7 @@ window.UI_ACTIONS = {
         .sm-tr.trade { color: #e0b15a; background: rgba(224,168,74,.14); }
         .sm-tr.no { color: #ef8a8a; background: rgba(239,83,80,.14); }
         body.light-mode .sm-tr.market { color: #2e7d32; } body.light-mode .sm-tr.trade { color: #a06a00; } body.light-mode .sm-tr.no { color: #c62828; }
-        .sm-mkt { flex-basis: 100%; display: flex; align-items: center; gap: 8px; margin-top: 6px; font-size: 12px; color: #999; }
+        .sm-mkt { flex-basis: 100%; display: flex; flex-wrap: wrap; min-width: 0; align-items: center; gap: 6px 8px; margin-top: 6px; font-size: 12px; color: #999; }
         .sm-mkt select { background: var(--card-color); color: var(--text-color); border: 1px solid rgba(255,255,255,0.15); border-radius: 7px; padding: 3px 6px; font: inherit; font-size: 12px; }
         body.light-mode .sm-mkt select { border-color: rgba(0,0,0,0.15); }
         .sm-mkt select option { background: #26252c; color: #f2f2f2; } body.light-mode .sm-mkt select option { background: #fff; color: #222; }
@@ -1521,7 +1521,7 @@ window.UI_ACTIONS = {
         .sm-cat-tabs { display: flex; gap: 5px; flex-wrap: wrap; }
         .sm-loot { display: flex; flex-direction: column; gap: 6px; max-height: 640px; overflow-y: auto; padding-right: 2px; }
         .sm-empty { font-size: 13px; color: #888; padding: 14px 4px; text-align: center; }
-        @media (max-width: 900px) { .sm-grid { display: flex; flex-direction: column; gap: 14px; } .sm-col { display: contents; } .sm-split { display: none; } .sm-card + .sm-card { margin-top: 0; } .sm-o1 { order: 1; } .sm-o2 { order: 2; } .sm-o4 { order: 4; } .sm-loot { max-height: none; } }
+        @media (max-width: 900px) { .sm-grid { display: flex; flex-direction: column; gap: 14px; } .sm-grid > .sm-card, .sm-col > .sm-card { min-width: 0; max-width: 100%; box-sizing: border-box; } .sm-col { display: contents; } .sm-split { display: none; } .sm-card + .sm-card { margin-top: 0; } .sm-o1 { order: 1; } .sm-o2 { order: 2; } .sm-o4 { order: 4; } .sm-loot { max-height: none; } }
         @media (max-width: 640px) { #panelSeamap { padding: 0 10px 16px; } }
         @media (max-width: 640px) { .sm-row { row-gap: 2px; } .sm-br { display: block; flex-basis: 100%; height: 0; margin-top: -2px; } .sm-tr { margin-left: 26px; } .sm-stat { padding-left: 0; } .sm-right { order: 5; flex-basis: calc(100% - 26px); margin-left: 26px; justify-content: space-between; } .sm-namec { flex: 0 1 auto; min-width: 0; max-width: calc(100% - 30px); } .sm-row .sm-nm { flex: 0 1 auto; max-width: none; white-space: normal; } .sm-pr { min-width: 0; } .sm-right .sm-pts { justify-content: flex-start; max-width: none; } }
         @media (max-width: 640px) { .sm-mapbox { width: 100%; } .sm-pin { min-width: 40px; height: 40px; font-size: 16px; border-width: 2px; } .sm-legend { margin-left: 0; } }
