@@ -9868,7 +9868,8 @@ const CRAFT_BASE = SUB_DATA.CRAFT_BASE;
             const b = el.getBoundingClientRect();
             const dx = pos0[i][0] - b.left, dy = pos0[i][1] - b.top;
             if (Math.abs(dx) < 1 && Math.abs(dy) < 1) return;
-            el.animate([{ transform: `translate(${dx}px, ${dy}px)` }, { transform: 'none' }], { duration: 400, easing: 'cubic-bezier(0.22,1,0.36,1)' });
+            const ri = el.classList.contains('craft-inv-row') ? (el.parentElement ? [...el.parentElement.children].indexOf(el) : 0) : 0;
+            el.animate([{ transform: `translate(${dx}px, ${dy}px)` }, { transform: 'none' }], { duration: 400, delay: Math.min(ri, 12) * 25, easing: 'cubic-bezier(0.22,1,0.36,1)', fill: 'backwards' });
         });
     }
     // 內容增減時高度平滑過渡，而不是瞬間跳動
@@ -9897,6 +9898,13 @@ const CRAFT_BASE = SUB_DATA.CRAFT_BASE;
             craftRenderResult();
             craftSmoothHeight(box, h0);
             craftFlipRows(rows0);
+            // 交錯出場：每一列依序延遲，價格由上往下逐列出現
+            document.querySelectorAll('#craftResult .craft-mat-col').forEach(col => {
+                col.querySelectorAll('.craft-inv-row').forEach((r, i) => {
+                    const d = Math.min(i, 12) * 35 + 'ms';
+                    r.querySelectorAll('.craft-inv-pu, .craft-inv-pt, .craft-inv-pw').forEach(c => { c.style.animationDelay = d; });
+                });
+            });
             document.querySelectorAll(CRAFT_MKT_SEL).forEach(el => { if (!el.classList.contains('mk-wait')) el.classList.add('mk-in'); });
             _craftMktBusy = false;
         };
